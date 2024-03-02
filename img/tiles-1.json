@@ -1,5 +1,5 @@
 { "frames": {
-   "7drl sprite sheet 1 (Background) 0.aseprite": {
+   "tiles-1 (Background) 0.aseprite": {
     "frame": { "x": 0, "y": 0, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -7,7 +7,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (Background) 1.aseprite": {
+   "tiles-1 (Background) 1.aseprite": {
     "frame": { "x": 16, "y": 0, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -15,7 +15,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (Background) 2.aseprite": {
+   "tiles-1 (Background) 2.aseprite": {
     "frame": { "x": 32, "y": 0, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -23,7 +23,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (Background) 3.aseprite": {
+   "tiles-1 (Background) 3.aseprite": {
     "frame": { "x": 48, "y": 0, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -31,7 +31,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (Background) 4.aseprite": {
+   "tiles-1 (Background) 4.aseprite": {
     "frame": { "x": 64, "y": 0, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -39,7 +39,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (Background) 5.aseprite": {
+   "tiles-1 (Background) 5.aseprite": {
     "frame": { "x": 80, "y": 0, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -47,7 +47,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (Background) 6.aseprite": {
+   "tiles-1 (Background) 6.aseprite": {
     "frame": { "x": 96, "y": 0, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -55,7 +55,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (Background) 7.aseprite": {
+   "tiles-1 (Background) 7.aseprite": {
     "frame": { "x": 112, "y": 0, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -63,7 +63,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (Background) 8.aseprite": {
+   "tiles-1 (Background) 8.aseprite": {
     "frame": { "x": 128, "y": 0, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -71,7 +71,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (Background) 9.aseprite": {
+   "tiles-1 (Background) 9.aseprite": {
     "frame": { "x": 144, "y": 0, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -79,7 +79,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (bubble1) 0.aseprite": {
+   "tiles-1 (bubble1) 0.aseprite": {
     "frame": { "x": 0, "y": 16, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -87,7 +87,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (bubble1) 1.aseprite": {
+   "tiles-1 (bubble1) 1.aseprite": {
     "frame": { "x": 16, "y": 16, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -95,7 +95,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (bubble1) 2.aseprite": {
+   "tiles-1 (bubble1) 2.aseprite": {
     "frame": { "x": 32, "y": 16, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -103,7 +103,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (bubble1) 3.aseprite": {
+   "tiles-1 (bubble1) 3.aseprite": {
     "frame": { "x": 48, "y": 16, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -111,7 +111,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (bubble1) 4.aseprite": {
+   "tiles-1 (bubble1) 4.aseprite": {
     "frame": { "x": 64, "y": 16, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -119,7 +119,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (bubble1) 5.aseprite": {
+   "tiles-1 (bubble1) 5.aseprite": {
     "frame": { "x": 80, "y": 16, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -127,7 +127,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (bubble1) 6.aseprite": {
+   "tiles-1 (bubble1) 6.aseprite": {
     "frame": { "x": 96, "y": 16, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -135,7 +135,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (bubble1) 7.aseprite": {
+   "tiles-1 (bubble1) 7.aseprite": {
     "frame": { "x": 112, "y": 16, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -143,7 +143,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (bubble1) 8.aseprite": {
+   "tiles-1 (bubble1) 8.aseprite": {
     "frame": { "x": 128, "y": 16, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -151,7 +151,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (bubble1) 9.aseprite": {
+   "tiles-1 (bubble1) 9.aseprite": {
     "frame": { "x": 144, "y": 16, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -159,7 +159,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (eel) 0.aseprite": {
+   "tiles-1 (eel) 0.aseprite": {
     "frame": { "x": 0, "y": 32, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -167,7 +167,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (eel) 1.aseprite": {
+   "tiles-1 (eel) 1.aseprite": {
     "frame": { "x": 16, "y": 32, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -175,7 +175,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (eel) 2.aseprite": {
+   "tiles-1 (eel) 2.aseprite": {
     "frame": { "x": 32, "y": 32, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -183,7 +183,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (eel) 3.aseprite": {
+   "tiles-1 (eel) 3.aseprite": {
     "frame": { "x": 48, "y": 32, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -191,7 +191,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (eel) 4.aseprite": {
+   "tiles-1 (eel) 4.aseprite": {
     "frame": { "x": 64, "y": 32, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -199,7 +199,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (eel) 5.aseprite": {
+   "tiles-1 (eel) 5.aseprite": {
     "frame": { "x": 80, "y": 32, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -207,7 +207,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (eel) 6.aseprite": {
+   "tiles-1 (eel) 6.aseprite": {
     "frame": { "x": 96, "y": 32, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -215,7 +215,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (eel) 7.aseprite": {
+   "tiles-1 (eel) 7.aseprite": {
     "frame": { "x": 112, "y": 32, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -223,7 +223,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (eel) 8.aseprite": {
+   "tiles-1 (eel) 8.aseprite": {
     "frame": { "x": 128, "y": 32, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -231,7 +231,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (eel) 9.aseprite": {
+   "tiles-1 (eel) 9.aseprite": {
     "frame": { "x": 144, "y": 32, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -239,7 +239,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (weeds1) 0.aseprite": {
+   "tiles-1 (weeds1) 0.aseprite": {
     "frame": { "x": 0, "y": 48, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -247,7 +247,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (weeds1) 1.aseprite": {
+   "tiles-1 (weeds1) 1.aseprite": {
     "frame": { "x": 16, "y": 48, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -255,7 +255,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (weeds1) 2.aseprite": {
+   "tiles-1 (weeds1) 2.aseprite": {
     "frame": { "x": 32, "y": 48, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -263,7 +263,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (weeds1) 3.aseprite": {
+   "tiles-1 (weeds1) 3.aseprite": {
     "frame": { "x": 48, "y": 48, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -271,7 +271,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (weeds1) 4.aseprite": {
+   "tiles-1 (weeds1) 4.aseprite": {
     "frame": { "x": 64, "y": 48, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -279,7 +279,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (weeds1) 5.aseprite": {
+   "tiles-1 (weeds1) 5.aseprite": {
     "frame": { "x": 80, "y": 48, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -287,7 +287,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (weeds1) 6.aseprite": {
+   "tiles-1 (weeds1) 6.aseprite": {
     "frame": { "x": 96, "y": 48, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -295,7 +295,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (weeds1) 7.aseprite": {
+   "tiles-1 (weeds1) 7.aseprite": {
     "frame": { "x": 112, "y": 48, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -303,7 +303,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (weeds1) 8.aseprite": {
+   "tiles-1 (weeds1) 8.aseprite": {
     "frame": { "x": 128, "y": 48, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -311,7 +311,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (weeds1) 9.aseprite": {
+   "tiles-1 (weeds1) 9.aseprite": {
     "frame": { "x": 144, "y": 48, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -319,7 +319,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (egg) 0.aseprite": {
+   "tiles-1 (egg) 0.aseprite": {
     "frame": { "x": 0, "y": 64, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -327,7 +327,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (egg) 1.aseprite": {
+   "tiles-1 (egg) 1.aseprite": {
     "frame": { "x": 16, "y": 64, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -335,7 +335,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (egg) 2.aseprite": {
+   "tiles-1 (egg) 2.aseprite": {
     "frame": { "x": 32, "y": 64, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -343,7 +343,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (egg) 3.aseprite": {
+   "tiles-1 (egg) 3.aseprite": {
     "frame": { "x": 48, "y": 64, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -351,7 +351,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (egg) 4.aseprite": {
+   "tiles-1 (egg) 4.aseprite": {
     "frame": { "x": 64, "y": 64, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -359,7 +359,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (egg) 5.aseprite": {
+   "tiles-1 (egg) 5.aseprite": {
     "frame": { "x": 80, "y": 64, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -367,7 +367,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (egg) 6.aseprite": {
+   "tiles-1 (egg) 6.aseprite": {
     "frame": { "x": 96, "y": 64, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -375,7 +375,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (egg) 7.aseprite": {
+   "tiles-1 (egg) 7.aseprite": {
     "frame": { "x": 112, "y": 64, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -383,7 +383,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (egg) 8.aseprite": {
+   "tiles-1 (egg) 8.aseprite": {
     "frame": { "x": 128, "y": 64, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -391,7 +391,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (egg) 9.aseprite": {
+   "tiles-1 (egg) 9.aseprite": {
     "frame": { "x": 144, "y": 64, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -399,7 +399,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (crab) 0.aseprite": {
+   "tiles-1 (crab) 0.aseprite": {
     "frame": { "x": 0, "y": 80, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -407,7 +407,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (crab) 1.aseprite": {
+   "tiles-1 (crab) 1.aseprite": {
     "frame": { "x": 16, "y": 80, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -415,7 +415,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (crab) 2.aseprite": {
+   "tiles-1 (crab) 2.aseprite": {
     "frame": { "x": 32, "y": 80, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -423,7 +423,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (crab) 3.aseprite": {
+   "tiles-1 (crab) 3.aseprite": {
     "frame": { "x": 48, "y": 80, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -431,7 +431,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (crab) 4.aseprite": {
+   "tiles-1 (crab) 4.aseprite": {
     "frame": { "x": 64, "y": 80, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -439,7 +439,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (crab) 5.aseprite": {
+   "tiles-1 (crab) 5.aseprite": {
     "frame": { "x": 80, "y": 80, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -447,7 +447,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (crab) 6.aseprite": {
+   "tiles-1 (crab) 6.aseprite": {
     "frame": { "x": 96, "y": 80, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -455,7 +455,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (crab) 7.aseprite": {
+   "tiles-1 (crab) 7.aseprite": {
     "frame": { "x": 112, "y": 80, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -463,7 +463,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (crab) 8.aseprite": {
+   "tiles-1 (crab) 8.aseprite": {
     "frame": { "x": 128, "y": 80, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -471,7 +471,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (crab) 9.aseprite": {
+   "tiles-1 (crab) 9.aseprite": {
     "frame": { "x": 144, "y": 80, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -479,7 +479,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (fish) 0.aseprite": {
+   "tiles-1 (fish) 0.aseprite": {
     "frame": { "x": 0, "y": 96, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -487,7 +487,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (fish) 1.aseprite": {
+   "tiles-1 (fish) 1.aseprite": {
     "frame": { "x": 16, "y": 96, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -495,7 +495,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (fish) 2.aseprite": {
+   "tiles-1 (fish) 2.aseprite": {
     "frame": { "x": 32, "y": 96, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -503,7 +503,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (fish) 3.aseprite": {
+   "tiles-1 (fish) 3.aseprite": {
     "frame": { "x": 48, "y": 96, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -511,7 +511,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (fish) 4.aseprite": {
+   "tiles-1 (fish) 4.aseprite": {
     "frame": { "x": 64, "y": 96, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -519,7 +519,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (fish) 5.aseprite": {
+   "tiles-1 (fish) 5.aseprite": {
     "frame": { "x": 80, "y": 96, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -527,7 +527,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (fish) 6.aseprite": {
+   "tiles-1 (fish) 6.aseprite": {
     "frame": { "x": 96, "y": 96, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -535,7 +535,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (fish) 7.aseprite": {
+   "tiles-1 (fish) 7.aseprite": {
     "frame": { "x": 112, "y": 96, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -543,7 +543,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (fish) 8.aseprite": {
+   "tiles-1 (fish) 8.aseprite": {
     "frame": { "x": 128, "y": 96, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -551,7 +551,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (fish) 9.aseprite": {
+   "tiles-1 (fish) 9.aseprite": {
     "frame": { "x": 144, "y": 96, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -559,7 +559,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (PCfish) 0.aseprite": {
+   "tiles-1 (PCfish) 0.aseprite": {
     "frame": { "x": 0, "y": 112, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -567,7 +567,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (PCfish) 1.aseprite": {
+   "tiles-1 (PCfish) 1.aseprite": {
     "frame": { "x": 16, "y": 112, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -575,7 +575,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (PCfish) 2.aseprite": {
+   "tiles-1 (PCfish) 2.aseprite": {
     "frame": { "x": 32, "y": 112, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -583,7 +583,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (PCfish) 3.aseprite": {
+   "tiles-1 (PCfish) 3.aseprite": {
     "frame": { "x": 48, "y": 112, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -591,7 +591,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (PCfish) 4.aseprite": {
+   "tiles-1 (PCfish) 4.aseprite": {
     "frame": { "x": 64, "y": 112, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -599,7 +599,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (PCfish) 5.aseprite": {
+   "tiles-1 (PCfish) 5.aseprite": {
     "frame": { "x": 80, "y": 112, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -607,7 +607,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (PCfish) 6.aseprite": {
+   "tiles-1 (PCfish) 6.aseprite": {
     "frame": { "x": 96, "y": 112, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -615,7 +615,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (PCfish) 7.aseprite": {
+   "tiles-1 (PCfish) 7.aseprite": {
     "frame": { "x": 112, "y": 112, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -623,7 +623,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (PCfish) 8.aseprite": {
+   "tiles-1 (PCfish) 8.aseprite": {
     "frame": { "x": 128, "y": 112, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -631,7 +631,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (PCfish) 9.aseprite": {
+   "tiles-1 (PCfish) 9.aseprite": {
     "frame": { "x": 144, "y": 112, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -639,7 +639,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (solidwall) 0.aseprite": {
+   "tiles-1 (solidwall) 0.aseprite": {
     "frame": { "x": 0, "y": 128, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -647,7 +647,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (solidwall) 1.aseprite": {
+   "tiles-1 (solidwall) 1.aseprite": {
     "frame": { "x": 16, "y": 128, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -655,7 +655,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (solidwall) 2.aseprite": {
+   "tiles-1 (solidwall) 2.aseprite": {
     "frame": { "x": 32, "y": 128, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -663,7 +663,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (solidwall) 3.aseprite": {
+   "tiles-1 (solidwall) 3.aseprite": {
     "frame": { "x": 48, "y": 128, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -671,7 +671,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (solidwall) 4.aseprite": {
+   "tiles-1 (solidwall) 4.aseprite": {
     "frame": { "x": 64, "y": 128, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -679,7 +679,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (solidwall) 5.aseprite": {
+   "tiles-1 (solidwall) 5.aseprite": {
     "frame": { "x": 80, "y": 128, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -687,7 +687,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (solidwall) 6.aseprite": {
+   "tiles-1 (solidwall) 6.aseprite": {
     "frame": { "x": 96, "y": 128, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -695,7 +695,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (solidwall) 7.aseprite": {
+   "tiles-1 (solidwall) 7.aseprite": {
     "frame": { "x": 112, "y": 128, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -703,7 +703,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (solidwall) 8.aseprite": {
+   "tiles-1 (solidwall) 8.aseprite": {
     "frame": { "x": 128, "y": 128, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -711,7 +711,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (solidwall) 9.aseprite": {
+   "tiles-1 (solidwall) 9.aseprite": {
     "frame": { "x": 144, "y": 128, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -719,7 +719,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (linewall) 0.aseprite": {
+   "tiles-1 (linewall) 0.aseprite": {
     "frame": { "x": 0, "y": 144, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -727,7 +727,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (linewall) 1.aseprite": {
+   "tiles-1 (linewall) 1.aseprite": {
     "frame": { "x": 16, "y": 144, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -735,7 +735,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (linewall) 2.aseprite": {
+   "tiles-1 (linewall) 2.aseprite": {
     "frame": { "x": 32, "y": 144, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -743,7 +743,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (linewall) 3.aseprite": {
+   "tiles-1 (linewall) 3.aseprite": {
     "frame": { "x": 48, "y": 144, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -751,7 +751,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (linewall) 4.aseprite": {
+   "tiles-1 (linewall) 4.aseprite": {
     "frame": { "x": 64, "y": 144, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -759,7 +759,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (linewall) 5.aseprite": {
+   "tiles-1 (linewall) 5.aseprite": {
     "frame": { "x": 80, "y": 144, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -767,7 +767,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (linewall) 6.aseprite": {
+   "tiles-1 (linewall) 6.aseprite": {
     "frame": { "x": 96, "y": 144, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -775,7 +775,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (linewall) 7.aseprite": {
+   "tiles-1 (linewall) 7.aseprite": {
     "frame": { "x": 112, "y": 144, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -783,7 +783,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (linewall) 8.aseprite": {
+   "tiles-1 (linewall) 8.aseprite": {
     "frame": { "x": 128, "y": 144, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -791,7 +791,7 @@
     "sourceSize": { "w": 16, "h": 16 },
     "duration": 100
    },
-   "7drl sprite sheet 1 (linewall) 9.aseprite": {
+   "tiles-1 (linewall) 9.aseprite": {
     "frame": { "x": 144, "y": 144, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -803,7 +803,7 @@
  "meta": {
   "app": "http://www.aseprite.org/",
   "version": "1.2.25-x64",
-  "image": "7drl sprite sheet 1.png",
+  "image": "tiles-1.png",
   "format": "I8",
   "size": { "w": 160, "h": 160 },
   "scale": "1",
