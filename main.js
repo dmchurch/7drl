@@ -27,5 +27,12 @@ export const viewport = new Viewport(worldMap, gameDisplay, o);
 
 viewport.redraw();
 
-viewport.displays[viewport.displays.length >> 1].draw(o.width >> 1, o.height >> 1, "@", "goldenrod", null);
+// viewport.displays[viewport.displays.length >> 1].draw(o.width >> 1, o.height >> 1, "@", "goldenrod", null);
 Object.assign(window, {o,viewport});
+
+Mousetrap.bind(["up", "w", "k"], () => viewport.moveViewport(0, -1, 0));
+Mousetrap.bind(["down", "s", "j"], () => viewport.moveViewport(0, 1, 0));
+Mousetrap.bind(["left", "a", "h"], () => viewport.moveViewport(-1, 0, 0));
+Mousetrap.bind(["right", "d", "l"], () => viewport.moveViewport(1, 0, 0));
+Mousetrap.bind(["<", "q"], () => viewport.moveViewport(0, 0, -1));
+Mousetrap.bind([">", "z"], () => viewport.moveViewport(0, 0, 1));

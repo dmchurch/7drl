@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "mousetrap": "^1.6.5",
     "rot-js": "^2.2.0"
   }
 }
