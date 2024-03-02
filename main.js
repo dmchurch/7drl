@@ -1,4 +1,17 @@
-import {Display, Map} from "rot-js";
+import { Display } from "rot-js";
+import { WorldMap } from "./worldmap.js";
+import { Cellular3D } from "./cellular3d.js";
+
+console.log("Starting main.js");
+
+export const worldMap = new WorldMap();
+const generator = new Cellular3D(worldMap.width, worldMap.height, worldMap.depth);
+
+generator.generateMap(worldMap.generateCallback());
+
+console.log("Generated world map:", worldMap);
+
+Object.assign(self, {worldMap, generator});
 
 let o = {
 	width: 50,
@@ -10,46 +23,12 @@ for (let i = 0; i < layerCount; i++) {
     displays[i] = new Display(o);
     const container = displays[i].getContainer();
     document.body.appendChild(container);
-    container.dataset.index = i;
+    container.dataset.index = String(i);
     container.style.setProperty("--layer-index", String(i));
 }
 document.body.style.setProperty("--layer-count", String(layerCount));
 
-let layerHeight = o.height + 1;
+worldMap.drawLayers(displays, (worldMap.width - o.width) >> 1, (worldMap.height - o.height) >> 1, (worldMap.depth - layerCount) >> 1);
 
-let mapHeight = layerHeight * layerCount;
-
-let cmap = new Map.Cellular(o.width, mapHeight, {topology: 8});
-let c10map = new Map.Cellular(o.width, mapHeight, {topology: 8});
-c10map._dirs = [...c10map._dirs, [0, layerHeight], [0, -layerHeight], [0, layerHeight], [0, -layerHeight]];
-c10map.setOptions({
-    born: [7, 8, 9, 10, 11, 12],
-    survive: [6, 7, 8, 9, 10, 11, 12],
-});
-
-export function generateMap(cellmap, iters=5) {
-    cellmap.randomize(0.5);
-    for (let i = iters; i >= 0; i--) {
-        for (let y = 0; y < mapHeight; y += layerHeight) {
-            for (let x = 0; x < o.width; x++) {
-                cellmap.set(x, y, 0);
-            }
-        }
-        cellmap.create(i ? (x,y,w) => (y % layerHeight === 0 ? null : displays[Math.floor(y / layerHeight)].DEBUG(x,y % layerHeight - 1,w)) : null);
-    }
-}
-
-export function generateC8Map(iters) {
-    generateMap(cmap, iters);
-}
-
-export function generateC10Map(iters) {
-    generateMap(c10map, iters);
-}
-
-generateC8Map();
-
-setTimeout(generateC10Map, 1000);
-
-displays[displays.length >> 1].draw(o.width >> 1, o.height >> 1, "@", "goldenrod");
-Object.assign(window, {o,cmap,c10map,displays,layerCount,mapHeight, generateMap, generateC8Map, generateC10Map});
+displays[displays.length >> 1].draw(o.width >> 1, o.height >> 1, "@", "goldenrod", null);
+Object.assign(window, {o,displays,layerCount});
