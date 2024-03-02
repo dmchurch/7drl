@@ -31,6 +31,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Install packages
+        uses: chill-viking/npm-ci@v1.2.0
       - name: Setup Pages
         uses: actions/configure-pages@v4
       - name: Upload artifact
