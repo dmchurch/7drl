@@ -10,7 +10,7 @@ canvas {
     opacity: calc(var(--layer-index) * 0.1 + 0.2);
 }
 
-body:hover canvas {
+canvas {
     position: absolute;
     /* &::before {
         content: "a";

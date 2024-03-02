@@ -1,6 +1,7 @@
 import { Display } from "rot-js";
 import { WorldMap } from "./worldmap.js";
 import { Cellular3D } from "./cellular3d.js";
+import { Viewport } from "./viewport.js";
 
 console.log("Starting main.js");
 
@@ -13,22 +14,18 @@ console.log("Generated world map:", worldMap);
 
 Object.assign(self, {worldMap, generator});
 
+/** @type {ConstructorParameters<typeof Viewport>[2]} */
 let o = {
-	width: 50,
-	height: 30
+	width: 30,
+	height: 30,
+    layers: 7,
+    fontSize: 16,
+    forceSquareRatio: true,
 };
-let layerCount = 8;
-let displays = [];
-for (let i = 0; i < layerCount; i++) {
-    displays[i] = new Display(o);
-    const container = displays[i].getContainer();
-    document.body.appendChild(container);
-    container.dataset.index = String(i);
-    container.style.setProperty("--layer-index", String(i));
-}
-document.body.style.setProperty("--layer-count", String(layerCount));
+const gameDisplay = document.getElementById("gameDisplay");
+export const viewport = new Viewport(worldMap, gameDisplay, o);
 
-worldMap.drawLayers(displays, (worldMap.width - o.width) >> 1, (worldMap.height - o.height) >> 1, (worldMap.depth - layerCount) >> 1);
+viewport.redraw();
 
-displays[displays.length >> 1].draw(o.width >> 1, o.height >> 1, "@", "goldenrod", null);
-Object.assign(window, {o,displays,layerCount});
+viewport.displays[viewport.displays.length >> 1].draw(o.width >> 1, o.height >> 1, "@", "goldenrod", null);
+Object.assign(window, {o,viewport});
