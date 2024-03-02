@@ -1,0 +1,32 @@
+:root {
+    background: black;
+}
+body {
+    isolation: isolate;
+}
+canvas {
+    border: 1px solid white;
+    margin: 1ex;
+    opacity: calc(var(--layer-index) * 0.1 + 0.2);
+}
+
+body:hover canvas {
+    position: absolute;
+    /* &::before {
+        content: "a";
+        display: block;
+        position: absolute;
+        inset: 0 calc((var(--layer-count) - var(--layer-index)) * -10ex) 0 0;
+        background-color: red;
+    } */
+    border-right: calc((var(--layer-count) - var(--layer-index)) * 10ex) solid #FFF;
+    opacity: 0.1;
+    mix-blend-mode: lighten;
+
+    &:hover {
+        opacity: 1;
+        & ~ canvas {
+            opacity: 0;
+        }
+    }
+}
