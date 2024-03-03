@@ -12,7 +12,7 @@ export class Viewport {
     /** @type {WorldMap} */
     worldMap;
 
-    /** @type {Element} */
+    /** @type {HTMLElement} */
     container;
     /** @type {Display[]} */
     displays;

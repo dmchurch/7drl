@@ -1,4 +1,4 @@
-import { inSemiOpenRange } from "./helpers.js";
+import { inInclusiveRange, inSemiOpenRange } from "./helpers.js";
 import { Tileset } from "./tileset.js";
 
 export class WorldMap {
@@ -22,7 +22,7 @@ export class WorldMap {
     /** @type {MapSprite[]} */
     sprites = [];
 
-    constructor(width = 255, height = 255, depth = 15) {
+    constructor(width = 127, height = 127, depth = 15) {
         this.width = width;
         this.height = height;
         this.depth = depth;
@@ -32,16 +32,24 @@ export class WorldMap {
         this.baseMap = new Uint8Array(1 << (this.widthBits + this.heightBits + this.depthBits));
     }
 
+    /** @param {LayerName} layerName  */
+    toBaseValue(layerName) {
+        return this.baseTiles.indexOf(layerName);
+    }
+    toLayerName(v) {
+        return this.baseTiles[v];
+    }
+
     /** @param {number} x @param {number} y @param {number} z */
     toIndex(x, y, z) {
-        return (((z << this.depthBits) + y) << this.heightBits) + x;
+        return (((z << this.heightBits) + y) << this.widthBits) + x;
     }
     /** @param {number} i */
     toX(i) {
-        return i & ((1 << (this.heightBits + this.depthBits)) - 1);
+        return i & ((1 << (this.widthBits)) - 1);
     }
     toY(i) {
-        return (i >>> this.widthBits) & ((1 << this.depthBits) - 1);
+        return (i >>> this.widthBits) & ((1 << this.heightBits) - 1);
     }
     toZ(i) {
         return i >>> (this.widthBits + this.heightBits);
@@ -88,7 +96,7 @@ export class WorldMap {
 
     makeSetBaseCallback(xOrigin = 0, yOrigin = 0, zOrigin = 0, tileMapping = this.baseTiles) {
         /** @param {number} x @param {number} y @param {number} z @param {number} w */
-        return (x, y, z, w) => this.setBase(xOrigin + x, yOrigin + y, zOrigin + z, w);
+        return (x, y, z, w) => this.setBase(xOrigin + x, yOrigin + y, zOrigin + z, this.toBaseValue(tileMapping[w]));
     }
 
     /** @param {MapSprite} sprite  */

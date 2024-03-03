@@ -39,6 +39,23 @@ canvas.layer-focus {
     border-color: currentColor;
 }
 
+dl {
+    
+}
+
+dt::after {
+    content: ":"
+}
+
+dd:has(+dt)::after {
+    content: ";"
+}
+
+dt, dd {
+    display: inline;
+    margin: 0;
+}
+
 #tilesheets {
     display: none;
 }
