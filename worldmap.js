@@ -1,4 +1,4 @@
-
+import { Tileset } from "./tileset.js";
 export class WorldMap {
     width;
     height;
@@ -55,7 +55,7 @@ export class WorldMap {
             for (let i = 0; i < width; i++) {
                 const x = i + xOrigin;
                 const base = this.getBase(x, y, z);
-                display.DEBUG(i, j, base);
+                display.draw(i, j, base ? Tileset.defaultWall.char : Tileset.defaultClear.char);
             }
         }
     }

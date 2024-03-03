@@ -30,3 +30,7 @@ canvas {
         }
     }
 }
+
+#tilesheets {
+    display: none;
+}
