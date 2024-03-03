@@ -1,10 +1,14 @@
 import { Tileset } from "./tileset.js";
+
 export class WorldMap {
     width;
     height;
     depth;
 
     baseMap;
+
+    /** @type {{x: number, y: number, z: number, category: LayerName, frame: number, animated: boolean}[]} */
+    sprites = [];
 
     constructor(width = 256, height = 256, depth = 16) {
         this.width = width;
@@ -50,12 +54,13 @@ export class WorldMap {
     /** @param {import("rot-js").Display} display  */
     drawLayer(display, xOrigin = 0, yOrigin = 0, z = 0) {
         const {width, height} = display.getOptions();
+        display.clear();
         for (let j = 0; j < height; j++) {
             const y = j + yOrigin;
             for (let i = 0; i < width; i++) {
                 const x = i + xOrigin;
                 const base = this.getBase(x, y, z);
-                display.draw(i, j, base ? Tileset.defaultWall.char : Tileset.defaultClear.char);
+                display.draw(i, j, base ? Tileset.defaultWall.char : []);
             }
         }
     }

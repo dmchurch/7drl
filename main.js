@@ -38,5 +38,5 @@ Mousetrap.bind(["up", "w", "k"], () => viewport.moveViewport(0, -1, 0));
 Mousetrap.bind(["down", "s", "j"], () => viewport.moveViewport(0, 1, 0));
 Mousetrap.bind(["left", "a", "h"], () => viewport.moveViewport(-1, 0, 0));
 Mousetrap.bind(["right", "d", "l"], () => viewport.moveViewport(1, 0, 0));
-Mousetrap.bind(["<", "q", "y"], () => viewport.moveViewport(0, 0, -1));
-Mousetrap.bind([">", "z", "e", "n"], () => viewport.moveViewport(0, 0, 1));
+Mousetrap.bind(["<", "q", "y"], () => viewport.moveViewport(0, 0, 1));
+Mousetrap.bind([">", "z", "e", "n"], () => viewport.moveViewport(0, 0, -1));

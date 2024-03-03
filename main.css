@@ -1,34 +1,39 @@
 :root {
-    background: black;
+    background: #080014;
+    color: #3d4e9c;
 }
 body {
     isolation: isolate;
 }
+
+#gameDisplay {
+    display: grid;
+    overflow: clip;
+}
+#gameDisplay > * {
+    grid-row: 1;
+    grid-column: 1;
+}
 canvas {
-    border: 1px solid white;
+    border: 1px solid currentColor;
     margin: 1ex;
-    opacity: calc(var(--layer-index) * 0.1 + 0.2);
+    background: #08001480;
+    filter: blur(0);
+/*     mix-blend-mode: lighten; */
 }
 
-canvas {
-    position: absolute;
-    /* &::before {
-        content: "a";
-        display: block;
-        position: absolute;
-        inset: 0 calc((var(--layer-count) - var(--layer-index)) * -10ex) 0 0;
-        background-color: red;
-    } */
-    border-right: calc((var(--layer-count) - var(--layer-index)) * 10ex) solid #FFF;
-    opacity: 0.1;
-    mix-blend-mode: lighten;
+canvas.layer-above {
+    filter: blur(calc(8px * var(--layer-offset))) brightness(2);
+    opacity: calc(0.3 / var(--layer-offset));
+    background: none;
+}
 
-    &:hover {
-        opacity: 1;
-        & ~ canvas {
-            opacity: 0;
-        }
-    }
+canvas.layer-below {
+    filter: blur(calc(-1px * var(--layer-offset)));
+}
+
+canvas.layer-focus {
+    z-index: 1;
 }
 
 #tilesheets {
