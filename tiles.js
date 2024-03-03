@@ -35,6 +35,10 @@ export const tiles = {
         frameType: "walls",
         wallRules: "standard",
     }
+    roughwall: {
+        sheet: "walls",
+        frameType: "walls",
+        wallRules: "standard",
 }
 
 /** @typedef {keyof typeof tileSheets} TileSheetName */
