@@ -17,6 +17,8 @@ console.log("Generated world map:", worldMap);
 
 Object.assign(self, {tileset, worldMap, generator});
 
+worldMap.addSprite("PCfish", worldMap.width >> 1, worldMap.height >> 1, worldMap.depth >> 1);
+
 /** @type {ConstructorParameters<typeof Viewport>[2]} */
 let o = {
     ...await tileset.getDisplayOptions(),

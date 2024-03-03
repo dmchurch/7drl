@@ -1,5 +1,6 @@
 import { Tileset } from "./tileset.js";
 
+/** @typedef {{x: number, y: number, z: number, category: LayerName, frame: number, animated: boolean}} SpriteInfo */
 export class WorldMap {
     width;
     height;
@@ -7,7 +8,7 @@ export class WorldMap {
 
     baseMap;
 
-    /** @type {{x: number, y: number, z: number, category: LayerName, frame: number, animated: boolean}[]} */
+    /** @type {SpriteInfo[]} */
     sprites = [];
 
     constructor(width = 256, height = 256, depth = 16) {
@@ -46,21 +47,56 @@ export class WorldMap {
         this.baseMap[this.toIndex(x, y, z)] = w;
     }
 
+    /** @param {number} x @param {number} y @param {number} z @param {LayerName} category */
+    addSprite(category, x, y, z, frame = 0, animated = false) {
+        /** @type {SpriteInfo} */
+        const newSprite = {x, y, z, category, frame, animated};
+        this.sprites.push(newSprite);
+        return newSprite;
+    }
+
+    removeSprite(spriteInfo) {
+        const index = this.sprites.indexOf(spriteInfo);
+        if (index >= 0) {
+            this.sprites.splice(index, 1);
+        }
+    }
+
     generateCallback(xOrigin = 0, yOrigin = 0, zOrigin = 0) {
         /** @param {number} x @param {number} y @param {number} z @param {number} w */
         return (x, y, z, w) => this.setBase(xOrigin + x, yOrigin + y, zOrigin + z, w);
     }
 
+    /** @param {SpriteInfo} sprite  */
+    getSpriteChar(sprite) {
+        /** @type {TileFrame} */
+        const frame = Tileset.tiles1.layerFrames[sprite.category]?.[sprite.frame];
+        if (!frame) {
+            console.error("Could not get frame for sprite!", sprite);
+            return;
+        }
+        return frame.char;
+    }
+
     /** @param {import("rot-js").Display} display  */
     drawLayer(display, xOrigin = 0, yOrigin = 0, z = 0) {
         const {width, height} = display.getOptions();
+        const sprites = this.sprites.filter(s => s.z === z && s.x >= xOrigin && s.y >= yOrigin && s.x < xOrigin + width && s.y < yOrigin + height);
         display.clear();
         for (let j = 0; j < height; j++) {
             const y = j + yOrigin;
             for (let i = 0; i < width; i++) {
                 const x = i + xOrigin;
                 const base = this.getBase(x, y, z);
-                display.draw(i, j, base ? Tileset.defaultWall.char : []);
+                /** @type {string[]} */
+                const tiles = [];
+                if (base) {
+                    tiles.push(Tileset.defaultWall.char);
+                }
+                for (const sprite of sprites.filter(s => s.x === x && s.y === y)) {
+                    tiles.push(this.getSpriteChar(sprite));
+                }
+                display.draw(i, j, tiles);
             }
         }
     }
