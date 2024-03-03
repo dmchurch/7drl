@@ -22,12 +22,12 @@ export class Tileset {
         this.name = name;
         this.img = document.createElement("img");
         this.img.src = `img/${name}.png`;
-        this.image = new Promise(r => this.img.onload = (r(this.img)));
+        this.image = new Promise(r => this.img.onload = () => r(this.img));
         this.map = this.fetchMap();
         new.target.container?.append(this.img);
     }
 
-    /** @returns {ConstructorParameters<typeof import("rot-js").Display>[0]} */
+    /** @returns {Promise<ConstructorParameters<typeof import("rot-js").Display>[0]>} */
     async getDisplayOptions() {
         const tileSet = this.img;
         const {tileHeight, tileWidth, tileMap} = await this.map;
@@ -67,7 +67,7 @@ export class Tileset {
             const tileFrame = {
                 ...frame,
                 layerName,
-                frameIndex,
+                frameIndex: parseInt(frameIndex),
                 char: String.fromCodePoint(charIndex++),
             };
             (layerFrames[layerName] ??= [])[frameIndex] = tileFrame;

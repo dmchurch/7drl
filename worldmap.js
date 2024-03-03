@@ -1,40 +1,63 @@
+import { inSemiOpenRange } from "./helpers.js";
 import { Tileset } from "./tileset.js";
 
-/** @typedef {{x: number, y: number, z: number, category: LayerName, frame: number, animated: boolean}} SpriteInfo */
 export class WorldMap {
     width;
     height;
     depth;
 
+    widthBits;
+    heightBits;
+    depthBits;
+
+    /** @type {Uint8Array} */
     baseMap;
 
-    /** @type {SpriteInfo[]} */
+    /** @type {LayerName[]} */
+    baseTiles = [
+        null,
+        "solidwall",
+    ]
+
+    /** @type {MapSprite[]} */
     sprites = [];
 
-    constructor(width = 256, height = 256, depth = 16) {
+    constructor(width = 255, height = 255, depth = 15) {
         this.width = width;
         this.height = height;
         this.depth = depth;
-        this.baseMap = new Uint8Array(width * height * depth);
+        this.widthBits = Math.ceil(Math.log2(width));
+        this.heightBits = Math.ceil(Math.log2(height));
+        this.depthBits = Math.ceil(Math.log2(depth));
+        this.baseMap = new Uint8Array(1 << (this.widthBits + this.heightBits + this.depthBits));
     }
 
     /** @param {number} x @param {number} y @param {number} z */
     toIndex(x, y, z) {
-        return z * this.height * this.width + y * this.width + x;
+        return (((z << this.depthBits) + y) << this.heightBits) + x;
+    }
+    /** @param {number} i */
+    toX(i) {
+        return i & ((1 << (this.heightBits + this.depthBits)) - 1);
+    }
+    toY(i) {
+        return (i >>> this.widthBits) & ((1 << this.depthBits) - 1);
+    }
+    toZ(i) {
+        return i >>> (this.widthBits + this.heightBits);
     }
     /** @param {number} i @returns {[x: number, y: number, z: number]} */
     fromIndex(i) {
-        const x = i % this.width;
-        i = Math.floor(i / this.width);
-        const y = i % this.height;
-        i = Math.floor(i / this.height);
-        const z = i % this.depth;
+        const x = this.toX(i);
+        const y = this.toY(i);
+        const z = this.toZ(i);
         return [x, y, z];
     }
+
     inMap(x = 0, y = 0, z = 0) {
-        return x >= 0 && x < this.width
-            && y >= 0 && y < this.height
-            && z >= 0 && z < this.depth;
+        return inSemiOpenRange(x, 0, this.width)
+            && inSemiOpenRange(y, 0, this.height)
+            && inSemiOpenRange(z, 0, this.depth);
     }
 
     /** @param {number} x @param {number} y @param {number} z */
@@ -47,30 +70,31 @@ export class WorldMap {
         this.baseMap[this.toIndex(x, y, z)] = w;
     }
 
-    /** @param {number} x @param {number} y @param {number} z @param {LayerName} category */
-    addSprite(category, x, y, z, frame = 0, animated = false) {
-        /** @type {SpriteInfo} */
-        const newSprite = {x, y, z, category, frame, animated};
-        this.sprites.push(newSprite);
-        return newSprite;
+    /** @param {MapSprite} sprite, @param {Partial<MapSprite>} [overrides] */
+    addSprite(sprite, overrides) {
+        if (overrides) {
+            Object.assign(sprite, overrides);
+        }
+        this.sprites.push(sprite);
+        return this;
     }
 
-    removeSprite(spriteInfo) {
-        const index = this.sprites.indexOf(spriteInfo);
+    removeSprite(sprite) {
+        const index = this.sprites.indexOf(sprite);
         if (index >= 0) {
             this.sprites.splice(index, 1);
         }
     }
 
-    generateCallback(xOrigin = 0, yOrigin = 0, zOrigin = 0) {
+    makeSetBaseCallback(xOrigin = 0, yOrigin = 0, zOrigin = 0, tileMapping = this.baseTiles) {
         /** @param {number} x @param {number} y @param {number} z @param {number} w */
         return (x, y, z, w) => this.setBase(xOrigin + x, yOrigin + y, zOrigin + z, w);
     }
 
-    /** @param {SpriteInfo} sprite  */
+    /** @param {MapSprite} sprite  */
     getSpriteChar(sprite) {
         /** @type {TileFrame} */
-        const frame = Tileset.tiles1.layerFrames[sprite.category]?.[sprite.frame];
+        const frame = Tileset.tiles1.layerFrames[sprite.spriteLayer]?.[sprite.spriteFrame];
         if (!frame) {
             console.error("Could not get frame for sprite!", sprite);
             return;
@@ -96,7 +120,7 @@ export class WorldMap {
                 for (const sprite of sprites.filter(s => s.x === x && s.y === y)) {
                     tiles.push(this.getSpriteChar(sprite));
                 }
-                display.draw(i, j, tiles);
+                display.draw(i, j, tiles, null, null);
             }
         }
     }
@@ -112,4 +136,23 @@ export class WorldMap {
     static callback(x, y, z, contents) {}
 }
 
-Object.assign(self, {WorldMap});
+export class MapSprite {
+    x;
+    y;
+    z;
+    spriteLayer;
+    spriteFrame;
+    animated;
+
+    /** @param {LayerName} spriteLayer */
+    constructor(spriteLayer, x = 0, y = 0, z = 0, frame = 0, animated = false) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        this.spriteLayer = spriteLayer;
+        this.spriteFrame = frame;
+        this.animated = animated;
+    }
+}
+
+Object.assign(self, {WorldMap, MapSprite});
