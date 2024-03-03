@@ -48,7 +48,7 @@ let o = {
     forceSquareRatio: true,
 };
 const gameDisplay = document.getElementById("gameDisplay");
-export const viewport = new Viewport(worldMap, gameDisplay, o);
+export const viewport = worldMap.mainViewport = new Viewport(worldMap, gameDisplay, o);
 
 /**
  * @param {number} [iters]
@@ -77,12 +77,20 @@ regenerate();
 
 const Mousetrap = self.Mousetrap;
 
-Mousetrap.bind(["up", "w", "k"], () => viewport.moveViewport(0, -1, 0));
-Mousetrap.bind(["down", "s", "j"], () => viewport.moveViewport(0, 1, 0));
-Mousetrap.bind(["left", "a", "h"], () => viewport.moveViewport(-1, 0, 0));
-Mousetrap.bind(["right", "d", "l"], () => viewport.moveViewport(1, 0, 0));
-Mousetrap.bind(["<", "q", "y"], () => viewport.moveViewport(0, 0, 1));
-Mousetrap.bind([">", "z", "e", "n"], () => viewport.moveViewport(0, 0, -1));
+Mousetrap.bind(["shift+w", "shift+k", "shift+up"], () => viewport.moveViewport(0, -1, 0));
+Mousetrap.bind(["shift+s", "shift+j", "shift+down"], () => viewport.moveViewport(0, 1, 0));
+Mousetrap.bind(["shift+a", "shift+h", "shift+left"], () => viewport.moveViewport(-1, 0, 0));
+Mousetrap.bind(["shift+d", "shift+l", "shift+right"], () => viewport.moveViewport(1, 0, 0));
+Mousetrap.bind(["shift+q", "shift+y"], () => viewport.moveViewport(0, 0, 1));
+Mousetrap.bind(["shift+z", "shift+n"], () => viewport.moveViewport(0, 0, -1));
+
+Mousetrap.bind(["w", "k", "up"], () => player.move(0, -1, 0));
+Mousetrap.bind(["s", "j", "down"], () => player.move(0, 1, 0));
+Mousetrap.bind(["a", "h", "left"], () => player.move(-1, 0, 0));
+Mousetrap.bind(["d", "l", "right"], () => player.move(1, 0, 0));
+Mousetrap.bind(["q", "y", "<"], () => player.move(0, 0, 1));
+Mousetrap.bind(["z", "n", ">"], () => player.move(0, 0, -1));
 Mousetrap.bind("shift+alt+r", () => {regenerate()});
 Mousetrap.bind("shift+alt+i", () => iterate());
 Mousetrap.bind("shift+alt+o", () => {regenerate(1)});
+Mousetrap.bind("shift+alt+d", () => {RNG.setSeed(0)});

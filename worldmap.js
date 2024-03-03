@@ -1,5 +1,6 @@
 import { inInclusiveRange, inSemiOpenRange } from "./helpers.js";
 import { Tileset } from "./tileset.js";
+import { Viewport } from "./viewport.js";
 
 export class WorldMap {
     width;
@@ -21,6 +22,9 @@ export class WorldMap {
 
     /** @type {MapSprite[]} */
     sprites = [];
+
+    /** @type {Viewport} */
+    mainViewport;
 
     constructor(width = 127, height = 127, depth = 15) {
         this.width = width;
@@ -83,6 +87,7 @@ export class WorldMap {
         if (overrides) {
             Object.assign(sprite, overrides);
         }
+        sprite.worldMap = this;
         this.sprites.push(sprite);
         return this;
     }
@@ -151,6 +156,15 @@ export class MapSprite {
     spriteLayer;
     spriteFrame;
     animated;
+
+    /** @type {WeakRef<WorldMap>} */
+    #worldMap;
+    get worldMap() {
+        return this.#worldMap.deref();
+    }
+    set worldMap(v) {
+        this.#worldMap = new WeakRef(v);
+    }
 
     /** @param {LayerName} spriteLayer */
     constructor(spriteLayer, x = 0, y = 0, z = 0, frame = 0, animated = false) {

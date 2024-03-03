@@ -57,13 +57,20 @@ export class Viewport {
         this.centerZ = this.worldMap.depth >> 1;
     }
 
-    moveViewport(deltaX = 0, deltaY = 0, deltaZ = 0) {
+    moveViewport(deltaX = 0, deltaY = 0, deltaZ = 0, forceRedraw) {
         this.centerX += deltaX;
         this.centerY += deltaY;
         this.centerZ += deltaZ;
-        if (deltaX || deltaY || deltaZ) {
+        if (forceRedraw === true || (forceRedraw !== false && (deltaX || deltaY || deltaZ))) {
             this.redraw();
+            return true;
         }
+        return false;
+    }
+
+    /** @param {boolean} [forceRedraw]  */
+    centerOn(newX = 0, newY = 0, newZ = 0, forceRedraw) {
+        return this.moveViewport(newX - this.centerX, newY - this.centerY, newZ - this.centerZ, forceRedraw);
     }
 
     redraw() {
