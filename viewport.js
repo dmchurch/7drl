@@ -100,8 +100,11 @@ export class Viewport {
 class FixedDisplay extends Display {
     /** @type {(this: Tile) => void} */
     static fixedClear() {
-        this._ctx.clearRect(0, 0, this._ctx.canvas.width, this._ctx.canvas.height);
+        // this._ctx.clearRect(0, 0, this._ctx.canvas.width, this._ctx.canvas.height);
+        const oldComposite = this._ctx.globalCompositeOperation;
+        this._ctx.globalCompositeOperation = "copy";
         Tile.prototype.clear.call(this);
+        this._ctx.globalCompositeOperation = oldComposite;
     }
 
     constructor(options) {

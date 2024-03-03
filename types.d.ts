@@ -43,4 +43,11 @@ declare interface TileFrame extends AsepriteFrame {
     char: string;
 }
 
+declare interface TileInfo {
+    sheet: TileSheetName;
+}
+
+declare type W<C extends string> = C | Lowercase<C> | ' '
+declare type WallRule = `${W<'Q'>}${W<'W'>}${W<'E'>}${W<'A'>}S${W<'D'>}${W<'Z'>}${W<'X'>}${W<'C'>}`;
+
 declare type LayerName = "Background" | "bubble1" | "eel" | "weeds1" | "egg" | "crab" | "fish" | "PCfish" | "solidwall" | "linewall";
