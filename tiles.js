@@ -30,15 +30,62 @@ export const tiles = {
         sheet: "tiles1",
         frameType: "animation",
     },
+    
+    fish: {
+        sheet: "tiles1",
+        frameType: "animation",
+    },
+    
+    crab: {
+        sheet: "tiles1",
+        frameType: "animation",
+    },
+    
+    egg: {
+        sheet: "tiles1",
+        frameType: "animation",
+    },
+    
+    weeds1: {
+        sheet: "tiles1",
+        frameType: "animation",
+    },
+    
+    eel: {
+        sheet: "tiles1",
+        frameType: "animation",
+    },
+    
+    bubble1: {
+        sheet: "tiles1",
+        frameType: "animation",
+    },
+    
     solidwall: {
         sheet: "walls",
         frameType: "walls",
         wallRules: "standard",
-    }
+    },
     roughwall: {
         sheet: "walls",
         frameType: "walls",
         wallRules: "standard",
+    },
+    
+    ground: {
+        sheet: "props",
+        frameType: "variants",
+    },
+    
+    pottery: {
+        sheet: "props",
+        frameType: "variants",
+    },
+    
+    litter: {
+        sheet: "props",
+        frameType: "variants",
+    },
 }
 
 /** @typedef {keyof typeof tileSheets} TileSheetName */
