@@ -2,6 +2,11 @@
     background: #080014;
     color: #3d4e9c;
 }
+
+input {
+    background: #080014;
+    color: #7686ce;
+}
 body {
     isolation: isolate;
 }
@@ -39,16 +44,23 @@ canvas.layer-focus {
     border-color: currentColor;
 }
 
+.hidden {
+    display: none;
+}
+
 dl {
-    
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 1em;
 }
 
 dt::after {
     content: ":"
 }
 
-dd:has(+dt)::after {
-    content: ";"
+dl > div:has(+div) > dd::after {
+    content: ","
 }
 
 dt, dd {

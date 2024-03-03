@@ -38,6 +38,19 @@ const setBaseCallback = worldMap.makeSetBaseCallback();
 
 Object.assign(self, {tileset, worldMap, generator, RNG});
 
+let seed;
+let lastSeed = RNG.getSeed();
+let iterations = 5;
+let fillRatio = 0.5;
+const {born, survive} = generator.options;
+
+const seedInput = valueElement("seed");
+const lastSeedInput = valueElement("lastSeed");
+const iterationsInput = valueElement("iterations");
+const fillRatioInput = valueElement("fillRatio");
+const bornInput = valueElement("born");
+const surviveInput = valueElement("survive");
+
 /** @type {ConstructorParameters<typeof Viewport>[2]} */
 let o = {
     ...await tileset.getDisplayOptions(),
@@ -54,26 +67,75 @@ export const viewport = worldMap.mainViewport = new Viewport(worldMap, gameDispl
  * @param {number} [iters]
  * @param {number} [randomizeProb]
  */
-export async function regenerate(iters, randomizeProb, iterationDelay=20) {
+export async function regenerate(iters=iterations, randomizeProb=fillRatio, iterationDelay=20) {
+    if (typeof seed === "number") {
+        RNG.setSeed(seed);
+        lastSeed = seed;
+    }
     for (const _ of generator.generateMap(setBaseCallback, iters, randomizeProb, clearAroundPlayer, true)) {
+        const next = after(iterationDelay);
         console.log("Redrawing viewport and delaying", iterationDelay);
         viewport.redraw();
-        await after(iterationDelay);
+        await next;
     }
-
     console.log("Generated world map");
     viewport.redraw();
+    updateParamFields();
+}
+
+function updateParamFields() {
+    seedInput.value = typeof seed === "number" ? String(seed) : "";
+    lastSeedInput.value = String(lastSeed);
+    iterationsInput.value = String(iterations);
+    fillRatioInput.value = String(fillRatio);
+    bornInput.value = born.map(String).join(", ");
+    surviveInput.value = survive.map(String).join(", ");
 }
 
 export function iterate() {
     clearAroundPlayer();
     generator.create(setBaseCallback);
     viewport.redraw();
+    updateParamFields();
 }
 
 Object.assign(window, {o,viewport, clearAroundPlayer, setBaseCallback, regenerate, iterate});
 
 regenerate();
+
+function valueElement(id) {
+    const element = document.getElementById(id);
+    if (element instanceof HTMLInputElement || element instanceof HTMLOutputElement) return element;
+}
+
+seedInput.oninput = () => {
+    seed = seedInput.value.trim().length ? Number(seedInput.value.trim()) : undefined;
+}
+iterationsInput.oninput = () => {
+    iterations = Number(iterationsInput.value);
+}
+fillRatioInput.oninput = () => {
+    fillRatio = Number(fillRatioInput.value);
+}
+bornInput.oninput = () => {
+
+    born.splice(
+        0, 
+        Infinity,
+        ...bornInput.value
+                         .split(",")
+                         .map(x => parseInt(x.trim()))
+                         .filter(x => Number.isInteger(x)));
+}
+surviveInput.oninput = () => {
+    survive.splice(
+        0, 
+        Infinity,
+        ...surviveInput.value
+                         .split(",")
+                         .map(x => parseInt(x.trim()))
+                         .filter(x => Number.isInteger(x)));
+}
 
 const Mousetrap = self.Mousetrap;
 
@@ -93,4 +155,8 @@ Mousetrap.bind(["z", "n", ">"], () => player.move(0, 0, -1));
 Mousetrap.bind("shift+alt+r", () => {regenerate()});
 Mousetrap.bind("shift+alt+i", () => iterate());
 Mousetrap.bind("shift+alt+o", () => {regenerate(1)});
-Mousetrap.bind("shift+alt+d", () => {RNG.setSeed(0)});
+Mousetrap.bind("shift+alt+d", () => {RNG.setSeed(lastSeed = 0); seed = undefined});
+Mousetrap.bind("shift+alt+p", () => {
+    updateParamFields();
+    document.getElementById("params").classList.toggle("hidden");
+});
