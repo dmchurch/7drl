@@ -56,9 +56,10 @@ const surviveInput = valueElement("survive");
 /** @type {ConstructorParameters<typeof Viewport>[2]} */
 let o = {
     ...await tileset.getDisplayOptions(),
-	width: 30,
-	height: 30,
+	width: 31,
+	height: 31,
     layers: 7,
+    focusLayer: 3,
     fontSize: 16,
     forceSquareRatio: true,
 };

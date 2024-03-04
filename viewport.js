@@ -5,6 +5,9 @@ import Tile from "rot-js/lib/display/tile.js"
 /**
  * @typedef {ConstructorParameters<typeof Display>[0] & {
  *  layers?: number,
+ *  focusLayer?: number,
+ *  width: number,
+ *  height: number,
  * }} Options
  */
 
@@ -20,6 +23,7 @@ export class Viewport {
     width;
     height;
     layers;
+    focusLayer;
 
     centerX;
     centerY;
@@ -28,9 +32,9 @@ export class Viewport {
     /** @return {[x: number, y: number, z: number]} */
     get displayOffset() {
         return [
-            this.centerX - (this.width >> 1),
-            this.centerY - (this.height >> 1),
-            this.centerZ - (this.layers >> 1),
+            this.centerX,
+            this.centerY,
+            this.centerZ - this.focusLayer,
         ]
     }
 
@@ -39,18 +43,23 @@ export class Viewport {
         this.worldMap = worldMap;
         this.container = viewportContainer instanceof Element ? viewportContainer : (document.getElementById(viewportContainer) ?? document.querySelector(viewportContainer));
         this.layers = options.layers ?? 8;
+        this.focusLayer = options.focusLayer ?? (this.layers >> 1);
         this.displays = [];
+        const {width, height} = options;
+        this.width = width;
+        this.height = height;
+
         for (let i = 0; i < this.layers; i++) {
-            this.displays[i] = new FixedDisplay(options);
+            const expandViewport = i >= this.focusLayer ? 0 : 4 * (this.focusLayer - i);
+            this.displays[i] = new FixedDisplay({...options, width: width + expandViewport, height: height + expandViewport});
             const layerContainer = this.displays[i].getContainer();
             this.container.appendChild(layerContainer);
             layerContainer.dataset.index = String(i);
             layerContainer.style.setProperty("--layer-index", String(i));
         }
         this.container.style.setProperty("--layer-count", String(this.layers));
-        const {width, height} = this.displays[0].getOptions();
-        this.width = width;
-        this.height = height;
+        this.container.style.setProperty("--focus-cols", String(width));
+        this.container.style.setProperty("--focus-rows", String(height));
 
         this.centerX = this.worldMap.width >> 1;
         this.centerY = this.worldMap.height >> 1;

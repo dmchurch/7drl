@@ -12,24 +12,27 @@ body {
 }
 
 #gameDisplay {
-    display: grid;
+    border: 1px solid currentColor;
+    margin: 1ex;
+    display: inline grid;
+    grid: "display" calc(16px * var(--focus-rows)) / calc(16px * var(--focus-cols));
     overflow: clip;
+    align-items: center;
+    justify-items: center;
 }
 #gameDisplay > * {
     grid-row: 1;
     grid-column: 1;
 }
 canvas {
-    border: 1px solid transparent;
-    margin: 1ex;
     background: #08001480;
     filter: blur(0);
 /*     mix-blend-mode: lighten; */
 }
 
 canvas.layer-above {
-    filter: blur(calc(0.75px * var(--layer-offset)));
-    opacity: 0.8;
+    filter: blur(calc(0.75px * var(--layer-offset))) brightness(calc(1 + 0.1 * var(--layer-offset)));
+    opacity: calc(1.1 - 0.2 * var(--layer-offset));
     scale: calc(1 + var(--layer-offset) * .1);
     background: none;
 }
