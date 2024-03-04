@@ -41,6 +41,7 @@ declare type TileInfo = import ("./tiles.js").TileInfo;
 declare interface TileFrame extends TileInfo {
     layerName: string;
     frameIndex: number;
+    frames: TileFrame[];
     char?: string;
     x: number;
     y: number;

@@ -1,3 +1,4 @@
+import { WallRule } from "./walls.js"
 
 
 /** @satisfies {Record<string, string | [string, string]>} */
@@ -6,14 +7,29 @@ export const tileSheets = {
     walls: "tiles-walls",
     props: "tiles-props",
 }
+/*
+ o: 1
+ u, r, d, l: 1 each = 4
+ ur, rd, dl, lu: 2 each = 8
+ ud, lr: 1 each = 2
+ urd, rdl, dlu, lur: 4 each = 16
+ urdl: 16
+*/
 
-/** @satisfies {Record<string, WallRule[]>} */
+/** @satisfies {Record<string, WallRule>} */
 export const wallRules = {
-    standard: [
-        "QWEASDZXC", // fully surrounded
-        " weaSDzXC", // northwest corner
-        "qw ASdZXc", // northeast corner
-    ]
+    standard: WallRule.new`O QECZWDXA o qeczwdxa tgfr ↑→↓← 12
+    .................................
+    ....QWE.......↑......QE..........
+    ....AOD..o...QwE.....Z#E.....#1#.
+    ....ZXC.....QqOeE.....ZC.....2.2.
+    ........↑..←aOOOd→........↑..#1#.
+    ..↑....Qt→..ZzOcC...←1→..←#→.....
+    .←rE..←fC....ZxC...↑......↓......
+    ..Zg→..↓......↓....2..QE.........
+    ...↓...............↓.Q#C.........
+    .....................ZC..........
+    `, 
 }
 
 /**
@@ -89,3 +105,4 @@ export const tiles = {
     },
 }
 
+Object.assign(self, {wallRules, tiles, tileSheets})

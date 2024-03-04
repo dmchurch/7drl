@@ -137,6 +137,9 @@ surviveInput.oninput = () => {
                          .filter(x => Number.isInteger(x)));
 }
 
+/** @type {TileName[]} */
+export const terrains = ["solidwall", "roughwall"];
+
 const Mousetrap = self.Mousetrap;
 
 Mousetrap.bind(["shift+w", "shift+k", "shift+up"], () => viewport.moveViewport(0, -1, 0));
@@ -146,17 +149,23 @@ Mousetrap.bind(["shift+d", "shift+l", "shift+right"], () => viewport.moveViewpor
 Mousetrap.bind(["shift+q", "shift+y"], () => viewport.moveViewport(0, 0, 1));
 Mousetrap.bind(["shift+z", "shift+n"], () => viewport.moveViewport(0, 0, -1));
 
-Mousetrap.bind(["w", "k", "up"], () => player.move(0, -1, 0));
-Mousetrap.bind(["s", "j", "down"], () => player.move(0, 1, 0));
-Mousetrap.bind(["a", "h", "left"], () => player.move(-1, 0, 0));
-Mousetrap.bind(["d", "l", "right"], () => player.move(1, 0, 0));
-Mousetrap.bind(["q", "y", "<"], () => player.move(0, 0, 1));
-Mousetrap.bind(["z", "n", ">"], () => player.move(0, 0, -1));
-Mousetrap.bind("shift+alt+r", () => {regenerate()});
-Mousetrap.bind("shift+alt+i", () => iterate());
-Mousetrap.bind("shift+alt+o", () => {regenerate(1)});
-Mousetrap.bind("shift+alt+d", () => {RNG.setSeed(lastSeed = 0); seed = undefined});
+Mousetrap.bind(["w", "k", "up"], () => (player.move(0, -1, 0), false));
+Mousetrap.bind(["s", "j", "down"], () => (player.move(0, 1, 0), false));
+Mousetrap.bind(["a", "h", "left"], () => (player.move(-1, 0, 0), false));
+Mousetrap.bind(["d", "l", "right"], () => (player.move(1, 0, 0), false));
+Mousetrap.bind(["q", "y", "<"], () => (player.move(0, 0, 1), false));
+Mousetrap.bind(["z", "n", ">"], () => (player.move(0, 0, -1), false));
+Mousetrap.bind("shift+alt+r", () => (regenerate(), false));
+Mousetrap.bind("shift+alt+i", () => (iterate(), false));
+Mousetrap.bind("shift+alt+o", () => (regenerate(1), false));
+Mousetrap.bind("shift+alt+d", () => {RNG.setSeed(lastSeed = 0); seed = undefined; return false});
 Mousetrap.bind("shift+alt+p", () => {
     updateParamFields();
     document.getElementById("params").classList.toggle("hidden");
+    return false;
+});
+Mousetrap.bind("shift+alt+t", () => {
+    worldMap.baseTiles[1] = terrains[(terrains.indexOf(worldMap.baseTiles[1]) + 1) % terrains.length];
+    viewport.redraw();
+    return false;
 });

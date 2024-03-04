@@ -8,6 +8,10 @@ export function inSemiOpenRange(value, min, max) {
     return value >= min && value < max;
 }
 
+export function indexInArray(index = 0, {length = 0}) {
+    return inSemiOpenRange(index, 0, length);
+}
+
 /** @returns {Promise<void>} */
 export function after(ms) {
     return new Promise(r => setTimeout(r, ms));

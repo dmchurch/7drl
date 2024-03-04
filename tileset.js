@@ -148,11 +148,15 @@ export class CompositeTileSheet extends BaseTileSheet {
             const targetFrames = (frameType ? layerFrames : [layerFrames[frameIndex]]);
             const frames = targetFrames.map((tInfo, frameIndex) => ({
                 ...tInfo,
+                ...tileInfo,
                 char: String.fromCodePoint(codePoint++),
                 y: tInfo.y + sheetOffset,
                 frameIndex,
                 layerName: tileName,
             }));
+            for (const frame of frames) {
+                frame.frames = frames;
+            }
             this.layerFrames[tileName] = frames;
             this.allFrames.push(...frames);
         }
@@ -214,6 +218,7 @@ export class AsepriteTileSheet extends BaseTileSheet {
                 continue;
             }
             const [, _imgName, layerName, frameIndex] = match;
+            const frames = layerFrames[layerName] ??= [];
             /** @type {TileFrame} */
             const tileFrame = {
                 sheet: null,
@@ -222,8 +227,9 @@ export class AsepriteTileSheet extends BaseTileSheet {
                 x: sourceFrame.frame.x,
                 y: sourceFrame.frame.y,
                 sourceFrame,
+                frames,
             };
-            (layerFrames[layerName] ??= [])[frameIndex] = tileFrame;
+            frames[frameIndex] = tileFrame;
             allFrames.push(tileFrame);
 
             this.tileWidth ||= sourceFrame.sourceSize.w;
@@ -238,3 +244,5 @@ export class AsepriteTileSheet extends BaseTileSheet {
         this.allFrames = allFrames;
     }
 }
+
+Object.assign(self, {Tileset, CompositeTileSheet, AsepriteTileSheet});

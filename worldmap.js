@@ -1,6 +1,8 @@
 import { inInclusiveRange, inSemiOpenRange } from "./helpers.js";
+import { wallRules } from "./tiles.js";
 import { Tileset } from "./tileset.js";
 import { Viewport } from "./viewport.js";
+import { WallRule } from "./walls.js";
 
 export class WorldMap {
     width;
@@ -13,6 +15,8 @@ export class WorldMap {
 
     /** @type {Uint8Array} */
     baseMap;
+    /** @type {Int8Array} */
+    baseFrames;
 
     /** @type {TileName[]} */
     baseTiles = [
@@ -26,6 +30,9 @@ export class WorldMap {
     /** @type {Viewport} */
     mainViewport;
 
+    /** @type {number[]} */
+    surroundingIndices = [];
+
     constructor(width = 127, height = 127, depth = 15) {
         this.width = width;
         this.height = height;
@@ -34,11 +41,13 @@ export class WorldMap {
         this.heightBits = Math.ceil(Math.log2(height));
         this.depthBits = Math.ceil(Math.log2(depth));
         this.baseMap = new Uint8Array(1 << (this.widthBits + this.heightBits + this.depthBits));
+        this.baseFrames = new Int8Array(this.baseMap.length).fill(-1);
+        this.surroundingIndices = WallRule.bitDirections.slice(0, 8).map(([dx, dy]) => this.toIndex(dx, dy));
     }
 
-    /** @param {TileName} layerName  */
-    toBaseValue(layerName) {
-        return this.baseTiles.indexOf(layerName);
+    /** @param {TileName} tileName  */
+    toBaseValue(tileName) {
+        return this.baseTiles.indexOf(tileName);
     }
     /** @param {number} v */
     toTileName(v) {
@@ -46,8 +55,8 @@ export class WorldMap {
     }
 
     /** @param {number} x @param {number} y @param {number} z */
-    toIndex(x, y, z) {
-        return (((z << this.heightBits) + y) << this.widthBits) + x;
+    toIndex(x = 0, y = 0, z = 0) {
+        return (z << (this.heightBits + this.widthBits)) + (y << this.widthBits) + x;
     }
     /** @param {number} i */
     toX(i) {
@@ -80,7 +89,43 @@ export class WorldMap {
 
     /** @param {number} x @param {number} y @param {number} z */
     setBase(x, y, z, w = 0) {
-        this.baseMap[this.toIndex(x, y, z)] = w;
+        if (!this.inMap(x, y, z)) return;
+        const index = this.toIndex(x, y, z);
+        const {baseMap, surroundingIndices, baseFrames} = this;
+        baseMap[index] = w;
+        baseFrames[index] = -1;
+        // set surrounding indices to dirty
+        for (let bit = 0; bit < 8; bit++) {
+            const otherIndex = index + surroundingIndices[bit];
+            const otherFrame = baseFrames[otherIndex] ?? -1;
+            if (otherFrame >= 0) {
+                baseFrames[otherIndex] = ~otherFrame;
+            }
+        }
+    }
+
+    /** @param {number} x @param {number} y @param {number} z @param {number} base  */
+    isSameBaseAs(x, y, z, base) {
+        return this.isIndexSameBaseAs(this.toIndex(x, y, z), base);
+    }
+    /** @param {number} index @param {number} base */
+    isIndexSameBaseAs(index, base) {
+        // this is simple right now but it could eventually incorporate "similar-enough" logic for
+        // different wall sprites that should nonetheless count each other for tiling purposes
+        return (this.baseMap[index] ?? 0) === base;
+    }
+
+    /** @param {number} baseIndex */
+    getWallInfoFor(baseIndex, base = this.baseMap[baseIndex]) {
+        let total = 0;
+        const {surroundingIndices} = this;
+        for (let bit = 0; bit < 8; bit++) {
+            const otherIndex = baseIndex + surroundingIndices[bit];
+            if (this.isIndexSameBaseAs(otherIndex, base)) {
+                total |= 1 << bit;
+            }
+        }
+        return total;
     }
 
     /** @param {MapSprite} sprite, @param {Partial<MapSprite>} [overrides] */
@@ -100,6 +145,7 @@ export class WorldMap {
         }
     }
 
+    /** @param {Record<number, TileName>} [tileMapping] */
     makeSetBaseCallback(xOrigin = 0, yOrigin = 0, zOrigin = 0, tileMapping = this.baseTiles) {
         /** @param {number} x @param {number} y @param {number} z @param {number} w */
         return (x, y, z, w) => this.setBase(xOrigin + x, yOrigin + y, zOrigin + z, this.toBaseValue(tileMapping[w]));
@@ -125,11 +171,22 @@ export class WorldMap {
             const y = j + yOrigin;
             for (let i = 0; i < width; i++) {
                 const x = i + xOrigin;
-                const base = this.getBase(x, y, z);
+                const baseIndex = this.toIndex(x, y, z);
+                const base = this.baseMap[baseIndex];
                 /** @type {string[]} */
                 const tiles = [];
                 if (base) {
-                    tiles.push(Tileset.light.layerFrames[this.toTileName(base)][0].char);
+                    const tileInfo = Tileset.light.layerFrames[this.toTileName(base)][0];
+                    let baseFrame = this.baseFrames[baseIndex];
+                    if (baseFrame < 0) {
+                        if (tileInfo.frameType === "walls") {
+                            baseFrame = this.baseFrames[baseIndex] = wallRules[tileInfo.wallRules].framesMap[this.getWallInfoFor(baseIndex, base)];
+                        } else {
+                            baseFrame = ~baseFrame;
+                        }
+                        this.baseFrames[baseIndex] = baseFrame;
+                    }
+                    tiles.push(tileInfo.frames[baseFrame % tileInfo.frames.length].char);
                 }
                 for (const sprite of sprites.filter(s => s.x === x && s.y === y)) {
                     tiles.push(this.getSpriteChar(sprite));
