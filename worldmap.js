@@ -163,10 +163,12 @@ export class WorldMap {
     }
 
     /** @param {import("rot-js").Display} display  */
-    drawLayer(display, xOrigin = 0, yOrigin = 0, z = 0) {
+    drawLayer(display, xOrigin = 0, yOrigin = 0, z = 0, focusLayer = Infinity) {
         const {width, height} = display.getOptions();
         const sprites = this.sprites.filter(s => s.z === z && s.x >= xOrigin && s.y >= yOrigin && s.x < xOrigin + width && s.y < yOrigin + height);
         display.clear();
+        const focusOffset = z <= focusLayer ? 0 : this.toIndex(0, 0, focusLayer - z);
+        const focusOpacity = 0.5 / (z - focusLayer);
         for (let j = 0; j < height; j++) {
             const y = j + yOrigin;
             for (let i = 0; i < width; i++) {
@@ -191,15 +193,20 @@ export class WorldMap {
                 for (const sprite of sprites.filter(s => s.x === x && s.y === y)) {
                     tiles.push(this.getSpriteChar(sprite));
                 }
-                display.draw(i, j, tiles, null, null);
+                /** @type {any} */
+                let fg = null;
+                if (focusOffset && this.baseMap[baseIndex + focusOffset] === 0) {
+                    fg = focusOpacity;
+                }
+                display.draw(i, j, tiles, fg, null);
             }
         }
     }
 
-    /** @param {import("rot-js").Display[]} displays  */
-    drawLayers(displays, xOrigin = 0, yOrigin = 0, zOrigin = 0) {
+    /** @param {import("rot-js").Display[]} displays */
+    drawLayers(displays, xOrigin = 0, yOrigin = 0, zOrigin = 0, zFocus = Infinity) {
         for (const [k, display] of displays.entries()) {
-            this.drawLayer(display, xOrigin, yOrigin, zOrigin + k);
+            this.drawLayer(display, xOrigin, yOrigin, zOrigin + k, zFocus);
         }
     }
 

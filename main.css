@@ -28,19 +28,18 @@ canvas {
 }
 
 canvas.layer-above {
-    filter: blur(calc(1px + 0.5px * var(--layer-offset))) brightness(2);
-    opacity: calc(0.3 / var(--layer-offset));
-    scale: calc(1 + var(--layer-offset) * .05);
+    filter: blur(calc(0.75px * var(--layer-offset)));
+    opacity: 0.8;
+    scale: calc(1 + var(--layer-offset) * .1);
     background: none;
 }
 
 canvas.layer-below {
     filter: blur(calc(-0.5px * var(--layer-offset)));
-    scale: calc(1 + var(--layer-offset) * .05);
+    scale: calc(1 + var(--layer-offset) * .1);
 }
 
 canvas.layer-focus {
-    z-index: 1;
     border-color: currentColor;
 }
 

@@ -93,22 +93,84 @@ export class Viewport {
                 container.classList.add("layer-below");
             }
         }
-        this.worldMap.drawLayers(this.displays, x, y, z);
+        this.worldMap.drawLayers(this.displays, x, y, z, this.centerZ);
+    }
+}
+
+class FixedTile extends Tile {
+    clear() {
+        const oldComposite = this._ctx.globalCompositeOperation;
+        this._ctx.globalCompositeOperation = "copy";
+        super.clear();
+        this._ctx.globalCompositeOperation = oldComposite;
+    }
+
+    draw(data, clearBefore) {
+        const {globalCompositeOperation, globalAlpha} = this._ctx;
+        let [x, y, ch, fg, bg] = data;
+        let tileWidth = this._options.tileWidth;
+        let tileHeight = this._options.tileHeight;
+        if (clearBefore) {
+            if (this._options.tileColorize) {
+                this._ctx.clearRect(x * tileWidth, y * tileHeight, tileWidth, tileHeight);
+            }
+            else {
+                this._ctx.globalCompositeOperation = "copy";
+                this._ctx.fillStyle = bg;
+                this._ctx.fillRect(x * tileWidth, y * tileHeight, tileWidth, tileHeight);
+                this._ctx.globalCompositeOperation = globalCompositeOperation;
+            }
+        }
+        if (!ch) {
+            return;
+        }
+        let chars = [].concat(ch);
+        let fgs = [].concat(fg);
+        let bgs = [].concat(bg);
+
+        for (let i = 0; i < chars.length; i++) {
+            let tile = this._options.tileMap[chars[i]];
+            if (!tile) {
+                throw new Error(`Char "${chars[i]}" not found in tileMap`);
+            }
+            if (this._options.tileColorize) { // apply colorization
+                let canvas = this._colorCanvas;
+                let context = canvas.getContext("2d");
+                context.globalCompositeOperation = "source-over";
+                context.clearRect(0, 0, tileWidth, tileHeight);
+                let fg = fgs[i];
+                let bg = bgs[i];
+                context.drawImage(this._options.tileSet, tile[0], tile[1], tileWidth, tileHeight, 0, 0, tileWidth, tileHeight);
+                if (fg != "transparent") {
+                    context.fillStyle = fg;
+                    context.globalCompositeOperation = "source-atop";
+                    context.fillRect(0, 0, tileWidth, tileHeight);
+                }
+                if (bg != "transparent") {
+                    context.fillStyle = bg;
+                    context.globalCompositeOperation = "destination-over";
+                    context.fillRect(0, 0, tileWidth, tileHeight);
+                }
+                this._ctx.drawImage(canvas, x * tileWidth, y * tileHeight, tileWidth, tileHeight);
+            }
+            else { // no colorizing, easy
+                let fg = fgs[i];
+                if (typeof fg === "number") {
+                    this._ctx.globalAlpha = fg;
+                }
+                this._ctx.drawImage(this._options.tileSet, tile[0], tile[1], tileWidth, tileHeight, x * tileWidth, y * tileHeight, tileWidth, tileHeight);
+            }
+        }
+        this._ctx.globalAlpha = globalAlpha;
     }
 }
 
 class FixedDisplay extends Display {
-    /** @type {(this: Tile) => void} */
-    static fixedClear() {
-        // this._ctx.clearRect(0, 0, this._ctx.canvas.width, this._ctx.canvas.height);
-        const oldComposite = this._ctx.globalCompositeOperation;
-        this._ctx.globalCompositeOperation = "copy";
-        Tile.prototype.clear.call(this);
-        this._ctx.globalCompositeOperation = oldComposite;
-    }
-
+    /** @param {ConstructorParameters<typeof Display>[0]} options  */
     constructor(options) {
         super(options);
-        Object.defineProperty(this._backend, "clear", {value: FixedDisplay.fixedClear, configurable: true, writable: true});
+        if (this._backend instanceof Tile) {
+            Object.setPrototypeOf(this._backend, FixedTile.prototype);
+        }
     }
 }
