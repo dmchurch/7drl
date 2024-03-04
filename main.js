@@ -8,7 +8,7 @@ import { after } from "./helpers.js";
 
 console.log("Starting main.js");
 
-export const tileset = Tileset.tiles1 = new Tileset("tiles-1");
+export const tileset = Tileset.light;
 
 export const worldMap = new WorldMap();
 export const generator = new Cellular3D(worldMap.width, worldMap.height, worldMap.depth);

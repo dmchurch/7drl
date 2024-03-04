@@ -36,18 +36,20 @@ declare interface AsepriteExport {
     meta: AsepriteMeta;
 }
 
-// extra info put in 
-declare interface TileFrame extends AsepriteFrame {
+declare type TileInfo = import ("./tiles.js").TileInfo;
+
+declare interface TileFrame extends TileInfo {
     layerName: string;
     frameIndex: number;
-    char: string;
-}
-
-declare interface TileInfo {
-    sheet: TileSheetName;
+    char?: string;
+    x: number;
+    y: number;
+    sourceFrame?: AsepriteFrame;
 }
 
 declare type W<C extends string> = C | Lowercase<C> | ' '
 declare type WallRule = `${W<'Q'>}${W<'W'>}${W<'E'>}${W<'A'>}S${W<'D'>}${W<'Z'>}${W<'X'>}${W<'C'>}`;
 
-declare type LayerName = "Background" | "bubble1" | "eel" | "weeds1" | "egg" | "crab" | "fish" | "PCfish" | "solidwall" | "linewall";
+declare type TileSheetName = keyof (typeof import("./tiles.js"))["tileSheets"];
+declare type WallRuleName = keyof (typeof import("./tiles.js"))["wallRules"];
+declare type TileName = keyof (typeof import("./tiles.js"))["tiles"];

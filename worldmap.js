@@ -14,7 +14,7 @@ export class WorldMap {
     /** @type {Uint8Array} */
     baseMap;
 
-    /** @type {LayerName[]} */
+    /** @type {TileName[]} */
     baseTiles = [
         null,
         "solidwall",
@@ -36,11 +36,12 @@ export class WorldMap {
         this.baseMap = new Uint8Array(1 << (this.widthBits + this.heightBits + this.depthBits));
     }
 
-    /** @param {LayerName} layerName  */
+    /** @param {TileName} layerName  */
     toBaseValue(layerName) {
         return this.baseTiles.indexOf(layerName);
     }
-    toLayerName(v) {
+    /** @param {number} v */
+    toTileName(v) {
         return this.baseTiles[v];
     }
 
@@ -107,7 +108,7 @@ export class WorldMap {
     /** @param {MapSprite} sprite  */
     getSpriteChar(sprite) {
         /** @type {TileFrame} */
-        const frame = Tileset.tiles1.layerFrames[sprite.spriteLayer]?.[sprite.spriteFrame];
+        const frame = Tileset.light.layerFrames[sprite.spriteTile]?.[sprite.spriteFrame];
         if (!frame) {
             console.error("Could not get frame for sprite!", sprite);
             return;
@@ -128,7 +129,7 @@ export class WorldMap {
                 /** @type {string[]} */
                 const tiles = [];
                 if (base) {
-                    tiles.push(Tileset.defaultWall.char);
+                    tiles.push(Tileset.light.layerFrames[this.toTileName(base)][0].char);
                 }
                 for (const sprite of sprites.filter(s => s.x === x && s.y === y)) {
                     tiles.push(this.getSpriteChar(sprite));
@@ -153,7 +154,7 @@ export class MapSprite {
     x;
     y;
     z;
-    spriteLayer;
+    spriteTile;
     spriteFrame;
     animated;
 
@@ -166,12 +167,12 @@ export class MapSprite {
         this.#worldMap = new WeakRef(v);
     }
 
-    /** @param {LayerName} spriteLayer */
-    constructor(spriteLayer, x = 0, y = 0, z = 0, frame = 0, animated = false) {
+    /** @param {TileName} spriteTile */
+    constructor(spriteTile, x = 0, y = 0, z = 0, frame = 0, animated = false) {
         this.x = x;
         this.y = y;
         this.z = z;
-        this.spriteLayer = spriteLayer;
+        this.spriteTile = spriteTile;
         this.spriteFrame = frame;
         this.animated = animated;
     }
