@@ -1,10 +1,12 @@
 import { Display, RNG } from "rot-js";
-import { WorldMap } from "./worldmap.js";
+import { MapSprite, WorldMap } from "./worldmap.js";
 import { Cellular3D } from "./cellular3d.js";
 import { Viewport } from "./viewport.js";
 import { Tileset } from "./tileset.js";
 import { Player } from "./player.js";
-import { after } from "./helpers.js";
+import { after, typedEntries } from "./helpers.js";
+import { tiles, wallRules } from "./tiles.js";
+import { WallRule } from "./walls.js";
 
 console.log("Starting main.js");
 
@@ -99,7 +101,26 @@ export function iterate() {
     updateParamFields();
 }
 
-Object.assign(window, {o,viewport, clearAroundPlayer, setBaseCallback, regenerate, iterate});
+export function generateTestPattern() {
+    let {x, y, z} = player;
+    for (const [dy, patternLine] of wallRules.standard.framesTemplate.entries()) {
+        for (const [dx, cell] of patternLine.entries()) {
+            worldMap.setBase(x + dx + 1, y + dy + 1, z, cell >= WallRule.SAME ? 1 : 0);
+        }
+    }
+    
+    for (const [dx, [tileName]] of typedEntries(tiles).filter(([,{frameType}]) => frameType !== "walls").entries()) {
+        for (const frameIndex of Tileset.light.layerFrames[tileName]?.keys() ?? []) {
+            const nx = x - dx - 1;
+            const ny = y + frameIndex + 1;
+            worldMap.setBase(nx, ny, z, 0);
+            worldMap.addSprite(new MapSprite(tileName, nx, ny, z, frameIndex));
+        }
+    }
+    viewport.redraw();
+}
+
+Object.assign(self, {o,viewport, clearAroundPlayer, setBaseCallback, regenerate, iterate, generateTestPattern});
 
 regenerate();
 
@@ -169,3 +190,5 @@ Mousetrap.bind("shift+alt+t", () => {
     viewport.redraw();
     return false;
 });
+Mousetrap.bind("shift+alt+g", () => (generateTestPattern(), false));
+
