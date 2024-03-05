@@ -32,3 +32,16 @@ export function memoize(object, property, value, writable = false, enumerable = 
 export const typedEntries = Object.entries;
 /** @type {<K extends number|string|symbol>(object: Partial<Record<K, any>>) => K[]} */
 export const typedKeys = Object.keys;
+
+/**
+ * @template {string|number|symbol} K
+ * @template V1
+ * @template V2
+ * @param {Record<K, V1>} source 
+ * @param {(value: V1, key: K, index: number, entries: [K, V1]) => V2} mapFunc 
+ * @returns {Record<K, V2>}
+ */
+export function mapEntries(source, mapFunc) {
+    // @ts-ignore
+    return Object.fromEntries(typedEntries(source).map(([k, v], i, a) => [k, mapFunc(v, k, i, a)]));
+}

@@ -1,14 +1,31 @@
-import { memoize, typedEntries } from "./helpers.js";
-import { tileSheets, tiles } from "./tiles.js";
+import { mapEntries, memoize, typedEntries } from "./helpers.js";
+import { tileSheets, tiles, wallRules } from "./tiles.js";
+import { WallRule } from "./walls.js";
 
 export class Tileset {
     static get light() {
-        const sheetmap = Object.entries(tileSheets).map(([k, v]) => /** @type {[string, string]} */([k, Array.isArray(v) ? v[0] : v]));
+        const sheetmap = mapEntries(tileSheets, this.makeSheetDef);
         return memoize(this, "light", CompositeTileSheet.makeComposite(sheetmap, tiles));
     }
     static get dark() {
-        const sheetmap = Object.entries(tileSheets).map(([k, v]) => /** @type {[string, string]} */([k, Array.isArray(v) ? v[1] : v]));
-        return memoize(this, "dark", CompositeTileSheet.makeComposite(sheetmap, tiles));
+        const sheetmap = mapEntries(tileSheets, this.makeSheetDef);
+        return memoize(this, "dark", CompositeTileSheet.makeComposite(sheetmap, tiles, true));
+    }
+
+    /** @param {string|[string,string]|TileSheetDef} entry  @returns {TileSheetDef} */
+    static makeSheetDef(entry) {
+        if (typeof entry === "string") {
+            entry = [entry, undefined];
+        }
+        if (Array.isArray(entry)) {
+            entry = {
+                filename: entry[0],
+                filenameDark: entry[1],
+                mode: "frames",
+            };
+            if (!entry.filenameDark) delete entry.filenameDark;
+        }
+        return entry;
     }
 }
 
@@ -83,9 +100,9 @@ export class BaseTileSheet {
 
 /** @extends {BaseTileSheet<TileName>} */
 export class CompositeTileSheet extends BaseTileSheet {
-    /** @param {readonly (readonly [ref: string, filename: string])[]} sheetrefs @param {Partial<Record<TileName, TileInfo>>} tileDefs  */
-    static makeComposite(sheetrefs, tileDefs) {
-        return new this(Object.fromEntries(sheetrefs.map(([r, f]) => [r, AsepriteTileSheet.getByName(f)])), tileDefs);
+    /** @param {Record<string, TileSheetDef>} sheetrefs @param {Partial<Record<TileName, TileInfo>>} tileDefs */
+    static makeComposite(sheetrefs, tileDefs, darkMode = false) {
+        return new this(mapEntries(sheetrefs, d => AsepriteTileSheet.getByName(darkMode ? d.filenameDark ?? d.filename : d.filename, d)), tileDefs);
     }
 
     /** @type {Partial<Record<TileSheetName, BaseTileSheet>>} */
@@ -182,14 +199,18 @@ export class AsepriteTileSheet extends BaseTileSheet {
 
     /** @type {Record<string, AsepriteTileSheet>} */
     static #knownTileSheets = {__proto__: null};
-    /** @param {string} name @returns {AsepriteTileSheet} */
-    static getByName(name) {
+    /** @param {string} name @param {TileSheetDef} sheetDef @returns {AsepriteTileSheet} */
+    static getByName(name, sheetDef) {
         if (name in this.#knownTileSheets) return this.#knownTileSheets[name];
+
+        if (sheetDef.mode === "walls") {
+            return this.#knownTileSheets[name] = new WallTemplateTileSheet(name, wallRules[sheetDef.wallRules]);
+        }
 
         return this.#knownTileSheets[name] = new AsepriteTileSheet(name);
     }
 
-    /** @param {string} name  */
+    /** @param {string} name */
     constructor(name) {
         super(name);
         const img = this.img = document.createElement("img");
@@ -242,6 +263,48 @@ export class AsepriteTileSheet extends BaseTileSheet {
 
         this.layerFrames = layerFrames;
         this.allFrames = allFrames;
+    }
+}
+
+export class WallTemplateTileSheet extends AsepriteTileSheet {
+    wallRule;
+
+    /** @param {string} name @param {WallRule} wallRule  */
+    constructor(name, wallRule) {
+        super(name);
+        this.wallRule = wallRule;
+    }
+
+    async fetchMetadata() {
+        await super.fetchMetadata();
+        // now we turn the single-frame large template frames into sliced tile frames
+        // first, figure out the size of a tile
+        const templateRows = this.wallRule.framesTemplate.length;
+        const templateCols = Math.max(...this.wallRule.framesTemplate.map(r => r.length));
+        const tileHeight = this.tileHeight / templateRows;
+        const tileWidth = this.tileWidth / templateCols;
+        if (!Number.isInteger(tileHeight) || !Number.isInteger(tileWidth)) {
+            throw new Error(`Bad wall-template tilesheet ${this.name}, sprite dimensions ${this.tileWidth}×${this.tileHeight} should be a multiple of ${templateCols}×${templateRows}`);
+        }
+        this.tileHeight = tileHeight;
+        this.tileWidth = tileWidth;
+        // now, go through each layer and tile them out
+        for (const [name, frames] of typedEntries(this.layerFrames)) {
+            /** @type {TileFrame[]} */
+            const newFrames = [];
+            for (const frame of frames) {
+                for (const {x, y} of this.wallRule.frameLocations) {
+                    newFrames.push({
+                        ...frame,
+                        x: frame.x + tileWidth * x,
+                        y: frame.y + tileHeight * y,
+                        frameIndex: newFrames.length,
+                        frames: newFrames,
+                    })
+                }
+            }
+            this.layerFrames[name] = newFrames;
+        }
     }
 }
 

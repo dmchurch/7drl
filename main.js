@@ -160,7 +160,7 @@ surviveInput.oninput = () => {
 }
 
 /** @type {TileName[]} */
-export const terrains = ["solidwall", "roughwall"];
+export const terrains = typedEntries(tiles).filter(([k,v]) => v.frameType === "walls").map(([k, v]) => k);
 
 const Mousetrap = self.Mousetrap;
 

@@ -1,10 +1,21 @@
 import { WallRule } from "./walls.js"
 
+/**
+ * @typedef TileSheetDef
+ * @prop {string} filename
+ * @prop {string} [filenameDark]
+ * @prop {"frames"|"walls"} [mode]
+ * @prop {WallRuleName} [wallRules]
+ */
 
-/** @satisfies {Record<string, string | [string, string]>} */
+/** @satisfies {Record<string, string | [string, string] | TileSheetDef>} */
 export const tileSheets = {
     tiles1: ["tiles-1", "tiles-1-dark"],
-    walls: "tiles-walls",
+    walls: {
+        filename: "tiles-walls",
+        mode: "walls",
+        wallRules: "standard",
+    },
     props: "tiles-props",
 }
 /*
@@ -18,18 +29,16 @@ export const tileSheets = {
 
 /** @satisfies {Record<string, WallRule>} */
 export const wallRules = {
-    standard: WallRule.new`O QECZWDXA o qeczwdxa tgfr ↑→↓← 12
-    .................................
-    ....QWE.......↑......QE..........
-    ....AOD..o...QwE.....Z#E.....#1#.
-    ....ZXC.....QqOeE.....ZC.....2.2.
-    ........↑..←aOOOd→........↑..#1#.
-    ..↑....Qt→..ZzOcC...←1→..←#→.....
-    .←rE..←fC....ZxC...↑......↓......
-    ..Zg→..↓......↓....2..QE.........
-    ...↓...............↓.Q#C.........
-    .....................ZC..........
-    `, 
+    standard: WallRule.template`
+    #########.##.#.##
+    #.#.###.#.#######
+    ##.#.#.##..#####.
+    #######.#.###.###
+    ##.###.##.#######
+    #.#######....#...
+    ##.#.#.##.#.###..
+    #.###.#.#....#...
+    #########........`,
 }
 
 /**
@@ -79,6 +88,11 @@ export const tiles = {
     },
     
     solidwall: {
+        sheet: "walls",
+        frameType: "walls",
+        wallRules: "standard",
+    },
+    outlinedwall: {
         sheet: "walls",
         frameType: "walls",
         wallRules: "standard",

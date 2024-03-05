@@ -46,6 +46,22 @@ export class WallRule {
         })), frameSymbols.split(""));
     }
 
+    /** @param {TemplateStringsArray} strings */
+    static template(strings, ...args) {
+        if (strings.length > 1) {
+            throw new Error(`Invalid template WallRule specification, no interpolations are allowed`);
+        }
+        const str = strings.raw[0];
+        if (!str || !str.startsWith("\n")) {
+            throw new Error(`Invalid template WallRule specification, must start with newline`);
+        }
+        const [, ...lines] = str.split("\n");
+        const indent = Math.min(...lines.filter(l => /\S/.test(l)).map(l => l.length - l.trimStart().length));
+        const rows = lines.map(l => l.slice(indent).split("").map(c => c === "#" ? this.SAME : c === " " ? this.DONT_CARE : this.OTHER));
+
+        return new this(null, rows, null);
+    }
+
     /**
      * Bit ordering for wall-rule tests is clockwise from north of the cardinal directions,
      * then clockwise from northwest of the diagonals, and then finally the center bit, so:
@@ -74,6 +90,9 @@ export class WallRule {
     frameCount;
     framesTemplate;
     frameNames;
+    /** @type {{x: number, y: number}[]} measured in tiles, not px! */
+    frameLocations = [];
+    createMissingFrames = false;
 
     framesMap = new Int8Array(256);
 
@@ -84,6 +103,11 @@ export class WallRule {
         this.framesTemplate = framesTemplate;
         this.frameNames = frameNames;
 
+        if (!frameNames) {
+            this.createMissingFrames = true;
+            this.frameNames = [];
+        }
+
         this.calculateFrames(framesTemplate);
     }
 
@@ -93,15 +117,15 @@ export class WallRule {
         /** @type {Record<number, string>} */
         const definedAt = {};
         for (const [y, templateRow] of template.entries()) {
-            for (const [x, cell] of templateRow.entries()) {
-                if (cell < 0) continue;
+            for (let [x, cell] of templateRow.entries()) {
+                if (cell < (this.createMissingFrames ? SAME : 0)) continue;
                 let totals = [0];
                 for (let bit = 0; bit < 8; bit++) {
                     const [dx, dy] = bitDirections[bit];
                     let other = template[y + dy]?.[x + dx] ?? OTHER;
                     if (bit > 3) {
                         // diagonals only count if both adjacent orthogonals are set
-                        const orthos = (bit >> 2) | ((bit - 1) & 3);
+                        const orthos = (1 << (bit - 4)) | (1 << ((bit - 1) & 3));
                         if (!totals.every(v => ((v & orthos) === orthos))) {
                             other = DONT_CARE;
                         }
@@ -112,10 +136,31 @@ export class WallRule {
                         totals = totals.flatMap(v => [v, v | (1 << bit)]);
                     }
                 }
+                if (cell === SAME) {
+                    // try to find a matching cell from amongst our totals
+                    for (const total of totals) {
+                        if (total in definedAt && this.framesMap[total] !== SAME) {
+                            cell = this.framesMap[total];
+                            break;
+                        }
+                    }
+                    // otherwise create a new frame
+                    if (cell === SAME) {
+                        cell = this.frameNames.length;
+                        this.frameNames.push(cell.toString(36));
+                    }
+                    // record the cell in the template
+                    templateRow[x] = cell;
+                }
                 const location = `${y+1},${x+1}`
                 for (const total of totals) {
-                    if (total in definedAt && this.framesMap[total] !== cell) {
+                    if (total in definedAt && cell !== SAME && this.framesMap[total] !== cell) {
                         throw new Error(`Error in WallRule: bit pattern ${total} (${total.toString(2)}), originally defined at ${definedAt[total]} as ${this.framesMap[total]} (${this.frameNames[this.framesMap[total]]}), redefined at ${location} as ${cell} (${this.frameNames[cell]})`);
+                    } else if (total in definedAt) {
+                        continue;
+                    }
+                    if (!this.frameLocations[cell]) {
+                        this.frameLocations[cell] = {x, y};
                     }
                     definedAt[total] = location;
                     this.framesMap[total] = cell;
@@ -137,3 +182,4 @@ export class WallRule {
         return this.framesMap[total];
     }
 }
+

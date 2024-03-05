@@ -48,9 +48,7 @@ declare interface TileFrame extends TileInfo {
     sourceFrame?: AsepriteFrame;
 }
 
-declare type W<C extends string> = C | Lowercase<C> | ' '
-declare type WallRule = `${W<'Q'>}${W<'W'>}${W<'E'>}${W<'A'>}S${W<'D'>}${W<'Z'>}${W<'X'>}${W<'C'>}`;
-
+declare type TileSheetDef = import("./tiles.js").TileSheetDef;
 declare type TileSheetName = keyof (typeof import("./tiles.js"))["tileSheets"];
 declare type WallRuleName = keyof (typeof import("./tiles.js"))["wallRules"];
 declare type TileName = keyof (typeof import("./tiles.js"))["tiles"];
