@@ -66,6 +66,8 @@ let o = {
 const gameDisplay = document.getElementById("gameDisplay");
 export const viewport = worldMap.mainViewport = new Viewport(worldMap, gameDisplay, o);
 
+viewport.trackSize(document.getElementById("viewportRegion"));
+
 /**
  * @param {number} [iters]
  * @param {number} [randomizeProb]

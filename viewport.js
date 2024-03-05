@@ -29,6 +29,10 @@ export class Viewport {
     centerY;
     centerZ;
 
+    resizeObserver;
+    /** @type {WeakMap<Element, {widthProperty: string, heightProperty: string}>} */
+    observingElements = new WeakMap();
+
     /** @return {[x: number, y: number, z: number]} */
     get displayOffset() {
         return [
@@ -60,10 +64,33 @@ export class Viewport {
         this.container.style.setProperty("--layer-count", String(this.layers));
         this.container.style.setProperty("--focus-cols", String(width));
         this.container.style.setProperty("--focus-rows", String(height));
+        this.container.style.setProperty("--viewport-px-width", `${width * options.tileWidth}`);
+        this.container.style.setProperty("--viewport-px-height", `${height * options.tileHeight}`);
 
         this.centerX = this.worldMap.width >> 1;
         this.centerY = this.worldMap.height >> 1;
         this.centerZ = this.worldMap.depth >> 1;
+
+        this.resizeObserver = new ResizeObserver(this.resizeCallback.bind(this));
+    }
+
+    /** @param {ResizeObserverEntry[]} entries @param {ResizeObserver} observer */
+    resizeCallback(entries, observer) {
+        for (const entry of entries) {
+            const {target, contentBoxSize} = entry;
+            const observation = this.observingElements.get(target);
+            if (!observation || !(target instanceof HTMLElement)) continue;
+            const {widthProperty, heightProperty} = observation;
+            target.style.setProperty(widthProperty, contentBoxSize[0].inlineSize.toString());
+            target.style.setProperty(heightProperty, contentBoxSize[0].blockSize.toString());
+        }
+    }
+
+    /** @param {Element} element  */
+    trackSize(element, widthProperty = "--container-px-width", heightProperty = "--container-px-height") {
+        if (this.observingElements.has(element)) return;
+        this.observingElements.set(element, {widthProperty, heightProperty});
+        this.resizeObserver.observe(element, {box: "content-box"});
     }
 
     moveViewport(deltaX = 0, deltaY = 0, deltaZ = 0, forceRedraw) {

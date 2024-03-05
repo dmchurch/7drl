@@ -149,7 +149,7 @@ export class Cellular3D extends Map.Cellular {
 
     /** @param {Create3DCallback} callback @param {() => void} [initCallback] */
     *generateMap(callback, iters = 5, randomizeProb = 0.5, initCallback, yieldIterations = false) {
-        console.group(`Generating cellular map of size ${this.width}×${this.height}×${this.depth} using ${iters} iterations`);
+        console.groupCollapsed(`Generating cellular map of size ${this.width}×${this.height}×${this.depth} using ${iters} iterations`);
         performance.mark("generate-start");
         this.randomize(randomizeProb);
         performance.mark("randomized")

@@ -1,6 +1,9 @@
 :root {
     background: #080014;
     color: #3d4e9c;
+    width: 100%;
+    height: 100%;
+    contain: strict;
 }
 
 input {
@@ -8,22 +11,59 @@ input {
     color: #7686ce;
 }
 body {
+    margin: 0;
+    padding: 0;
     isolation: isolate;
+    width: 100dvw;
+    height: 100dvh;
+    display: grid;
+    grid:
+        "viewport console" 100dvh
+        / minmax(min-content, 100dvh) minmax(min-content, 1fr);
+}
+
+#viewportRegion {
+    grid-area: viewport;
+    display: grid;
+    margin: 1em;
+    align-items: center;
+    justify-items: center;
+    contain: size;
+}
+
+#sideConsole {
+    grid-area: console;
+    margin: 1em;
+    margin-left: 0;
+}
+
+@media (orientation: portrait) {
+    body {
+        grid:
+            "viewport" minmax(min-content, 100dvw)
+            "console" minmax(min-content, 1fr)
+            / 100dvw;
+    }
+    #sideConsole {
+        margin-left: 1em;
+        margin-top: 0;
+    }
 }
 
 #gameDisplay {
     border: 1px solid currentColor;
-    margin: 1ex;
-    display: inline grid;
+    display: grid;
     grid: "display" calc(16px * var(--focus-rows)) / calc(16px * var(--focus-cols));
     overflow: clip;
     align-items: center;
     justify-items: center;
+    scale: calc(min((var(--container-px-height)) / var(--viewport-px-height),
+                    (var(--container-px-width)) / var(--viewport-px-width)));
 }
 #gameDisplay > * {
-    grid-row: 1;
-    grid-column: 1;
+    grid-area: display;
 }
+
 canvas {
     background: #08001480;
     filter: blur(0);
