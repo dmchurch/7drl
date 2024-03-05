@@ -7,6 +7,7 @@ declare interface AsepriteRect extends AsepriteSize {
     y: number;
 }
 declare interface AsepriteFrame {
+    filename?: string;
     frame: AsepriteRect;
     rotated: boolean;
     trimmed: boolean;
