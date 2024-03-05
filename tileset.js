@@ -230,21 +230,23 @@ export class AsepriteTileSheet extends BaseTileSheet {
         /** @type {Record<string, TileFrame[]>} */
         const layerFrames = {};
         const allFrames = [];
-        const frameNameRe = /^([^(]+) \((.+)\) (\d+)\.aseprite/;
+        const frameNameRe = /^([^(]+) \((.+)\)\s*(\d*)\.aseprite/;
 
         for (const [name, sourceFrame] of Object.entries(data.frames)) {
-            const match = frameNameRe.exec(name);
+            if (Array.isArray(data.frames) && name === "length") continue;
+            const match = frameNameRe.exec(("filename" in sourceFrame) ? sourceFrame.filename : name);
             if (!match) {
                 console.error(`Could not recognize frame name ${name} from file img/${this.name}.json, skipping frame`);
                 continue;
             }
-            const [, _imgName, layerName, frameIndex] = match;
+            const [, _imgName, layerName, rawFrameIndex] = match;
             const frames = layerFrames[layerName] ??= [];
+            const frameIndex = parseInt(rawFrameIndex) || frames.length;
             /** @type {TileFrame} */
             const tileFrame = {
                 sheet: null,
                 layerName,
-                frameIndex: parseInt(frameIndex),
+                frameIndex,
                 x: sourceFrame.frame.x,
                 y: sourceFrame.frame.y,
                 sourceFrame,
