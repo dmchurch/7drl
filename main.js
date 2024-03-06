@@ -4,9 +4,10 @@ import { Cellular3D } from "./cellular3d.js";
 import { Viewport } from "./viewport.js";
 import { Tileset } from "./tileset.js";
 import { Player } from "./player.js";
-import { after, typedEntries } from "./helpers.js";
+import { after, htmlElement, typedEntries } from "./helpers.js";
 import { tiles, wallRules } from "./tiles.js";
 import { WallRule } from "./walls.js";
+import { StatUI, allStats, isStatName } from "./stats.js";
 
 console.log("Starting main.js");
 
@@ -17,6 +18,18 @@ export const generator = new Cellular3D(worldMap.width, worldMap.height, worldMa
 
 export const player = new Player(worldMap.width >> 1, worldMap.height >> 1, worldMap.depth >> 1);
 worldMap.addSprite(player);
+
+player.stats.head.current = 4;
+
+export const statUIs = {};
+
+for (const bpContainer of document.querySelectorAll(".bodypart")) {
+    const bodypart = htmlElement(bpContainer).dataset.bodypart;
+    if (!isStatName(bodypart)) {
+        throw new Error(`Bad data-bodypart: ${bodypart}`);
+    }
+    statUIs[bodypart] = new StatUI(player.stats[bodypart], bpContainer);
+}
 
 export function clearAroundPlayer() {
     // clear a spot around the player

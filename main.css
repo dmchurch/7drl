@@ -35,6 +35,13 @@ body {
     grid-area: console;
     margin: 1em;
     margin-left: 0;
+    display: flex;
+    flex-direction: column;
+    
+    gap: 1em;
+    grid:
+        "stats" max-content;
+        "messages" minmax(min-content, max-content);
 }
 
 @media (orientation: portrait) {
@@ -47,6 +54,13 @@ body {
     #sideConsole {
         margin-left: 1em;
         margin-top: 0;
+        flex-direction: row;
+        flex-wrap: wrap;
+        grid:
+            "stats messages"
+            "debug debug"
+            / max-content max-content
+        
     }
 }
 
@@ -71,14 +85,14 @@ canvas {
 }
 
 canvas.layer-above {
-    filter: blur(calc(0.75px * var(--layer-offset))) brightness(calc(1 + 0.1 * var(--layer-offset)));
+    filter: blur(0.75px) brightness(calc(1 + 0.1 * var(--layer-offset)));
     opacity: calc(1.1 - 0.2 * var(--layer-offset));
     scale: calc(1 + var(--layer-offset) * .1);
     background: none;
 }
 
 canvas.layer-below {
-    filter: blur(calc(-0.5px * var(--layer-offset)));
+    filter: blur(0.5px);
     scale: calc(1 + var(--layer-offset) * .1);
 }
 
@@ -86,30 +100,47 @@ canvas.layer-focus {
     border-color: currentColor;
 }
 
-.hidden {
-    display: none;
+#statsPanel {
+    background: #141335;
+    padding: 1em;
+    font-size: 1.5rem;
+    white-space: nowrap;
 }
 
-dl {
+#statsPanel dl {
+    margin: 0;
+}
+
+#statsPanel output.curhp::after {
+    content: " /";
+}
+
+#messagesPanel {
+    background: #141335;
+    padding: 1em;
+    flex-grow: 1;
+}
+
+.hidden {
+    display: none !important;
+}
+
+dl.debugInfo {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
     gap: 1em;
 }
 
-dt::after {
+dl.debugInfo dt::after {
     content: ":"
 }
 
-dl > div:has(+div) > dd::after {
+dl.debugInfo > div:has(+div) > dd::after {
     content: ","
 }
 
-dt, dd {
+.debugInfo :is(dt, dd) {
     display: inline;
     margin: 0;
-}
-
-#tilesheets {
-    display: none;
 }

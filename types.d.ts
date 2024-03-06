@@ -53,3 +53,6 @@ declare type TileSheetDef = import("./tiles.js").TileSheetDef;
 declare type TileSheetName = keyof (typeof import("./tiles.js"))["tileSheets"];
 declare type WallRuleName = keyof (typeof import("./tiles.js"))["wallRules"];
 declare type TileName = keyof (typeof import("./tiles.js"))["tiles"];
+
+declare type StatDef = import("./stats.js").StatDef;
+declare type StatName = import("./stats.js").StatName;

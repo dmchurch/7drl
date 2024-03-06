@@ -162,6 +162,43 @@ export class WorldMap {
         return frame.char;
     }
 
+    drawTile(x = 0, y = 0, z = 0,
+             fgParam = null, bgParam = null,
+             baseIndex = this.toIndex(x, y, z),
+             display = this.mainViewport.getDisplayForLayer(z),
+             centerX = this.mainViewport.centerX,
+             centerY = this.mainViewport.centerY,
+             width = display?.getOptions().width ?? 0,
+             height = display?.getOptions().height ?? 0,
+             xOrigin = centerX - (width >> 1),
+             yOrigin = centerY - (height >> 1),
+             row = y - yOrigin, col = x - xOrigin,
+             sprites = this.sprites.filter(s => s.x === x && s.y === y && s.z === z)) {
+
+        if (!inSemiOpenRange(row, 0, height) || !inSemiOpenRange(col, 0, width)) return;
+
+        const base = this.inMap(x, y, z) ? this.baseMap[baseIndex] : 0;
+        /** @type {string[]} */
+        const tiles = [];
+        if (base) {
+            const tileInfo = Tileset.light.layerFrames[this.toTileName(base)][0];
+            let baseFrame = this.baseFrames[baseIndex];
+            if (baseFrame < 0) {
+                if (tileInfo.frameType === "walls") {
+                    baseFrame = this.baseFrames[baseIndex] = wallRules[tileInfo.wallRules].framesMap[this.getWallInfoFor(baseIndex, base)];
+                } else {
+                    baseFrame = ~baseFrame;
+                }
+                this.baseFrames[baseIndex] = baseFrame;
+            }
+            tiles.push(tileInfo.frames[baseFrame % tileInfo.frames.length].char);
+        }
+        for (const sprite of sprites) {
+            tiles.push(this.getSpriteChar(sprite));
+        }
+        display.draw(col, row, tiles, fgParam, bgParam);
+}
+
     /** @param {import("rot-js").Display} display  */
     drawLayer(display, centerX = 0, centerY = 0, z = 0, focusLayer = Infinity) {
         const {width, height} = display.getOptions();
@@ -176,31 +213,21 @@ export class WorldMap {
             for (let i = 0; i < width; i++) {
                 const x = i + xOrigin;
                 const baseIndex = this.toIndex(x, y, z);
-                const base = this.inMap(x, y, z) ? this.baseMap[baseIndex] : 0;
-                /** @type {string[]} */
-                const tiles = [];
-                if (base) {
-                    const tileInfo = Tileset.light.layerFrames[this.toTileName(base)][0];
-                    let baseFrame = this.baseFrames[baseIndex];
-                    if (baseFrame < 0) {
-                        if (tileInfo.frameType === "walls") {
-                            baseFrame = this.baseFrames[baseIndex] = wallRules[tileInfo.wallRules].framesMap[this.getWallInfoFor(baseIndex, base)];
-                        } else {
-                            baseFrame = ~baseFrame;
-                        }
-                        this.baseFrames[baseIndex] = baseFrame;
-                    }
-                    tiles.push(tileInfo.frames[baseFrame % tileInfo.frames.length].char);
-                }
-                for (const sprite of sprites.filter(s => s.x === x && s.y === y)) {
-                    tiles.push(this.getSpriteChar(sprite));
-                }
-                /** @type {any} */
                 let fg = null;
                 if (focusOffset && this.baseMap[baseIndex + focusOffset] === 0) {
                     fg = focusOpacity;
                 }
-                display.draw(i, j, tiles, fg, null);
+                this.drawTile(x, y, z, fg, null,
+                              baseIndex,
+                              display,
+                              centerX,
+                              centerY,
+                              width,
+                              height,
+                              xOrigin,
+                              yOrigin,
+                              j, i,
+                              sprites.filter(s => s.x === x && s.y === y));
             }
         }
     }

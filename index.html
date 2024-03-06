@@ -22,7 +22,29 @@
         <div id="gameDisplay"></div>
     </div>
     <div id="sideConsole">
-        <dl>
+        <div id="statsPanel">
+            <dl id="statsList">
+                <div class="bodypart" data-bodypart="head"></div>
+                <div class="bodypart" data-bodypart="dorsal"></div>
+                <div class="bodypart" data-bodypart="belly"></div>
+                <div class="bodypart" data-bodypart="fins"></div>
+                <div class="bodypart" data-bodypart="tail"></div>
+                <template id="bodypartTemplate">
+                    <dt></dt>
+                    <dd>
+                        <meter class="hpmeter"></meter>
+                        <label>
+                            <output class="curhp"></output>
+                            <output class="maxhp"></output>
+                        </label>
+                    </dd>
+                </template>
+            </dl>
+        </div>
+        <div id="messagesPanel">
+
+        </div>
+        <dl class="debugInfo">
             <div>
                 <dt>WASDQZ or HJKLYN or ←↓↑→&lt;&gt;</dt>
                 <dd>Move player</dd>
@@ -60,7 +82,7 @@
                 <dd>Show/hide parameter fields</dd>
             </div>
         </dl>
-        <dl id="params" class="hidden">
+        <dl id="params" class="hidden debugInfo">
             <div>
                 <dt>Random seed</dt>
                 <dd><input id="seed" type="number"></dd>

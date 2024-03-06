@@ -33,13 +33,13 @@ export class Viewport {
     /** @type {WeakMap<Element, {widthProperty: string, heightProperty: string}>} */
     observingElements = new WeakMap();
 
-    /** @return {[x: number, y: number, z: number]} */
+    /** @return {{x: number, y: number, z: number}} */
     get displayOffset() {
-        return [
-            this.centerX,
-            this.centerY,
-            this.centerZ - this.focusLayer,
-        ]
+        return {
+            x: this.centerX,
+            y: this.centerY,
+            z: this.centerZ - this.focusLayer,
+        }
     }
 
     /** @param {Options} options  */
@@ -72,6 +72,11 @@ export class Viewport {
         this.centerZ = this.worldMap.depth >> 1;
 
         this.resizeObserver = new ResizeObserver(this.resizeCallback.bind(this));
+    }
+
+    getDisplayForLayer(z = this.centerZ) {
+        const layerIndex = z - this.displayOffset.z;
+        return this.displays[layerIndex];
     }
 
     /** @param {ResizeObserverEntry[]} entries @param {ResizeObserver} observer */
@@ -113,7 +118,7 @@ export class Viewport {
         this.container.style.setProperty("--center-x", String(this.centerX));
         this.container.style.setProperty("--center-y", String(this.centerY));
         this.container.style.setProperty("--center-z", String(this.centerZ));
-        const [x, y, z] = this.displayOffset;
+        const {x, y, z} = this.displayOffset;
         for (const [k, display] of this.displays.entries()) {
             const container = display.getContainer();
             const layerZ = z + k;
