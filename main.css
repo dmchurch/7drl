@@ -29,6 +29,7 @@ body {
     align-items: center;
     justify-items: center;
     contain: size;
+    position: relative;
 }
 
 #sideConsole {
@@ -78,31 +79,32 @@ body {
     grid-area: display;
 }
 
-canvas {
+#gameDisplay canvas {
     background: #08001480;
     filter: blur(0);
 /*     mix-blend-mode: lighten; */
 }
 
-canvas.layer-above {
+#gameDisplay canvas.layer-above {
     filter: blur(0.75px) brightness(calc(1 + 0.1 * var(--layer-offset)));
     opacity: calc(1.1 - 0.2 * var(--layer-offset));
     scale: calc(1 + var(--layer-offset) * .1);
     background: none;
 }
 
-canvas.layer-below {
+#gameDisplay canvas.layer-below {
     filter: blur(0.5px);
     scale: calc(1 + var(--layer-offset) * .1);
 }
 
-canvas.layer-focus {
+#gameDisplay canvas.layer-focus {
     border-color: currentColor;
 }
 
 #statsPanel {
     background: #141335;
     padding: 1em;
+    font-family: monospace;
     font-size: 1.5rem;
     white-space: nowrap;
 }
@@ -119,6 +121,71 @@ canvas.layer-focus {
     background: #141335;
     padding: 1em;
     flex-grow: 1;
+}
+
+#inventory {
+    font-family: monospace;
+    background: #141335;
+    color: #3d4e9c;
+    left: 0px;
+    min-width: 400px;
+    min-height: 300px;
+    max-width: 75dvmin;
+    max-height: 75dvmin;
+    flex-direction: column;
+}
+
+#inventory[open] {
+    display: flex;
+}
+
+#inventory ul.items-list {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    flex-grow: 1;
+    gap: 16px;
+    justify-content: center;
+}
+
+#inventory li {
+    display: block;
+}
+
+.inventory-item canvas {
+    width: 64px;
+    image-rendering: pixelated;
+}
+
+#inventory label {
+    display: block;
+    text-align: center;
+    font-size: 2rem;
+    font-family: monospace;
+    min-height: 2lh;
+    contain: inline-size;
+}
+
+#inventory label:empty::before {
+    content: "Select an item";
+    opacity: 0.5;
+}
+
+#inventory menu {
+    display: flex;
+    margin: 0;
+    padding: 1em 0 0;
+    justify-content: space-evenly;
+}
+
+#inventory button {
+    font-family: monospace;
+    font-size: 1.5rem;
+    appearance: none;
+    border: none;
+    background: none;
+    color: #3d4e9c;
 }
 
 .hidden {

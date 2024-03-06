@@ -83,9 +83,8 @@ export class BaseTileSheet {
         return map;
     }
 
-    /** @returns {Promise<ConstructorParameters<typeof import("rot-js").Display>[0]>} */
-    async getDisplayOptions() {
-        await this.ready;
+    /** @type {ConstructorParameters<typeof import("rot-js").Display>[0]} */
+    get displayOptions() {
         const {tileHeight, tileWidth, img} = this;
         return {
             layout: "tile",
@@ -95,6 +94,11 @@ export class BaseTileSheet {
             tileSet: /** @type {HTMLImageElement} */(img),
             tileMap: this.charMap ?? this.createCharMap(),
         };
+    }
+
+    async getDisplayOptions() {
+        await this.ready;
+        return this.displayOptions
     }
 }
 

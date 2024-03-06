@@ -5,6 +5,13 @@ import { Stat, allStats } from "./stats.js";
 export class Actor extends Prop {
     collision = true;
 
+    /** @overload @param {TileName} spriteTile @param {Overrides<Actor>} [options] */
+    /** @param {TileName} spriteTile @param {Overrides<Actor>} options */
+    constructor(spriteTile, options, {collision, ...rest} = options ?? {}) {
+        super(spriteTile, {blocksActors: true, ...rest});
+        this.collision = collision ?? this.collision;
+    }
+
     move(dx = 0, dy = 0, dz = 0) {
         if (!dx && !dy && !dz) return false;
 
@@ -46,10 +53,44 @@ export class Creature extends Actor {
     /** @type {Item[]} */
     inventory = [];
 
-    /** @param {TileName} spriteTile */
-    constructor(spriteTile, x = 0, y = 0, z = 0, frame = 0, animated = true) {
-        super(spriteTile, x, y, z, frame, animated);
-        this.stats = mapEntries(allStats, (def, name) => new Stat(name));
+    /** @overload @param {TileName} spriteTile @param {Overrides<Creature>} [options]  */
+    /** @param {TileName} spriteTile @param {Overrides<Creature>} [options]  */
+    constructor(spriteTile, options, {stats, inventory, ...rest} = options ?? {}) {
+        super(spriteTile, {animated: true, ...rest});
+        this.stats = mapEntries(allStats, (_def, name) => new Stat(name, stats?.[name]));
+        if (inventory) this.inventory.push(...inventory);
+    }
+
+    /** @param {Item} item  */
+    takeItem(item) {
+        if (this.hasItem(item)) return false;
+        this.inventory.push(item);
+        item.container = this;
+    }
+
+    /** @param {Item} item  */
+    hasItem(item) {
+        return this.inventory.includes(item);
+    }
+
+    /** @param {Item} item  */
+    relinquishItem(item) {
+        if (!this.hasItem(item)) {
+            return false;
+        }
+        this.inventory.splice(this.inventory.indexOf(item), 1);
+        return true;
+    }
+
+    /** @param {Item} item  */
+    dropItem(item) {
+        if (!this.relinquishItem(item)) {
+            return false;
+        }
+
+        const {x, y, z, worldMap} = this;
+        worldMap.addSprite(item, {x, y, z})
+        return true;
     }
 }
 

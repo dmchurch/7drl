@@ -40,11 +40,12 @@ export class Stat {
     /** @type {StatName} */
     name;
 
-    current;
-    max;
+    current = 10;
+    max = 10;
 
-    /** @param {StatName} name  */
-    constructor(name, max = allStats[name].defaultMax, current = max) {
+    /** @overload @param {StatName} name @param {Overrides<Stat>} [options] */
+    /** @param {StatName} nameArgument @param {Overrides<Stat>} [options] */
+    constructor(nameArgument, options = {}, {name = nameArgument, max = allStats[name].defaultMax, current = max} = options) {
         this.name = name;
         this.current = current;
         this.max = max;

@@ -1,4 +1,4 @@
-import { Display, RNG } from "rot-js";
+import { Display, RNG, KEYS } from "rot-js";
 import { MapSprite, WorldMap } from "./worldmap.js";
 import { Cellular3D } from "./cellular3d.js";
 import { Viewport } from "./viewport.js";
@@ -8,6 +8,8 @@ import { after, htmlElement, typedEntries } from "./helpers.js";
 import { tiles, wallRules } from "./tiles.js";
 import { WallRule } from "./walls.js";
 import { StatUI, allStats, isStatName } from "./stats.js";
+import { Item } from "./props.js";
+import { Creature } from "./actors.js";
 
 console.log("Starting main.js");
 
@@ -16,8 +18,18 @@ export const tileset = Tileset.light;
 export const worldMap = new WorldMap();
 export const generator = new Cellular3D(worldMap.width, worldMap.height, worldMap.depth);
 
-export const player = new Player(worldMap.width >> 1, worldMap.height >> 1, worldMap.depth >> 1);
+export const player = new Player({
+    x: worldMap.width >> 1,
+    y: worldMap.height >> 1,
+    z: worldMap.depth >> 1,
+    inventory: [
+        new Item("crab", {inventoryLabel: "An extremely confused crab"}),
+        new Item("egg", {inventoryLabel: "An adorable egg"}),
+        new Item("eel"),
+    ],
+});
 worldMap.addSprite(player);
+worldMap.addSprite(new Creature("crab", {x: player.x + 1, y: player.y + 1, z: player.z}));
 
 player.stats.head.current = 4;
 
@@ -130,7 +142,7 @@ export function generateTestPattern() {
             const nx = x - dx - 1;
             const ny = y + frameIndex + 1;
             worldMap.setBase(nx, ny, z, 0);
-            worldMap.addSprite(new MapSprite(tileName, nx, ny, z, frameIndex));
+            worldMap.addSprite(new MapSprite(tileName, {x: nx, y: ny, z, spriteFrame: frameIndex}));
         }
     }
     viewport.redraw();
@@ -177,7 +189,7 @@ surviveInput.oninput = () => {
 /** @type {TileName[]} */
 export const terrains = typedEntries(tiles).filter(([k,v]) => v.frameType === "walls").map(([k, v]) => k);
 
-const Mousetrap = self.Mousetrap;
+const Mousetrap = new self.Mousetrap(document.documentElement);
 
 Mousetrap.bind(["shift+w", "shift+k", "shift+up"], () => viewport.moveViewport(0, -1, 0));
 Mousetrap.bind(["shift+s", "shift+j", "shift+down"], () => viewport.moveViewport(0, 1, 0));
@@ -192,6 +204,8 @@ Mousetrap.bind(["a", "h", "left"], () => (player.move(-1, 0, 0), false));
 Mousetrap.bind(["d", "l", "right"], () => (player.move(1, 0, 0), false));
 Mousetrap.bind(["q", "y", "<"], () => (player.move(0, 0, 1), false));
 Mousetrap.bind(["z", "n", ">"], () => (player.move(0, 0, -1), false));
+Mousetrap.bind(["i", "tab"], () => (player.inventoryUI.toggleInventory(), false));
+Mousetrap.bind("alt+`", () => (htmlElement("debugControls").classList.toggle("hidden"), false));
 Mousetrap.bind("shift+alt+r", () => (regenerate(), false));
 Mousetrap.bind("shift+alt+i", () => (iterate(), false));
 Mousetrap.bind("shift+alt+o", () => (regenerate(1), false));

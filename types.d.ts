@@ -57,3 +57,12 @@ declare type TileName = keyof (typeof import("./tiles.js"))["tiles"];
 
 declare type StatDef = import("./stats.js").StatDef;
 declare type StatName = import("./stats.js").StatName;
+
+type NonOverridableKeys = "worldMap" | "container";
+type NonOverridable = string | number | boolean | symbol | bigint | any[] | import("./worldmap.js").WorldMap;
+declare type PropertyKeys<T> = {
+    [K in keyof T]: T[K] extends Function ? never : K
+}[keyof T]
+declare type Overrides<T> = T extends NonOverridable ? T : {
+    [K in PropertyKeys<T>]?: K extends NonOverridableKeys ? T[K] : Overrides<T[K]>
+};

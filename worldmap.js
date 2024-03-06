@@ -1,4 +1,4 @@
-import { inInclusiveRange, inSemiOpenRange } from "./helpers.js";
+import { inInclusiveRange, inSemiOpenRange, typedEntries } from "./helpers.js";
 import { tiles, wallRules } from "./tiles.js";
 import { Tileset } from "./tileset.js";
 import { Viewport } from "./viewport.js";
@@ -152,19 +152,24 @@ export class WorldMap {
 
     /** @param {MapSprite} sprite, @param {Partial<MapSprite>} [overrides] */
     addSprite(sprite, overrides) {
+        if (this.sprites.includes(sprite)) return false;
         if (overrides) {
             Object.assign(sprite, overrides);
         }
         sprite.worldMap = this;
         this.sprites.push(sprite);
-        return this;
+        sprite.container = this;
+        return true;
     }
 
     removeSprite(sprite) {
         const index = this.sprites.indexOf(sprite);
         if (index >= 0) {
             this.sprites.splice(index, 1);
+            sprite.container = null;
+            return true;
         }
+        return false;
     }
 
     /** @param {Record<number, TileName>} [tileMapping] */
@@ -265,32 +270,69 @@ export class WorldMap {
     static callback(x, y, z, contents) {}
 }
 
+/**
+ * @typedef SpriteContainer
+ * @prop {(sprite: MapSprite) => boolean} hasItem
+ * @prop {(sprite: MapSprite) => boolean} relinquishItem
+ */
+
 export class MapSprite {
-    x;
-    y;
-    z;
+    x = 0;
+    y = 0;
+    z = 0;
+    /** @type {TileName} */
     spriteTile;
-    spriteFrame;
-    animated;
+    spriteFrame = 0;
+    animated = false;
     visible = true;
+    displayLayer = 0;
 
     /** @type {WeakRef<WorldMap>} */
     #worldMap;
     get worldMap() {
-        return this.#worldMap.deref();
+        return this.#worldMap?.deref();
     }
     set worldMap(v) {
-        this.#worldMap = new WeakRef(v);
+        this.#worldMap = v == null ? null : new WeakRef(v);
     }
 
-    /** @param {TileName} spriteTile */
-    constructor(spriteTile, x = 0, y = 0, z = 0, frame = 0, animated = false) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
-        this.spriteTile = spriteTile;
-        this.spriteFrame = frame;
-        this.animated = animated;
+    /** @type {WeakRef<WorldMap | SpriteContainer>} */
+    #container;
+    get container() {
+        return this.#container?.deref();
+    }
+    set container(v) {
+        if (this.container === v) return;
+        if (this.container && v) {
+            this.releaseFromContainer();
+        }
+        this.#container = v == null ? null : new WeakRef(v);
+    }
+
+    /** @param {TileName} spriteTile @param {Overrides<MapSprite>} [options] */
+    constructor(spriteTile, options = {}) {
+        this.spriteTile = options?.spriteTile ?? spriteTile;
+        const {x, y, z, spriteFrame, animated, visible, displayLayer, worldMap, container} = options
+        this.x = x ?? this.x;
+        this.y = y ?? this.y;
+        this.z = z ?? this.z;
+        this.spriteFrame = spriteFrame ?? this.spriteFrame;
+        this.animated = animated ?? this.animated;
+        this.visible = visible ?? this.visible;
+        this.displayLayer = displayLayer ?? this.displayLayer;
+        this.worldMap = worldMap ?? this.worldMap;
+        this.container = container ?? this.container;
+    }
+
+
+    releaseFromContainer() {
+        const {container} = this;
+        if (container instanceof WorldMap) {
+            container.removeSprite(this);
+        } else {
+            container.relinquishItem(this);
+        }
+        return this.container == null;
     }
 }
 

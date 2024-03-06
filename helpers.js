@@ -28,7 +28,7 @@ export function memoize(object, property, value, writable = false, enumerable = 
     return value;
 }
 
-/** @type {<K extends number|string|symbol, V>(object: Partial<Record<K, V>>) => [K, V][]} */
+/** @type {<O>(object: O) => {[K in keyof O]: [K, O[K]]}[keyof O][]} */
 export const typedEntries = Object.entries;
 /** @type {<K extends number|string|symbol>(object: Partial<Record<K, any>>) => K[]} */
 export const typedKeys = Object.keys;
@@ -49,7 +49,7 @@ export function mapEntries(source, mapFunc) {
 /**
  * @template {Element} [T=Element]
  * 
- * @param {string|Element} elementOrId 
+ * @param {string|EventTarget} elementOrId 
  * @param {(new() => T)|((new() => T)[])} [expectedClass]
  * @param {boolean} [throwIfMissing] 
  * @param {boolean} [warnIfMissing] 
@@ -70,17 +70,17 @@ export function getElement(elementOrId, expectedClass=/** @type {new()=>T} */(El
     return undefined;
 }
 
-/** @param {string|Element} elementOrId  */
+/** @param {string|EventTarget} elementOrId  */
 export function htmlElement(elementOrId, throwIfMissing=true, warnIfMissing=true) {
     return getElement(elementOrId, HTMLElement, throwIfMissing, warnIfMissing);
 }
 
-/** @param {string|Element} elementOrId  */
+/** @param {string|EventTarget} elementOrId  */
 export function inputElement(elementOrId, throwIfMissing=true, warnIfMissing=true) {
     return getElement(elementOrId, HTMLInputElement, throwIfMissing, warnIfMissing);
 }
 
-/** @param {string|Element} elementOrId  */
+/** @param {string|EventTarget} elementOrId  */
 export function textAreaElement(elementOrId, throwIfMissing=true, warnIfMissing=true) {
     return getElement(elementOrId, HTMLTextAreaElement, throwIfMissing, warnIfMissing);
 }
@@ -114,6 +114,11 @@ export function isValueElement(node) {
 /** @param {string|Element} elementOrId  */
 export function svgElement(elementOrId, throwIfMissing=true, warnIfMissing=true) {
     return getElement(elementOrId, SVGElement, throwIfMissing, warnIfMissing);
+}
+
+/** @param {string|Element} elementOrId  */
+export function dialogElement(elementOrId, throwIfMissing=true, warnIfMissing=true) {
+    return getElement(elementOrId, HTMLDialogElement, throwIfMissing, warnIfMissing);
 }
 
 /** @param {string|Element} elementOrId  */

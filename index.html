@@ -18,6 +18,19 @@
     <script src='main.js' type="module"></script>
 </head>
 <body>
+    <dialog id="inventory">
+        <label class="item-label"></label>
+        <ul class="items-list"></ul>
+        <menu>
+            <li><button class="action-button" data-shortcut-key="1" data-action="eat"><kbd>1</kbd> Eat</button></li>
+            <li><button class="action-button" data-shortcut-key="2" data-action="drop"><kbd>2</kbd> Drop</button></li>
+        </menu>
+    </dialog>
+    <template id="inventoryItemTemplate">
+        <li class="inventory-item">
+            <button class="item-button display-container"></button>
+        </li>
+    </template>
     <div id="viewportRegion">
         <div id="gameDisplay"></div>
     </div>
@@ -44,7 +57,7 @@
         <div id="messagesPanel">
 
         </div>
-        <dl class="debugInfo">
+        <dl id="controls">
             <div>
                 <dt>WASDQZ or HJKLYN or ←↓↑→&lt;&gt;</dt>
                 <dd>Move player</dd>
@@ -53,6 +66,12 @@
                 <dt>Shift+Move</dt>
                 <dd>Move camera</dd>
             </div>
+            <div>
+                <dt>Alt+`</dt>
+                <dd>Show debug controls</dd>
+            </div>
+        </dl>
+        <dl id="debugControls" class="debugInfo hidden">
             <div>
                 <dt>Shift+Alt+T</dt>
                 <dd>Swap terrain type</dd>
