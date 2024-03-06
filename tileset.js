@@ -170,6 +170,7 @@ export class CompositeTileSheet extends BaseTileSheet {
                 y: tInfo.y + sheetOffset,
                 frameIndex,
                 layerName: tileName,
+                tileName,
             }));
             for (const frame of frames) {
                 frame.frames = frames;
@@ -244,6 +245,7 @@ export class AsepriteTileSheet extends BaseTileSheet {
             const frameIndex = parseInt(rawFrameIndex) || frames.length;
             /** @type {TileFrame} */
             const tileFrame = {
+                tileName: null,
                 sheet: null,
                 layerName,
                 frameIndex,

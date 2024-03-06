@@ -48,6 +48,8 @@ export const wallRules = {
  * @prop {number} [frameIndex] If this is a non-animation tile
  * @prop {"animation"|"walls"|"variants"} [frameType]
  * @prop {WallRuleName} [wallRules]
+ * @prop {boolean} [insubstantial] Whether Actors can pass through this tile, default false.
+ *                                 Only matters for tiles that can go on the base tilemap, not for sprites.
  */
 
 /** @satisfies {Record<string, TileInfo>} */

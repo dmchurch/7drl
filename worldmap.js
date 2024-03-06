@@ -1,5 +1,5 @@
 import { inInclusiveRange, inSemiOpenRange } from "./helpers.js";
-import { wallRules } from "./tiles.js";
+import { tiles, wallRules } from "./tiles.js";
 import { Tileset } from "./tileset.js";
 import { Viewport } from "./viewport.js";
 import { WallRule } from "./walls.js";
@@ -88,6 +88,12 @@ export class WorldMap {
     }
 
     /** @param {number} x @param {number} y @param {number} z */
+    getBaseTile(x, y, z) {
+        if (!this.inMap(x, y, z)) return null;
+        return this.getTileFrameFor(this.toIndex(x, y, z));
+    }
+
+    /** @param {number} x @param {number} y @param {number} z */
     setBase(x, y, z, w = 0) {
         if (!this.inMap(x, y, z)) return;
         const index = this.toIndex(x, y, z);
@@ -113,6 +119,22 @@ export class WorldMap {
         // this is simple right now but it could eventually incorporate "similar-enough" logic for
         // different wall sprites that should nonetheless count each other for tiling purposes
         return (this.baseMap[index] ?? 0) === base;
+    }
+
+    /** @param {number} baseIndex  */
+    getTileFrameFor(baseIndex, base = this.baseMap[baseIndex]) {
+        if (!base) return undefined;
+        const tileInfo = Tileset.light.layerFrames[this.toTileName(base)]?.[0];
+        let baseFrame = this.baseFrames[baseIndex];
+        if (baseFrame < 0) {
+            if (tileInfo.frameType === "walls") {
+                baseFrame = this.baseFrames[baseIndex] = wallRules[tileInfo.wallRules].framesMap[this.getWallInfoFor(baseIndex, base)];
+            } else {
+                baseFrame = ~baseFrame;
+            }
+            this.baseFrames[baseIndex] = baseFrame;
+        }
+        return tileInfo.frames[baseFrame % tileInfo.frames.length];
     }
 
     /** @param {number} baseIndex */
@@ -162,9 +184,14 @@ export class WorldMap {
         return frame.char;
     }
 
+    getSpritesAt(x = 0, y = 0, z = 0, fromSprites = this.sprites) {
+        return fromSprites.filter(s => s.x === x && s.y === y && s.z === z);
+    }
+
     drawTile(x = 0, y = 0, z = 0,
-             fgParam = null, bgParam = null,
-             baseIndex = this.toIndex(x, y, z),
+             focusLayer = this.mainViewport.centerZ,
+             focusOffset = z <= focusLayer ? 0 : this.toIndex(0, 0, focusLayer - z),
+             focusOpacity = 0.5 / (z - focusLayer),
              display = this.mainViewport.getDisplayForLayer(z),
              centerX = this.mainViewport.centerX,
              centerY = this.mainViewport.centerY,
@@ -173,30 +200,28 @@ export class WorldMap {
              xOrigin = centerX - (width >> 1),
              yOrigin = centerY - (height >> 1),
              row = y - yOrigin, col = x - xOrigin,
-             sprites = this.sprites.filter(s => s.x === x && s.y === y && s.z === z)) {
+             sprites = this.sprites) {
 
         if (!inSemiOpenRange(row, 0, height) || !inSemiOpenRange(col, 0, width)) return;
 
-        const base = this.inMap(x, y, z) ? this.baseMap[baseIndex] : 0;
+        const baseIndex = this.toIndex(x, y, z);
+        /** @type {any} */
+        let fg = null;
+        if (focusOffset && this.baseMap[baseIndex + focusOffset] === 0) {
+            fg = focusOpacity;
+        }
+
+        const baseTile = this.getBaseTile(x, y, z);
         /** @type {string[]} */
         const tiles = [];
-        if (base) {
-            const tileInfo = Tileset.light.layerFrames[this.toTileName(base)][0];
-            let baseFrame = this.baseFrames[baseIndex];
-            if (baseFrame < 0) {
-                if (tileInfo.frameType === "walls") {
-                    baseFrame = this.baseFrames[baseIndex] = wallRules[tileInfo.wallRules].framesMap[this.getWallInfoFor(baseIndex, base)];
-                } else {
-                    baseFrame = ~baseFrame;
-                }
-                this.baseFrames[baseIndex] = baseFrame;
-            }
-            tiles.push(tileInfo.frames[baseFrame % tileInfo.frames.length].char);
+        if (baseTile) {
+            tiles.push(baseTile.char);
         }
-        for (const sprite of sprites) {
+        for (const sprite of this.getSpritesAt(x, y, z, sprites)) {
+            if (!sprite.visible) continue;
             tiles.push(this.getSpriteChar(sprite));
         }
-        display.draw(col, row, tiles, fgParam, bgParam);
+        display.draw(col, row, tiles, fg, null);
 }
 
     /** @param {import("rot-js").Display} display  */
@@ -212,13 +237,10 @@ export class WorldMap {
             const y = j + yOrigin;
             for (let i = 0; i < width; i++) {
                 const x = i + xOrigin;
-                const baseIndex = this.toIndex(x, y, z);
-                let fg = null;
-                if (focusOffset && this.baseMap[baseIndex + focusOffset] === 0) {
-                    fg = focusOpacity;
-                }
-                this.drawTile(x, y, z, fg, null,
-                              baseIndex,
+                this.drawTile(x, y, z,
+                              focusLayer,
+                              focusOffset,
+                              focusOpacity,
                               display,
                               centerX,
                               centerY,
@@ -250,6 +272,7 @@ export class MapSprite {
     spriteTile;
     spriteFrame;
     animated;
+    visible = true;
 
     /** @type {WeakRef<WorldMap>} */
     #worldMap;

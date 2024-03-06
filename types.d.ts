@@ -40,6 +40,7 @@ declare interface AsepriteExport {
 declare type TileInfo = import ("./tiles.js").TileInfo;
 
 declare interface TileFrame extends TileInfo {
+    tileName: TileName;
     layerName: string;
     frameIndex: number;
     frames: TileFrame[];
