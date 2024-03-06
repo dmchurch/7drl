@@ -119,6 +119,67 @@ export const tiles = {
         sheet: "props",
         frameType: "variants",
     },
+    
+    geode-soul: {
+        sheet: "souls"
+    },
+    cavitation-soul: {
+        sheet: "souls"
+    },
+    slime-soul: {
+        sheet: "souls"
+    },
+    venom-soul: {
+        sheet: "souls"
+    },
+    dread-soul: {
+        sheet: "souls"
+    },
+    spine-soul: {
+        sheet: "souls"
+    },
+    wise-soul: {
+        sheet: "souls"
+    },
+    sight-soul: {
+        sheet: "souls"
+    },
+    mending-soul: {
+        sheet: "souls"
+    },
+    sustenance-soul: {
+        sheet: "souls"
+    },
+    delicious-soul: {
+        sheet: "souls"
+    },
+    disgusting-soul: {
+        sheet: "souls"
+    },
+    terror-soul: {
+        sheet: "souls"
+    },
+    summon-soul: {
+        sheet: "souls"
+    },
+    sick-soul: {
+        sheet: "souls"
+    },
+    flash-soul: {
+        sheet: "souls"
+    },
+    wild-soul: {
+        sheet: "souls"
+    },
+    ready-soul: {
+        sheet: "souls"
+    },
+    clean-soul: {
+        sheet: "souls"
+    },
+    shuffle-soul: {
+        sheet: "souls"
+    },
 }
 
 Object.assign(self, {wallRules, tiles, tileSheets})
