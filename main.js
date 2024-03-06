@@ -10,8 +10,11 @@ import { WallRule } from "./walls.js";
 import { StatUI, allStats, isStatName } from "./stats.js";
 import { Item } from "./props.js";
 import { Creature } from "./actors.js";
+import { KeyboardCueElement } from "./uicomponents.js";
 
 console.log("Starting main.js");
+KeyboardCueElement.defineElement();
+console.log("Defined custom elements");
 
 export const tileset = Tileset.light;
 

@@ -17,6 +17,7 @@ export const tileSheets = {
         wallRules: "standard",
     },
     props: "tiles-props",
+    souls: "tiles-souls",
 }
 /*
  o: 1
@@ -53,7 +54,7 @@ export const wallRules = {
  */
 
 /** @satisfies {Record<string, TileInfo>} */
-export const tiles = {
+export const tileDefinitions = {
     PCfish: {
         sheet: "tiles1",
         frameType: "animation",
@@ -119,67 +120,90 @@ export const tiles = {
         sheet: "props",
         frameType: "variants",
     },
-    
-    geode-soul: {
-        sheet: "souls"
+
+    geodeSoul: {
+        sheet: "souls",
+        layerName: "geode-soul",
     },
-    cavitation-soul: {
-        sheet: "souls"
+    cavitationSoul: {
+        sheet: "souls",
+        layerName: "cavitation-soul",
     },
-    slime-soul: {
-        sheet: "souls"
+    slimeSoul: {
+        sheet: "souls",
+        layerName: "slime-soul",
     },
-    venom-soul: {
-        sheet: "souls"
+    venomSoul: {
+        sheet: "souls",
+        layerName: "venom-soul",
     },
-    dread-soul: {
-        sheet: "souls"
+    dreadSoul: {
+        sheet: "souls",
+        layerName: "dread-soul",
     },
-    spine-soul: {
-        sheet: "souls"
+    spineSoul: {
+        sheet: "souls",
+        layerName: "spine-soul",
     },
-    wise-soul: {
-        sheet: "souls"
+    wiseSoul: {
+        sheet: "souls",
+        layerName: "wise-soul",
     },
-    sight-soul: {
-        sheet: "souls"
+    sightSoul: {
+        sheet: "souls",
+        layerName: "sight-soul",
     },
-    mending-soul: {
-        sheet: "souls"
+    mendingSoul: {
+        sheet: "souls",
+        layerName: "mending-soul",
     },
-    sustenance-soul: {
-        sheet: "souls"
+    sustenanceSoul: {
+        sheet: "souls",
+        layerName: "sustenance-soul",
     },
-    delicious-soul: {
-        sheet: "souls"
+    deliciousSoul: {
+        sheet: "souls",
+        layerName: "delicious-soul",
     },
-    disgusting-soul: {
-        sheet: "souls"
+    disgustingSoul: {
+        sheet: "souls",
+        layerName: "disgusting-soul",
     },
-    terror-soul: {
-        sheet: "souls"
+    terrorSoul: {
+        sheet: "souls",
+        layerName: "terror-soul",
     },
-    summon-soul: {
-        sheet: "souls"
+    summonSoul: {
+        sheet: "souls",
+        layerName: "summon-soul",
     },
-    sick-soul: {
-        sheet: "souls"
+    sickSoul: {
+        sheet: "souls",
+        layerName: "sick-soul",
     },
-    flash-soul: {
-        sheet: "souls"
+    flashSoul: {
+        sheet: "souls",
+        layerName: "flash-soul",
     },
-    wild-soul: {
-        sheet: "souls"
+    wildSoul: {
+        sheet: "souls",
+        layerName: "wild-soul",
     },
-    ready-soul: {
-        sheet: "souls"
+    readySoul: {
+        sheet: "souls",
+        layerName: "ready-soul",
     },
-    clean-soul: {
-        sheet: "souls"
+    cleanSoul: {
+        sheet: "souls",
+        layerName: "clean-soul",
     },
-    shuffle-soul: {
-        sheet: "souls"
+    shuffleSoul: {
+        sheet: "souls",
+        layerName: "shuffle-soul",
     },
 }
+
+/** @type {Record<TileName, TileInfo>} */
+export const tiles = tileDefinitions;
 
 Object.assign(self, {wallRules, tiles, tileSheets})

@@ -188,26 +188,50 @@ body {
     color: #3d4e9c;
 }
 
+keyboard-cue {
+    stroke: currentColor;
+    stroke-width: 3;
+    fill: transparent;
+    display: inline-block;
+}
+
+keyboard-cue::part(svg) {
+    height: 2lh;
+    vertical-align: middle;
+}
+
+keyboard-cue::part(highlight) {
+    fill: #798bdc;
+}
+keyboard-cue::part(secondary) {
+    fill: #689c3d;
+}
+keyboard-cue::part(tertiary) {
+    fill: #9c6a3d;
+}
+
 .hidden {
     display: none !important;
 }
 
-dl.debugInfo {
+dl:is(.debugInfo,#controls) {
+    margin:0 0 1ex 0;
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
     gap: 1em;
+    overflow: auto;
 }
 
-dl.debugInfo dt::after {
+dl:is(.debugInfo,#controls) dt::after {
     content: ":"
 }
 
-dl.debugInfo > div:has(+div) > dd::after {
+dl:is(.debugInfo,#controls) > div:has(+div) > dd::after {
     content: ","
 }
 
-.debugInfo :is(dt, dd) {
+dl:is(.debugInfo,#controls) :is(dt, dd) {
     display: inline;
     margin: 0;
 }
