@@ -217,6 +217,7 @@ export class InputManager {
                     }
                 }
             }
+            this.#actionStatesDirty = false;
         }
 
         const wasActive = this.activeActions.length > 0;
