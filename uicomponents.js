@@ -1,3 +1,5 @@
+import { fromTypedEntries, getElement, invertMap, mapToEntries, mapToValues, svgElement, tuple, typedEntries } from "./helpers.js";
+
 /** @satisfies {Record<string, (strings: TemplateStringsArray, ...exprs: any[]) => any>} */
 export const Rendered = {
     /**
@@ -83,27 +85,38 @@ export class KeyboardCueElement extends HTMLElement {
         "tab", "q", "w", "e", "r", "t", "y", "u", "i", "o", "p", "l-bracket", "r-bracket", "backslash",
         "capslock", "a", "s", "d", "f", "g", "h", "j", "k", "l", "semicolon", "quote", "return",
         "l-shift", "z", "x", "c", "v", "b", "n", "m", "comma", "period", "slash", "r-shift",
-        "l-control", "l-hyper", "l-alt", "space", "r-alt", "r-hyper", "r-meta", "r-control",
+        "l-control", "l-meta", "l-alt", "space", "r-alt", "r-meta", "contextmenu", "r-control",
         // 6-cluster
         "ins", "home", "pgup",
         "del", "end", "pgdn",
         // cursor keys
         "up", "left", "down", "right",
         // keypad
-        "numlock", "divide", "times", "subtract",
+        "numlock", "divide", "multiply", "subtract",
         "kp7", "kp8", "kp9", "add",
         "kp4", "kp5", "kp6",
         "kp1", "kp2", "kp3", "kpenter",
         "kp0", "decimal",
     ]);
 
-    /** @typedef {typeof KeyboardCueElement.allKeys[number]} KeyboardCueName */
+    /** @readonly @satisfies {Record<KeyboardCueName, string>} */
+    static keysToDOMCodes = /** @type {const} */({
+        esc: "Escape", f1: "F1", f2: "F2", f3: "F3", f4: "F4", f5: "F5", f6: "F6", f7: "F7", f8: "F8", f9: "F9", f10: "F10", f11: "F11", f12: "F12", prntscrn: "PrintScreen", scrlock: "ScrollLock", pause: "Pause",
+        grave: "Backquote", "1": "Digit1", "2": "Digit2", "3": "Digit3", "4": "Digit4", "5": "Digit5", "6": "Digit6", "7": "Digit7", "8": "Digit8", "9": "Digit9", "0": "Digit0", dash: "Minus", equals: "Equal", bksp: "Backspace",
+        tab: "Tab", q: "KeyQ", w: "KeyW", e: "KeyE", r: "KeyR", t: "KeyT", y: "KeyY", u: "KeyU", i: "KeyI", o: "KeyO", p: "KeyP", "l-bracket": "BracketLeft", "r-bracket": "BracketRight", backslash: "Backslash",
+        capslock: "CapsLock", a: "KeyA", s: "KeyS", d: "KeyD", f: "KeyF", g: "KeyG", h: "KeyH", j: "KeyJ", k: "KeyK", l: "KeyL", semicolon: "Semicolon", quote: "Quote", return: "Enter",
+        "l-shift": "ShiftLeft", z: "KeyZ", x: "KeyX", c: "KeyC", v: "KeyV", b: "KeyB", n: "KeyN", m: "KeyM", comma: "Comma", period: "Period", slash: "Slash", "r-shift": "ShiftRight",
+        "l-control": "ControlLeft", "l-meta": "MetaLeft", "l-alt": "AltLeft", space: "Space", "r-alt": "AltRight", "r-meta": "MetaRight", contextmenu: "ContextMenu", "r-control": "ControlRight",
 
-    /** @param {string} key @returns {key is KeyboardCueName} */
-    static isKeyName(key) {
-        // @ts-ignore
-        return KeyboardCueElement.allKeys.includes(key);
-    }
+        // 6-cluster
+        ins: "Insert", home: "Home", pgup: "PageUp", del: "Delete", end: "End", pgdn: "PageDown",
+
+        // cursor keys
+        up: "ArrowUp", left: "ArrowLeft", down: "ArrowDown", right: "ArrowRight",
+
+        // keypad
+        numlock: "NumLock", divide: "NumpadDivide", multiply: "NumpadMultiply", subtract: "NumpadSubtract", kp7: "Numpad7", kp8: "Numpad8", kp9: "Numpad9", add: "NumpadAdd", kp4: "Numpad4", kp5: "Numpad5", kp6: "Numpad6", kp1: "Numpad1", kp2: "Numpad2", kp3: "Numpad3", kpenter: "NumpadEnter", kp0: "Numpad0", decimal: "NumpadDecimal",
+    })
 
     /** @satisfies {Record<string, {keys: KeyboardCueName[], viewBox: [number, number, number, number]}>} */
     static views = {
@@ -136,7 +149,7 @@ export class KeyboardCueElement extends HTMLElement {
         },
         keypad: {
             keys: [
-                "numlock", "divide", "times", "subtract",
+                "numlock", "divide", "multiply", "subtract",
                 "kp7", "kp8", "kp9", "add",
                 "kp4", "kp5", "kp6",
                 "kp1", "kp2", "kp3", "kpenter",
@@ -144,18 +157,25 @@ export class KeyboardCueElement extends HTMLElement {
             ],
             viewBox: [995, 68, 230, 281],
         },
-    }
+        full: {
+            keys: this.allKeys,
+            viewBox: [0, 0, 1226, 349]
+        }
+    };
 
+    /** @typedef {typeof KeyboardCueElement.allKeys[number]} KeyboardCueName */
     /** @typedef {keyof typeof KeyboardCueElement.views} KeyboardCueView */
     /** @param {string} key @returns {key is KeyboardCueView} */
     static isViewName(key) {
         return key in KeyboardCueElement.views;
     }
 
+    /** @type {Record<string, Promise<Record<KeyboardCueName, SVGRect>>>} */
+    static keyRectsPerSrc = {};
 
     /** @returns {string[]} */
     static get observedAttributes() {
-        return ["keys", "highlight", "secondary", "tertiary", "view-box", "view", "src"];
+        return ["keys", "highlight", "lowlight", "secondary", "tertiary", "view-box", "view", "src"];
     }
 
     /** @type {CSSStyleSheet[]} */
@@ -198,45 +218,34 @@ export class KeyboardCueElement extends HTMLElement {
         }
     }
 
+    /** @type {KeyTokenList} */
+    #keys;
     get keys() {
-        /** @type {KeyboardCueName[]} */
-        const keys = KeyboardCueElement.views[this.view]?.keys.slice() ?? [];
-        const keySpec = (this.getAttribute("keys") ?? "").split(/\s+/);
-        for (const key of keySpec) {
-            if (KeyboardCueElement.isKeyName(key)) {
-                keys.push(key);
-            } else if (key.startsWith("-")) {
-                const name = key.slice(1);
-                if (KeyboardCueElement.isKeyName(name) && keys.includes(name)) {
-                    keys.splice(keys.indexOf(name), 1);
-                }
-            }
-        }
-        return keys;
-    }
-    set keys(v) {
-        this.setAttribute("keys", (v ?? []).join(" "));
+        return this.#keys ??= new KeyTokenList(this, "keys", KeyboardCueElement.views[this.view]?.keys);
     }
 
+    /** @type {KeyTokenList} */
+    #highlight;
     get highlight() {
-        return (this.getAttribute("highlight") ?? "").split(/\s+/).filter(KeyboardCueElement.isKeyName);
-    }
-    set highlight(v) {
-        this.setAttribute("highlight", (v ?? []).join(" "));
+        return this.#highlight ??= new KeyTokenList(this, "highlight");
     }
 
+    /** @type {KeyTokenList} */
+    #lowlight;
+    get lowlight() {
+        return this.#lowlight ??= new KeyTokenList(this, "lowlight");
+    }
+
+    /** @type {KeyTokenList} */
+    #secondary;
     get secondary() {
-        return (this.getAttribute("secondary") ?? "").split(/\s+/).filter(KeyboardCueElement.isKeyName);
-    }
-    set secondary(v) {
-        this.setAttribute("secondary", (v ?? []).join(" "));
+        return this.#secondary ??= new KeyTokenList(this, "secondary");
     }
 
+    /** @type {KeyTokenList} */
+    #tertiary;
     get tertiary() {
-        return (this.getAttribute("tertiary") ?? "").split(/\s+/).filter(KeyboardCueElement.isKeyName);
-    }
-    set tertiary(v) {
-        this.setAttribute("tertiary", (v ?? []).join(" "));
+        return this.#tertiary ??= new KeyTokenList(this, "tertiary");
     }
 
     get src() {
@@ -256,6 +265,9 @@ export class KeyboardCueElement extends HTMLElement {
     /** @type {SVGElement} */
     keyContainer;
 
+    /** @type {Readonly<Record<KeyboardCueName, SVGRect>>} */
+    keyRects;
+
     /** @param {ShadowRootInit} [shadowRootInit] */
     constructor(shadowRootInit = {mode: "open"}) {
         super();
@@ -265,6 +277,7 @@ export class KeyboardCueElement extends HTMLElement {
         shadow.adoptedStyleSheets.push(...new.target.stylesheets);
         this.svg = shadow.querySelector("svg");
         this.keyContainer = this.svg;
+        this.updateKeyRects();
     }
 
     /** @param {string} name @param {string} oldValue @param {string} newValue */
@@ -272,13 +285,16 @@ export class KeyboardCueElement extends HTMLElement {
         if (name === "view-box" || name === "view") {
             this.shadowRoot.querySelector("svg").setAttribute("viewBox", this.viewBox.join(" "));
         }
-        if (["keys", "highlight", "view", "src"]) {
+        if (["keys", "highlight", "lowlight", "secondary", "tertiary", "view", "src"].includes(name)) {
             this.updateKeys();
+        }
+        if (name === "src" && this.src) {
+            this.updateKeyRects();
         }
     }
 
     updateKeys() {
-        const {keys, highlight, secondary, tertiary, keyContainer} = this;
+        const {keys, highlight, lowlight, secondary, tertiary, keyContainer} = this;
         /** @type {Record<string, SVGUseElement>} */
         const existingKeys = Object.fromEntries(
             Array.from(keyContainer.children)
@@ -287,13 +303,45 @@ export class KeyboardCueElement extends HTMLElement {
 
         keyContainer.replaceChildren(...keys.map(k => existingKeys[k] ??= this.createKeyElement(k)));
         for (const key of keys) {
-            existingKeys[key].part.toggle("highlight", highlight.includes(key));
-            existingKeys[key].part.toggle("secondary", secondary.includes(key));
-            existingKeys[key].part.toggle("tertiary", tertiary.includes(key));
+            existingKeys[key].part.toggle("highlight", highlight.contains(key));
+            existingKeys[key].part.toggle("lowlight", lowlight.contains(key));
+            existingKeys[key].part.toggle("secondary", secondary.contains(key));
+            existingKeys[key].part.toggle("tertiary", tertiary.contains(key));
         }
     }
 
-    /** @param {string} key  @returns {SVGUseElement} */
+    async updateKeyRects() {
+        KeyboardCueElement.keyRectsPerSrc[this.src] ??= this.fetchKeyRects(this.src);
+        try {
+            this.keyRects = await KeyboardCueElement.keyRectsPerSrc[this.src];
+        } catch (e) {
+            KeyboardCueElement.keyRectsPerSrc[this.src] = null;
+            throw e;
+        }
+        return this.keyRects;
+    }
+
+    async fetchKeyRects(src = KeyboardCueElement.defaultSrc) {
+        const response = await fetch(src);
+        const text = await response.text();
+
+        const div = Rendered.html`
+            <div style="position:absolute;visibility:hidden;" innerHTML=${text}></div>`.firstElementChild;
+
+        document.body.append(div);
+        
+        try {
+            const svg = getElement(div.firstElementChild, SVGSVGElement);
+
+            return mapToValues(
+                KeyboardCueElement.allKeys,
+                k => (getElement(svg.getElementById(`k-${k}`), SVGPathElement)).getBBox());
+        } finally  {
+            div.remove();
+        }
+    }
+
+    /** @param {string} key @returns {SVGUseElement} */
     createKeyElement(key) {
         const element = Rendered.html`
         <svg>
@@ -311,3 +359,122 @@ export class KeyboardCueElement extends HTMLElement {
         customElements.define(this.tagName, this);
     }
 }
+
+/** @extends {Array<KeyboardCueName>} */
+export class KeyTokenList extends Array {
+    #element;
+    #attr;
+    #viewKeys;
+    /** @param {KeyboardCueElement} element @param {string} attr @param {KeyboardCueName[]} [viewKeys] */
+    constructor(element, attr, viewKeys = []) {
+        super(...viewKeys);
+        this.#viewKeys = viewKeys;
+        this.#element = element;
+        this.#attr = attr;
+        this.reparse();
+    }
+
+    get value() {
+        return this.filter(k => !this.#viewKeys.includes(k))
+                   .concat(this.#viewKeys
+                               .filter(k => !this.includes(k))
+                               .map(k => /** @type {any} */(`-${k}`)))
+                   .join(" ");
+    }
+
+    reparse() {
+        this.length = 0;
+        this.push(...this.#viewKeys);
+        const value = this.#element?.getAttribute?.(this.#attr);
+        
+        for (const token of value?.split(/\s+/) ?? []) {
+            if (isKeyName(token)) {
+                this.push(token);
+            } else if (token.startsWith("-")) {
+                const key = token.slice(1);
+                if (isKeyName(key) && this.includes(key)) {
+                    this.splice(this.indexOf(key), 1);
+                }
+            }
+        }
+
+    }
+
+    /** @param {...KeyboardCueName} tokens  */
+    add(...tokens) {
+        let changed = false;
+        for (const item of tokens) {
+            if (!this.includes(item)) {
+                changed = true;
+                this.push(item);
+            }
+        }
+        if (changed) {
+            this.#element.setAttribute(this.#attr, this.value);
+        }
+    }
+    /** @param {KeyboardCueName} token  */
+    contains(token) {
+        return this.includes(token);
+    }
+
+    /** @param {number} index  */
+    item(index) {
+        return this[index] ?? null;
+    }
+
+    /** @param {...KeyboardCueName} tokens  */
+    remove(...tokens) {
+        let changed = false;
+        for (const token of tokens) {
+            const index = this.indexOf(token);
+            if (index >= 0) {
+                changed = true;
+                this.splice(index, 1);
+            }
+        }
+        if (changed) {
+            this.#element.setAttribute(this.#attr, this.value);
+        }
+    }
+
+    /** @param {KeyboardCueName} oldItem @param {KeyboardCueName} newItem */
+    replace(oldItem, newItem) {
+        const index = this.indexOf(oldItem);
+        if (index < 0) {
+            return false;
+        }
+        this[index] = newItem;
+        this.#element.setAttribute(this.#attr, this.value);
+            return true;
+    }
+
+    /** @param {KeyboardCueName} item @param {boolean} [force] */
+    toggle(item, force) {
+        const index = this.indexOf(item);
+        const present = index >= 0;
+        if (present === force) return present;
+        if (present) {
+            this.splice(index, 1);
+            this.#element.setAttribute(this.#attr, this.value);
+            return false;
+        } else {
+            this.push(item);
+            this.#element.setAttribute(this.#attr, this.value);
+            return true;
+        }
+    }
+    
+    /** @param {string} token @returns {token is KeyboardCueName} */
+    supports(token) {
+        return isKeyName(token);
+    }
+}
+
+/** @param {string} key @returns {key is KeyboardCueName} */
+export function isKeyName(key) {
+    // @ts-ignore
+    return KeyboardCueElement.allKeys.includes(key);
+}
+
+Object.assign(self, {KeyboardCueElement, KeyTokenList, isKeyName});

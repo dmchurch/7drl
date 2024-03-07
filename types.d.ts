@@ -58,11 +58,13 @@ declare type ItemDefinition = import("./items.js").ItemDefinition;
 declare type ItemName = import("./items.js").ItemName;
 declare type RoleDefinition = import("./roles.js").RoleDefinition;
 declare type RoleName = import("./roles.js").RoleName;
+declare type KeyboardCueName = keyof typeof import("./uicomponents.js").KeyboardCueElement["keysToDOMCodes"];
+declare type DOMKeyCode = keyof typeof import("./input.js").InputManager["keyCodesToKeyCues"];
 
 declare type StatDef = import("./stats.js").StatDef;
 declare type StatName = import("./stats.js").StatName;
 
-declare type IfEquals<X, Y, T, F> =
+declare type IfEquals<X, Y, T, F = never> =
     (<T>() => T extends X ? 1 : 2) extends
     (<T>() => T extends Y ? 1 : 2) ? T : F;
 
@@ -70,7 +72,7 @@ type NonOverridableKeys = "worldMap" | "container" | "rootSprite";
 type NonOverridable = string | number | boolean | symbol | bigint | any[] | import("./worldmap.js").WorldMap;
 declare type PropertyKeys<T> = {
     [K in keyof T]: T[K] extends Function ? never
-                  : IfEquals<{[K2 in K]: T[K]}, {-readonly [K2 in K]: T[K]}, K, never>
+                  : IfEquals<{[K2 in K]: T[K]}, {-readonly [K2 in K]: T[K]}, K>
 }[keyof T]
 declare type Overrides<T> = T extends NonOverridable ? T : {
     [K in PropertyKeys<T>]?: K extends NonOverridableKeys ? T[K] : Overrides<T[K]>

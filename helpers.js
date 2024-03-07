@@ -32,6 +32,14 @@ export function memoize(object, property, value, writable = false, enumerable = 
 export const typedEntries = Object.entries;
 /** @type {<K extends number|string|symbol>(object: Partial<Record<K, any>>) => K[]} */
 export const typedKeys = Object.keys;
+/** @type {<E extends [string|number|symbol, any]>(entries: E[]) => Record<E[0], E[1]>} */
+export const fromTypedEntries = Object.fromEntries;
+/** @type {<E extends [string|number|symbol, any]>(entries: E[]) => {[K in E[0]]: Extract<E, [K, any]>[1]}} */
+export const fromStrictTypedEntries = Object.fromEntries;
+/** @type {<T extends [...any]>(...items: T) => T} */ // @ts-ignore
+export const tuple = Array.of;
+/** @type {<const T extends [...any]>(...items: T) => T} */ // @ts-ignore
+export const strictTuple = Array.of;
 
 /**
  * @template {string|number|symbol} K
@@ -43,7 +51,42 @@ export const typedKeys = Object.keys;
  */
 export function mapEntries(source, mapFunc) {
     // @ts-ignore
-    return Object.fromEntries(typedEntries(source).map(([k, v], i, a) => [k, mapFunc(v, k, i, a)]));
+    return fromTypedEntries(typedEntries(source).map(([k, v], i, a) => [k, mapFunc(v, k, i, a)]));
+}
+
+/**
+ * @template {any[]} A
+ * @template {[string|number|symbol, any]} E
+ * @param {A} source 
+ * @param {(item: A[number], index: number, array: A) => E} entryMapFunc
+ */
+export function mapToEntries(source, entryMapFunc) {
+    return fromTypedEntries(source.map(entryMapFunc))
+}
+
+/**
+ * @template {string|number|symbol} K
+ * @template V
+ * @param {K[]} source 
+ * @param {(key: K, index: number, array: K[]) => V} entryMapFunc 
+ */
+export function mapToValues(source, entryMapFunc) {
+    return fromTypedEntries(source.map((k, i, a) => tuple(k, entryMapFunc(k, i, a))));
+}
+
+/**
+ * @template {Record<string|number|symbol, any>} O
+ * @param {O} map
+ * @returns {{
+ *  [V in {
+ *      [K in keyof O]: O[K]
+ *      }[keyof O]]: {
+ *          [K in keyof O]: [K, O[K]]
+ *      }[keyof O] extends infer E ? E extends [infer K, V] ? K : never : never
+ * }}
+ */
+export function invertMap(map) {
+    return fromStrictTypedEntries(typedEntries(map).map(([k, v]) => [v, k]));
 }
 
 /**

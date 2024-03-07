@@ -4,13 +4,14 @@ import { Cellular3D } from "./cellular3d.js";
 import { Viewport } from "./viewport.js";
 import { Tileset } from "./tileset.js";
 import { Player } from "./player.js";
-import { after, htmlElement, typedEntries } from "./helpers.js";
+import { after, getElement, htmlElement, typedEntries } from "./helpers.js";
 import { tiles, wallRules } from "./tiles.js";
 import { WallRule } from "./walls.js";
 import { StatUI, allStats, isStatName } from "./stats.js";
 import { Item } from "./props.js";
 import { Creature } from "./actors.js";
 import { KeyboardCueElement } from "./uicomponents.js";
+import { InputManager, MoveAction } from "./input.js";
 
 console.log("Starting main.js");
 KeyboardCueElement.defineElement();
@@ -193,22 +194,31 @@ surviveInput.oninput = () => {
 /** @type {TileName[]} */
 export const terrains = typedEntries(tiles).filter(([k,v]) => v.frameType === "walls").map(([k, v]) => k);
 
-const Mousetrap = new self.Mousetrap(document.documentElement);
+const input = InputManager.instance;
+input.attach();
+input.keyIndicator = getElement("indicator", KeyboardCueElement);
 
-Mousetrap.bind(["shift+w", "shift+k", "shift+up"], () => viewport.moveViewport(0, -1, 0));
-Mousetrap.bind(["shift+s", "shift+j", "shift+down"], () => viewport.moveViewport(0, 1, 0));
-Mousetrap.bind(["shift+a", "shift+h", "shift+left"], () => viewport.moveViewport(-1, 0, 0));
-Mousetrap.bind(["shift+d", "shift+l", "shift+right"], () => viewport.moveViewport(1, 0, 0));
-Mousetrap.bind(["shift+q", "shift+y"], () => viewport.moveViewport(0, 0, 1));
-Mousetrap.bind(["shift+z", "shift+n"], () => viewport.moveViewport(0, 0, -1));
+input.moveHandler = player.move.bind(player);
 
-Mousetrap.bind(["w", "k", "up"], () => (player.move(0, -1, 0), false));
-Mousetrap.bind(["s", "j", "down"], () => (player.move(0, 1, 0), false));
-Mousetrap.bind(["a", "h", "left"], () => (player.move(-1, 0, 0), false));
-Mousetrap.bind(["d", "l", "right"], () => (player.move(1, 0, 0), false));
-Mousetrap.bind(["q", "y", "<"], () => (player.move(0, 0, 1), false));
-Mousetrap.bind(["z", "n", ">"], () => (player.move(0, 0, -1), false));
-Mousetrap.bind(["i", "tab"], () => (player.inventoryUI.toggleInventory(), false));
+input.ignoreKeys("F5");
+
+MoveAction.UP.addKeyBindings("KeyW", "KeyK", "ArrowUp", "Numpad8");
+MoveAction.DOWN.addKeyBindings("KeyS", "KeyJ", "ArrowDown", "Numpad2");
+MoveAction.LEFT.addKeyBindings("KeyA", "KeyH", "ArrowLeft", "Numpad4");
+MoveAction.RIGHT.addKeyBindings("KeyD", "KeyL", "ArrowRight", "Numpad6");
+MoveAction.UPLEFT.addKeyBindings("KeyY", "Numpad7");
+MoveAction.UPRIGHT.addKeyBindings("KeyU", "Numpad9");
+MoveAction.DOWNLEFT.addKeyBindings("KeyB", "Numpad1");
+MoveAction.DOWNRIGHT.addKeyBindings("KeyN", "Numpad3");
+MoveAction.SURFACE.addKeyBindings("KeyQ", "NumpadSubtract").addCharBinding("<");
+MoveAction.DIVE.addKeyBindings("KeyZ", "NumpadAdd").addCharBinding(">");
+
+MoveAction.DiagonalOnly.addKeyBindings("AltLeft", "AltRight");
+
+input.bind(() => player.inventoryUI.toggleInventory(), "Tab", "KeyI");
+
+// Mousetrap is only used for debug bindings, for now
+const Mousetrap = new self.Mousetrap(document.documentElement)
 Mousetrap.bind("alt+`", () => (htmlElement("debugControls").classList.toggle("hidden"), false));
 Mousetrap.bind("shift+alt+r", () => (regenerate(), false));
 Mousetrap.bind("shift+alt+i", () => (iterate(), false));

@@ -40,9 +40,6 @@ body {
     flex-direction: column;
     
     gap: 1em;
-    grid:
-        "stats" max-content;
-        "messages" minmax(min-content, max-content);
 }
 
 @media (orientation: portrait) {
@@ -56,12 +53,7 @@ body {
         margin-left: 1em;
         margin-top: 0;
         flex-direction: row;
-        flex-wrap: wrap;
-        grid:
-            "stats messages"
-            "debug debug"
-            / max-content max-content
-        
+        flex-wrap: wrap;        
     }
 }
 
@@ -200,6 +192,9 @@ keyboard-cue::part(svg) {
     vertical-align: middle;
 }
 
+keyboard-cue::part(lowlight) {
+    fill: #798bdc80;
+}
 keyboard-cue::part(highlight) {
     fill: #798bdc;
 }
@@ -219,6 +214,7 @@ dl:is(.debugInfo,#controls) {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
+    align-items: first baseline;
     gap: 1em;
     overflow: auto;
 }
