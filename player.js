@@ -11,11 +11,26 @@ export class Player extends Creature {
 
     inventoryUI = new InventoryUI(this, "inventory");
 
+    /** @type {{dx: number, dy: number, dz: number}[]} */
+    moveQueue = [];
+    /** @type {(v: any) => void} */
+    #resolveAction;
+
     /** @overload @param {Overrides<Player>} options */
     /** @param {Overrides<Player>} options */
     constructor(options, {stats, ...rest} = options) {
         super("player", rest);
         this.stats = mapEntries(allStats, (_def, name) => new Stat(name, stats?.[name]));
+    }
+
+    queueMove(dx = 0, dy = 0, dz = 0) {
+        if (this.moveQueue.length < 5) {
+            this.moveQueue.push({dx, dy, dz});
+        }
+        if (this.#resolveAction) {
+            this.#resolveAction(true);
+            this.#resolveAction = null;
+        }
     }
 
     move(dx = 0, dy = 0, dz = 0) {
@@ -25,7 +40,15 @@ export class Player extends Creature {
         const {x, y, z} = this;
         this.worldMap.mainViewport.centerOn(x, y, z, true);
         return true;
+    }
 
+    act(time = 0) {
+        if (this.moveQueue.length) {
+            const {dx, dy, dz} = this.moveQueue.shift();
+            this.move(dx, dy, dz);
+            return Promise.resolve(true);
+        }
+        return new Promise(r => this.#resolveAction = r);
     }
 }
 

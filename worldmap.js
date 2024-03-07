@@ -177,7 +177,12 @@ export class WorldMap {
         return true;
     }
 
-    /** @param {MapSprite} sprite, @param {Partial<MapSprite>} [overrides] */
+    /** @param {MapSprite} sprite */
+    hasSprite(sprite) {
+        return this.sprites.includes(sprite);
+    }
+
+    /** @param {MapSprite} sprite @param {Partial<MapSprite>} [overrides] */
     addSprite(sprite, overrides) {
         if (this.sprites.includes(sprite)) return false;
         if (overrides) {
@@ -190,6 +195,7 @@ export class WorldMap {
         return true;
     }
 
+    /** @param {MapSprite} sprite */
     removeSprite(sprite) {
         const index = this.sprites.indexOf(sprite);
         if (index >= 0) {
@@ -325,7 +331,12 @@ export class MapSprite {
         return this.container?.worldMap ?? this.#worldMap?.deref();
     }
     set worldMap(v) {
+        if (this.worldMap === v) return;
+
         this.#worldMap = v == null ? null : new WeakRef(v);
+        if (v) {
+            this.addedToWorldMap(v);
+        }
     }
 
     /** @type {MapSprite} */
@@ -344,6 +355,9 @@ export class MapSprite {
             this.releaseFromOwner();
         }
         this.#container = v == null ? null : new WeakRef(v);
+        if (v) {
+            this.addedToContainer(v);
+        }
     }
 
     /** @param {TileName} spriteTile @param {Overrides<MapSprite>} [options] */
@@ -403,6 +417,14 @@ export class MapSprite {
             container.relinquishItem(this);
         }
         return this.worldMap == null && this.container == null;
+    }
+
+    /** @param {WorldMap} worldMap */
+    addedToWorldMap(worldMap) {
+    }
+
+    /** @param {SpriteContainer} container */
+    addedToContainer(container) {
     }
 }
 

@@ -1,7 +1,10 @@
+import { RNG } from "rot-js";
+import { scheduler } from "./engine.js";
 import { mapEntries } from "./helpers.js";
 import { Item, Prop } from "./props.js";
 import { roles } from "./roles.js";
 import { Stat, allStats } from "./stats.js";
+import { WorldMap } from "./worldmap.js";
 
 export class Actor extends Prop {
     /** @type {RoleName} */
@@ -56,6 +59,16 @@ export class Actor extends Prop {
 
         return true;
     }
+
+    /** @param {WorldMap} worldMap  */
+    addedToWorldMap(worldMap) {
+        super.addedToWorldMap(worldMap);
+        scheduler.add(this, true);
+    }
+
+    async act(time=0) {
+        return false;
+    }
 }
 
 export class Creature extends Actor {
@@ -99,6 +112,28 @@ export class Creature extends Actor {
 
         const {x, y, z, worldMap} = this;
         worldMap.addSprite(item, {x, y, z})
+        return true;
+    }
+
+    async act(time=0) {
+        if (!this.worldMap?.hasSprite(this)) return false;
+
+        if (RNG.getPercentage() <= 50) {
+            const [x, y, z] = RNG.getItem([
+                [1, 0, 0],
+                [-1, 0, 0],
+                [0, 1, 0],
+                [0, -1, 0],
+                [1, 1, 0],
+                [-1, -1, 0],
+                [-1, 1, 0],
+                [1, -1, 0],
+                [0, 0, 1],
+                [0, 0, -1],
+            ]);
+            this.move(x, y, z);
+        }
+
         return true;
     }
 }
