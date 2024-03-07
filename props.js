@@ -1,4 +1,5 @@
-import { MapSprite, WorldMap } from "./worldmap.js";
+import { items } from "./items.js";
+import { MapSprite } from "./worldmap.js";
 
 export class Prop extends MapSprite {
     blocksActors = false;
@@ -12,13 +13,35 @@ export class Prop extends MapSprite {
 }
 
 export class Item extends Prop {
-    inventoryLabel = "A jar of peanut butter";
+    /** @type {ItemName} */
+    itemName;
+    stackSize = 1;
+    label = "A jar of peanut butter";
+    plural = "jars of peanut butter";
+    description = "Hard to open.";
 
-    /** @overload @param {TileName} spriteTile @param {Overrides<Item>} [options] */
-    /** @param {TileName} spriteTile @param {Overrides<Item>} options */
-    constructor(spriteTile, options, {inventoryLabel, ...rest} = options ?? {}) {
-        super(spriteTile, rest);
-        this.inventoryLabel = inventoryLabel ?? this.inventoryLabel;
+    /** @overload @param {ItemName} itemName @param {Overrides<Item>} [options] */
+    /** @param {TileName} explicitItemName @param {Overrides<Item>} options */
+    constructor(explicitItemName,
+                options,
+                {
+                    itemName = explicitItemName,
+                    spriteTile = items[itemName].spriteTile,
+                    label = items[itemName].label,
+                    plural = items[itemName].plural,
+                    description = items[itemName].description,
+                    stackSize,
+                    ...rest
+                } = options ?? {}) {
+        super(spriteTile, {...rest});
+        this.label = label ?? this.label;
+        this.plural = label ?? this.plural;
+        this.description = description ?? this.description;
+        this.stackSize = stackSize ?? this.stackSize;
+    }
+
+    getInventoryLabel() {
+        return this.stackSize === 1 ? this.label : `${this.stackSize} ${this.plural}`;
     }
 }
 

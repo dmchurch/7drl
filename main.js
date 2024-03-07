@@ -25,16 +25,49 @@ export const player = new Player({
     x: worldMap.width >> 1,
     y: worldMap.height >> 1,
     z: worldMap.depth >> 1,
+    stats: {
+        head: {
+            current: 4,
+        }
+    },
     inventory: [
-        new Item("crab", {inventoryLabel: "An extremely confused crab"}),
-        new Item("egg", {inventoryLabel: "An adorable egg"}),
-        new Item("eel"),
+        new Item("geodeSoul"),
     ],
 });
-worldMap.addSprite(player);
-worldMap.addSprite(new Creature("crab", {x: player.x + 1, y: player.y + 1, z: player.z}));
+Object.assign(self, {tileset, worldMap, player, generator, RNG});
 
-player.stats.head.current = 4;
+/** @type {ConstructorParameters<typeof Viewport>[2]} */
+let o = {
+    ...await tileset.getDisplayOptions(),
+	width: 31,
+	height: 31,
+    layers: 7,
+    focusLayer: 3,
+};
+export const viewport = worldMap.mainViewport = new Viewport(worldMap, "gameDisplay", o);
+
+let seed;
+let lastSeed = RNG.getSeed();
+let iterations = 5;
+let fillRatio = 0.5;
+const {born, survive} = generator.options;
+
+const setBaseCallback = worldMap.makeSetBaseCallback();
+const seedInput = valueElement("seed");
+const lastSeedInput = valueElement("lastSeed");
+const iterationsInput = valueElement("iterations");
+const fillRatioInput = valueElement("fillRatio");
+const bornInput = valueElement("born");
+const surviveInput = valueElement("survive");
+
+worldMap.addSprite(player);
+
+regenerate().then(() => {
+    player.spawnNearby(new Creature("crab"), {minRadius: 3});
+    player.spawnNearby(new Creature("fish"));
+});
+
+viewport.trackSize(document.getElementById("viewportRegion"));
 
 export const statUIs = {};
 
@@ -45,6 +78,7 @@ for (const bpContainer of document.querySelectorAll(".bodypart")) {
     }
     statUIs[bodypart] = new StatUI(player.stats[bodypart], bpContainer);
 }
+
 
 export function clearAroundPlayer() {
     // clear a spot around the player
@@ -64,37 +98,6 @@ export function clearAroundPlayer() {
         generator.set3D(x, y, z, 0);
     }
 }
-const setBaseCallback = worldMap.makeSetBaseCallback();
-
-Object.assign(self, {tileset, worldMap, generator, RNG});
-
-let seed;
-let lastSeed = RNG.getSeed();
-let iterations = 5;
-let fillRatio = 0.5;
-const {born, survive} = generator.options;
-
-const seedInput = valueElement("seed");
-const lastSeedInput = valueElement("lastSeed");
-const iterationsInput = valueElement("iterations");
-const fillRatioInput = valueElement("fillRatio");
-const bornInput = valueElement("born");
-const surviveInput = valueElement("survive");
-
-/** @type {ConstructorParameters<typeof Viewport>[2]} */
-let o = {
-    ...await tileset.getDisplayOptions(),
-	width: 31,
-	height: 31,
-    layers: 7,
-    focusLayer: 3,
-    fontSize: 16,
-    forceSquareRatio: true,
-};
-const gameDisplay = document.getElementById("gameDisplay");
-export const viewport = worldMap.mainViewport = new Viewport(worldMap, gameDisplay, o);
-
-viewport.trackSize(document.getElementById("viewportRegion"));
 
 /**
  * @param {number} [iters]
@@ -152,8 +155,6 @@ export function generateTestPattern() {
 }
 
 Object.assign(self, {o,viewport, clearAroundPlayer, setBaseCallback, regenerate, iterate, generateTestPattern});
-
-regenerate();
 
 function valueElement(id) {
     const element = document.getElementById(id);

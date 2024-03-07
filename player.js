@@ -6,11 +6,16 @@ import { Stat, allStats } from "./stats.js";
 import { Tileset } from "./tileset.js";
 
 export class Player extends Creature {
+    /** @type {Record<StatName, Stat>} */
+    stats;
+
     inventoryUI = new InventoryUI(this, "inventory");
 
+    /** @overload @param {Overrides<Player>} options */
     /** @param {Overrides<Player>} options */
-    constructor(options) {
-        super("PCfish", options);
+    constructor(options, {stats, ...rest} = options) {
+        super("player", rest);
+        this.stats = mapEntries(allStats, (_def, name) => new Stat(name, stats?.[name]));
     }
 
     move(dx = 0, dy = 0, dz = 0) {
@@ -83,7 +88,7 @@ export class InventoryUI {
         element["inventoryItem"] = item;
         const button = element.querySelector("button");
         button.onfocus = () => {
-            this.itemLabel.textContent = item.inventoryLabel;
+            this.itemLabel.textContent = item.label;
         }
         const displayContainer = element.querySelector(".display-container");
         if (displayContainer) {

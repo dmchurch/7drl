@@ -1,6 +1,7 @@
 import { Display } from "rot-js";
 import { WorldMap } from "./worldmap.js";
 import Tile from "rot-js/lib/display/tile.js"
+import { htmlElement } from "./helpers.js";
 
 /**
  * @typedef {ConstructorParameters<typeof Display>[0] & {
@@ -42,10 +43,10 @@ export class Viewport {
         }
     }
 
-    /** @param {Options} options  */
+    /** @param {Options} options @param {Element|string} viewportContainer  */
     constructor(worldMap, viewportContainer, options) {
         this.worldMap = worldMap;
-        this.container = viewportContainer instanceof Element ? viewportContainer : (document.getElementById(viewportContainer) ?? document.querySelector(viewportContainer));
+        this.container = htmlElement(viewportContainer);
         this.layers = options.layers ?? 8;
         this.focusLayer = options.focusLayer ?? (this.layers >> 1);
         this.displays = [];

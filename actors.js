@@ -1,14 +1,34 @@
 import { mapEntries } from "./helpers.js";
 import { Item, Prop } from "./props.js";
+import { roles } from "./roles.js";
 import { Stat, allStats } from "./stats.js";
 
 export class Actor extends Prop {
+    /** @type {RoleName} */
+    roleName;
+    label = "Something odd";
+    plural = "odd things";
+    description = "Indescribable.";
     collision = true;
 
-    /** @overload @param {TileName} spriteTile @param {Overrides<Actor>} [options] */
-    /** @param {TileName} spriteTile @param {Overrides<Actor>} options */
-    constructor(spriteTile, options, {collision, ...rest} = options ?? {}) {
+    /** @overload @param {RoleName} roleName @param {Overrides<Actor>} [options] */
+    /** @param {RoleName} explicitRoleName @param {Overrides<Actor>} options */
+    constructor(explicitRoleName,
+                options,
+                {
+                    roleName = explicitRoleName,
+                    spriteTile = roles[roleName].spriteTile,
+                    label = roles[roleName].label,
+                    plural = roles[roleName].plural,
+                    description = roles[roleName].description,
+                    collision,
+                    ...rest
+                } = options ?? {}) {
         super(spriteTile, {blocksActors: true, ...rest});
+        this.roleName = roleName;
+        this.label = label ?? this.label;
+        this.plural = label ?? this.plural;
+        this.description = description ?? this.description;
         this.collision = collision ?? this.collision;
     }
 
@@ -21,16 +41,8 @@ export class Actor extends Prop {
         const ny = y + dy;
         const nz = z + dz;
 
-        if (collision) {
-            const baseTile = this.worldMap.getBaseTile(nx, ny, nz);
-            if (baseTile && !baseTile.insubstantial) {
-                return false;
-            }
-            for (const sprite of this.worldMap.getSpritesAt(nx, ny, nz)) {
-                if (sprite instanceof Prop && sprite.blocksActors) {
-                    return false;
-                }
-            }
+        if (collision && !this.worldMap.isPassable(nx, ny, nz)) {
+            return false;
         }
 
         this.x = nx;
@@ -47,17 +59,13 @@ export class Actor extends Prop {
 }
 
 export class Creature extends Actor {
-    /** @type {Record<StatName, Stat>} */
-    stats;
-
     /** @type {Item[]} */
     inventory = [];
 
-    /** @overload @param {TileName} spriteTile @param {Overrides<Creature>} [options]  */
-    /** @param {TileName} spriteTile @param {Overrides<Creature>} [options]  */
-    constructor(spriteTile, options, {stats, inventory, ...rest} = options ?? {}) {
-        super(spriteTile, {animated: true, ...rest});
-        this.stats = mapEntries(allStats, (_def, name) => new Stat(name, stats?.[name]));
+    /** @overload @param {RoleName} roleName @param {Overrides<Creature>} [options]  */
+    /** @param {RoleName} roleName @param {Overrides<Creature>} [options]  */
+    constructor(roleName, options, {inventory, ...rest} = options ?? {}) {
+        super(roleName, {animated: true, ...rest});
         if (inventory) this.inventory.push(...inventory);
     }
 
@@ -79,6 +87,7 @@ export class Creature extends Actor {
             return false;
         }
         this.inventory.splice(this.inventory.indexOf(item), 1);
+        item.container = null;
         return true;
     }
 

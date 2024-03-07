@@ -1,3 +1,4 @@
+import { RNG } from "rot-js";
 import { inInclusiveRange, inSemiOpenRange, typedEntries } from "./helpers.js";
 import { tiles, wallRules } from "./tiles.js";
 import { Tileset } from "./tileset.js";
@@ -150,15 +151,42 @@ export class WorldMap {
         return total;
     }
 
+    isPassable(x=0, y=0, z=0) {
+        const baseTile = this.getBaseTile(x, y, z);
+        if (baseTile && !baseTile.insubstantial) {
+            return false;
+        }
+        for (const sprite of this.getSpritesAt(x, y, z)) {
+            if ("blocksActors" in sprite && sprite.blocksActors) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    isEmpty(x=0, y=0, z=0) {
+        const base = this.getBase(x, y, z);
+        if (base) {
+            return false;
+        }
+        for (const sprite of this.getSpritesAt(x, y, z)) {
+            if (sprite.visible) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     /** @param {MapSprite} sprite, @param {Partial<MapSprite>} [overrides] */
     addSprite(sprite, overrides) {
         if (this.sprites.includes(sprite)) return false;
         if (overrides) {
             Object.assign(sprite, overrides);
         }
+        sprite.releaseFromOwner();
         sprite.worldMap = this;
         this.sprites.push(sprite);
-        sprite.container = this;
+        this.drawTile(sprite.x, sprite.y, sprite.z);
         return true;
     }
 
@@ -166,7 +194,8 @@ export class WorldMap {
         const index = this.sprites.indexOf(sprite);
         if (index >= 0) {
             this.sprites.splice(index, 1);
-            sprite.container = null;
+            this.drawTile(sprite.x, sprite.y, sprite.z);
+            sprite.worldMap = null;
             return true;
         }
         return false;
@@ -272,6 +301,9 @@ export class WorldMap {
 
 /**
  * @typedef SpriteContainer
+ * @prop {WorldMap} worldMap
+ * @prop {SpriteContainer} container
+ * @prop {MapSprite} rootSprite
  * @prop {(sprite: MapSprite) => boolean} hasItem
  * @prop {(sprite: MapSprite) => boolean} relinquishItem
  */
@@ -290,21 +322,26 @@ export class MapSprite {
     /** @type {WeakRef<WorldMap>} */
     #worldMap;
     get worldMap() {
-        return this.#worldMap?.deref();
+        return this.container?.worldMap ?? this.#worldMap?.deref();
     }
     set worldMap(v) {
         this.#worldMap = v == null ? null : new WeakRef(v);
     }
 
-    /** @type {WeakRef<WorldMap | SpriteContainer>} */
+    /** @type {MapSprite} */
+    get rootSprite() {
+        return this.container?.rootSprite ?? this;
+    }
+
+    /** @type {WeakRef<SpriteContainer>} */
     #container;
     get container() {
         return this.#container?.deref();
     }
     set container(v) {
         if (this.container === v) return;
-        if (this.container && v) {
-            this.releaseFromContainer();
+        if ((this.container || this.worldMap) && v) {
+            this.releaseFromOwner();
         }
         this.#container = v == null ? null : new WeakRef(v);
     }
@@ -324,15 +361,48 @@ export class MapSprite {
         this.container = container ?? this.container;
     }
 
+    /** @param {MapSprite} sprite  */
+    spawnNearby(sprite, {minRadius = 1, maxRadius = 10} = {}) {
+        const {worldMap, x, y, z} = this.rootSprite;
 
-    releaseFromContainer() {
-        const {container} = this;
-        if (container instanceof WorldMap) {
-            container.removeSprite(this);
-        } else {
+        const positions = [];
+        
+        for (let radius = minRadius; radius <= maxRadius; radius++) {
+            const zRadius = radius >> 2;
+            for (let dz = -zRadius; dz <= zRadius; dz++) {
+                const latRadius = radius - Math.abs(dz << 1);
+                for (let dy = -latRadius; dy <= latRadius; dy++) {
+                    for (let dx = -latRadius; dx <= latRadius; dx++) {
+                        const effRadius = Math.max(Math.abs(dx), Math.abs(dy)) + Math.abs(dz);
+                        if (dx === 0 && dy === 0 || effRadius < minRadius) {
+                            // don't spawn on top of, directly above, or directly underneath, or too close
+                            continue;
+                        }
+                        if (worldMap.isEmpty(x + dx, y + dy, z + dz)) {
+                            positions.push([x + dx, y + dy, z + dz]);
+                        }
+                    }
+                }
+            }
+            while (positions.length) {
+                // is okay to shadow these
+                const [x, y, z] = RNG.getItem(positions);
+                console.log(`Spawning ${sprite.spriteTile} at ${x}, ${y}, ${z} where ${worldMap.getBase(x, y, z)}`)
+                return worldMap.addSprite(sprite, {x, y, z});
+            }
+        }
+        return false;
+    }
+
+    releaseFromOwner() {
+        const {container, worldMap} = this;
+        if (worldMap) {
+            worldMap.removeSprite(this);
+        }
+        if (container) {
             container.relinquishItem(this);
         }
-        return this.container == null;
+        return this.worldMap == null && this.container == null;
     }
 }
 
