@@ -58,7 +58,7 @@ export class Item extends Prop {
                 } = options ?? {}) {
         super(spriteTile, {...rest});
         this.label = label ?? this.label;
-        this.plural = label ?? this.plural;
+        this.plural = plural ?? this.plural;
         this.description = description ?? this.description;
         this.stackSize = stackSize ?? this.stackSize;
     }

@@ -190,7 +190,7 @@ canvas.layer-focus {
     image-rendering: pixelated;
 }
 
-#inventory label {
+#inventory > label {
     display: block;
     text-align: center;
     font-size: 2rem;
@@ -199,7 +199,7 @@ canvas.layer-focus {
     contain: inline-size;
 }
 
-#inventory label:empty::before {
+#inventory > label:empty::before {
     content: "Select an item";
     opacity: 0.5;
 }
@@ -218,6 +218,12 @@ canvas.layer-focus {
     border: none;
     background: none;
     color: #3d4e9c;
+    position: relative;
+}
+
+#inventory button > label.stack-size {
+    position: absolute;
+    inset: auto 2px 0 auto;
 }
 
 #inventory button:focus-visible {

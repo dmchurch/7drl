@@ -199,7 +199,7 @@ export class InventoryUI {
         const {target} = event;
         const item = target.inventoryItem;
         if (item) {
-            this.itemLabel.textContent = item?.label ?? "Unknown";
+            this.itemLabel.textContent = item?.getInventoryLabel() ?? "Unknown";
             // @ts-ignore
             this.selectedItem = target;
         }
@@ -227,6 +227,10 @@ export class InventoryUI {
             const button = element.querySelector("button");
             if (button) {
                 button.autofocus = index === 0;
+            }
+            const stackLabel = button.querySelector("label.stack-size");
+            if (stackLabel) {
+                stackLabel.textContent = item.stackSize === 1 ? "" : String(item.stackSize);
             }
             return element;
         }));
@@ -270,7 +274,10 @@ export class InventoryUI {
     }
 
     moveSelection(dx=0, dy=0) {
-        if (!dx && !dy) return;
+        if (!dx && !dy) {
+            this.focusButton?.click()
+            return;
+        }
         const itemIndex = this.itemButtons.indexOf(this.focusButton);
         const actionIndex = this.actionButtons.indexOf(this.focusButton);
         if (dx !== 0) {
