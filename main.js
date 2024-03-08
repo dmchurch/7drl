@@ -80,6 +80,7 @@ MoveAction.DOWNLEFT.addKeyBindings("KeyB", "Numpad1");
 MoveAction.DOWNRIGHT.addKeyBindings("KeyN", "Numpad3");
 MoveAction.SURFACE.addKeyBindings("KeyQ", "NumpadSubtract").addCharBinding("<");
 MoveAction.DIVE.addKeyBindings("KeyZ", "NumpadAdd").addCharBinding(">");
+MoveAction.WAIT.addKeyBindings("Space", "Numpad5");
 
 MoveAction.DiagonalOnly.addKeyBindings("AltLeft", "AltRight");
 

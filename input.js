@@ -465,6 +465,8 @@ export class MoveAction extends InputAction {
 
     static SURFACE = new this("Surface", 0, 0, 1);
     static DIVE = new this("Dive", 0, 0, -1);
+    
+    static WAIT = new this("Wait", 0, 0, 0);
 
     /** @readonly */
     dx;

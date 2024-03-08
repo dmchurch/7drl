@@ -48,6 +48,8 @@ export class Player extends Creature {
             this.move(dx, dy, dz);
             return Promise.resolve(true);
         }
+        // redraw whenever we go into a wait
+        this.worldMap.mainViewport.redraw();
         return new Promise(r => this.#resolveAction = r);
     }
 }
