@@ -8,7 +8,12 @@ export async function mainLoop() {
     while (true) {
         /** @type {Actor} */
         const actor = scheduler.next();
+        if (!actor) {
+            console.error("No actors remaining! Exiting main loop");
+            break;
+        }
         let result;
+        console.log(`Scheduling ${actor.roleName} at ${actor.x},${actor.y},${actor.z} at time ${scheduler.getTime()}`);
         try {
             result = await actor.act(scheduler.getTime());
         } catch (e) {

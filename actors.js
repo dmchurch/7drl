@@ -5,6 +5,8 @@ import { Item, Prop } from "./props.js";
 import { roles } from "./roles.js";
 import { Stat, allStats } from "./stats.js";
 import { WorldMap } from "./worldmap.js";
+import { player } from "./main.js";
+import { Astar3D } from "./rot3d.js";
 
 export class Actor extends Prop {
     /** @type {RoleName} */
@@ -132,6 +134,27 @@ export class Creature extends Actor {
                 [0, 0, -1],
             ]);
             this.move(x, y, z);
+        } else {
+            let foundMove = false;
+            let nx = this.x, ny = this.y, nz = this.z;
+            this.tangible = false;
+            player.tangible = false;
+            const path = new Astar3D(this.x, this.y, this.z, this.worldMap.isPassable);
+            path.compute3D(player.x, player.y, player.z, (x, y, z) => {
+                if (x === this.x && y === this.y && z === this.z) {
+                    foundMove = true;
+                } else if (!foundMove) {
+                    nx = x;
+                    ny = y;
+                    nz = z;
+                }
+            });
+            this.tangible = true;
+            player.tangible = true;
+            if (foundMove) {
+                const dx = nx - this.x, dy = ny - this.y, dz = nz - this.z;
+                this.move(dx, dy, dz);
+            }
         }
 
         return true;

@@ -37,14 +37,20 @@ export function translate3DCallback(callback) {
 /** @ts-ignore @type {(y: number, z: number) => number} */
 const toYZ = joinYZ;
 
-
 export class Astar3D extends Path.AStar {
     /** @ts-ignore @type {JoinedYZ} */
     _toY = this["_toY"];
+    /** @ts-ignore @type {JoinedYZ} */
+    _fromY = this["fromY"]
 
     get toX() {return this._toX;}
     get toY() {return getY(this._toY);}
     get toZ() {return getZ(this._toY);}
+
+    get fromX() {return this._fromX;}
+    get fromY() {return getY(this._fromY);}
+    get fromZ() {return getZ(this._fromY);}
+
 
     /** @param {number} toX @param {number} toY @param {number} toZ @param {Passable3DCallback} callback @param {ConstructorParameters<typeof Path.AStar>[3]} options */
     constructor(toX, toY, toZ, callback, options = {}) {
@@ -53,9 +59,22 @@ export class Astar3D extends Path.AStar {
         this._dirs = [...this._dirs, [0, yzMultiplier], [0, -yzMultiplier]];
     }
 
+    setTarget(toX = 0, toY = 0, toZ = 0) {
+        this._toX = toX;
+        this._toY = joinYZ(toY, toZ);
+    }
+
     /** @param {number} fromX @param {number} fromY @param {number} fromZ @param {Compute3DCallback} callback */
     compute3D(fromX, fromY, fromZ, callback) {
         return super.compute(fromX, toYZ(fromY, fromZ), translate3DCallback(callback));
+    }
+
+    _distance(x, yz) {
+        const y = getY(yz);
+        const z = getZ(yz);
+        const h = super._distance(x, toYZ(y, this.fromZ));
+        const dist = h + Math.abs(z - this.fromZ) * 2;
+        return dist;
     }
 }
 

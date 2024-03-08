@@ -45,9 +45,13 @@ Object.assign(self, {o, tileset, player, viewport});
 
 worldMap.addSprite(player);
 
+export let crab, fish;
+
 regenerate().then(() => {
-    player.spawnNearby(new Creature("crab"), {minRadius: 3});
-    player.spawnNearby(new Creature("fish"));
+    crab = player.spawnNearby(new Creature("crab"), {minRadius: 3});
+    fish = player.spawnNearby(new Creature("fish"));
+
+    Object.assign(self, {crab, fish});
 });
 
 viewport.trackSize(document.getElementById("viewportRegion"));

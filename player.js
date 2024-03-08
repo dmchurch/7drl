@@ -4,6 +4,7 @@ import { cloneTemplate, dialogElement, getElement, htmlElement, mapEntries, temp
 import { Item } from "./props.js";
 import { Stat, allStats } from "./stats.js";
 import { Tileset } from "./tileset.js";
+import { Astar3D } from "./rot3d.js";
 
 export class Player extends Creature {
     /** @type {Record<StatName, Stat>} */
@@ -16,11 +17,19 @@ export class Player extends Creature {
     /** @type {(v: any) => void} */
     #resolveAction;
 
+    /** @type {Astar3D} */
+    path;
+
     /** @overload @param {Overrides<Player>} options */
     /** @param {Overrides<Player>} options */
     constructor(options, {stats, ...rest} = options) {
         super("player", rest);
         this.stats = mapEntries(allStats, (_def, name) => new Stat(name, stats?.[name]));
+    }
+
+    addedToWorldMap(worldMap) {
+        super.addedToWorldMap(worldMap);
+        this.path = new Astar3D(this.x, this.y, this.z, worldMap.isPassable);
     }
 
     queueMove(dx = 0, dy = 0, dz = 0) {
@@ -38,20 +47,21 @@ export class Player extends Creature {
             return false;
         }
         const {x, y, z} = this;
+        this.path.setTarget(x, y, z);
         this.worldMap.mainViewport.centerOn(x, y, z, true);
         return true;
     }
 
-    act(time = 0) {
-        if (this.moveQueue.length) {
-            const {dx, dy, dz} = this.moveQueue.shift();
-            this.move(dx, dy, dz);
-            return Promise.resolve(true);
+    async act(time = 0) {
+        while (!this.moveQueue.length) {
+            // redraw whenever we go into a wait
+            this.worldMap.mainViewport.redraw();
+            await new Promise(r => this.#resolveAction = r);
         }
-        // redraw whenever we go into a wait
-        this.worldMap.mainViewport.redraw();
-        return new Promise(r => this.#resolveAction = r);
-    }
+        const {dx, dy, dz} = this.moveQueue.shift();
+        this.move(dx, dy, dz);
+        return true;
+}
 }
 
 export class InventoryUI {

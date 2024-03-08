@@ -62,6 +62,9 @@ export class WorldMap {
         this.baseFrames = new Int8Array(this.baseMap.length).fill(-1);
         this.fogMap = new Uint8Array(this.baseMap.length);
         this.surroundingIndices = WallRule.bitDirections.slice(0, 8).map(([dx, dy]) => this.toIndex(dx, dy));
+        this.isPassable = this.isPassable.bind(this);
+        this.lightPasses = this.lightPasses.bind(this);
+        this.isEmpty = this.isEmpty.bind(this);
     }
 
     /** @param {TileName} tileName  */
@@ -179,7 +182,7 @@ export class WorldMap {
             return false;
         }
         for (const sprite of this.getSpritesAt(x, y, z)) {
-            if ("blocksLight" in sprite && sprite.blocksLight) {
+            if (sprite.visible && "blocksLight" in sprite && sprite.blocksLight) {
                 return false;
             }
         }
@@ -192,7 +195,7 @@ export class WorldMap {
             return false;
         }
         for (const sprite of this.getSpritesAt(x, y, z)) {
-            if ("blocksActors" in sprite && sprite.blocksActors) {
+            if (sprite.tangible && "blocksActors" in sprite && sprite.blocksActors) {
                 return false;
             }
         }
@@ -378,6 +381,7 @@ export class MapSprite {
     spriteFrame = 0;
     animated = false;
     visible = true;
+    tangible = true;
     displayLayer = 0;
 
     /** @type {WeakRef<WorldMap>} */
@@ -457,10 +461,10 @@ export class MapSprite {
                 // is okay to shadow these
                 const [x, y, z] = RNG.getItem(positions);
                 console.log(`Spawning ${sprite.spriteTile} at ${x}, ${y}, ${z} where ${worldMap.getBase(x, y, z)}`)
-                return worldMap.addSprite(sprite, {x, y, z});
+                return worldMap.addSprite(sprite, {x, y, z}) ? sprite : null;
             }
         }
-        return false;
+        return null;
     }
 
     releaseFromOwner() {
