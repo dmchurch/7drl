@@ -7,7 +7,7 @@ import { StatUI, isStatName } from "./stats.js";
 import { Item } from "./props.js";
 import { Creature } from "./actors.js";
 import { KeyboardCueElement } from "./uicomponents.js";
-import { InputManager, MoveAction } from "./input.js";
+import { DOMListAction, InputManager, MoveAction } from "./input.js";
 import { regenerate, worldMap } from "./debug.js";
 import { mainLoop } from "./engine.js";
 
@@ -74,16 +74,20 @@ MoveAction.UP.addKeyBindings("KeyW", "KeyK", "ArrowUp", "Numpad8");
 MoveAction.DOWN.addKeyBindings("KeyS", "KeyJ", "ArrowDown", "Numpad2");
 MoveAction.LEFT.addKeyBindings("KeyA", "KeyH", "ArrowLeft", "Numpad4");
 MoveAction.RIGHT.addKeyBindings("KeyD", "KeyL", "ArrowRight", "Numpad6");
-MoveAction.UPLEFT.addKeyBindings("KeyY", "Numpad7");
-MoveAction.UPRIGHT.addKeyBindings("KeyU", "Numpad9");
-MoveAction.DOWNLEFT.addKeyBindings("KeyB", "Numpad1");
-MoveAction.DOWNRIGHT.addKeyBindings("KeyN", "Numpad3");
+MoveAction.UPLEFT.addKeyBindings("KeyY", "Numpad7", ["KeyW", "KeyA"], ["ArrowLeft", "ArrowUp"]);
+MoveAction.UPRIGHT.addKeyBindings("KeyU", "Numpad9", ["KeyW", "KeyD"], ["ArrowUp", "ArrowRight"]);
+MoveAction.DOWNLEFT.addKeyBindings("KeyB", "Numpad1", ["KeyS", "KeyA"], ["ArrowDown", "ArrowLeft"]);
+MoveAction.DOWNRIGHT.addKeyBindings("KeyN", "Numpad3", ["KeyS", "KeyD"], ["ArrowDown", "ArrowRight"]);
 MoveAction.SURFACE.addKeyBindings("KeyQ", "NumpadSubtract").addCharBinding("<");
 MoveAction.DIVE.addKeyBindings("KeyZ", "NumpadAdd").addCharBinding(">");
 MoveAction.WAIT.addKeyBindings("Space", "Numpad5");
 
-MoveAction.DiagonalOnly.addKeyBindings("AltLeft", "AltRight");
+MoveAction.DiagonalOnly.addKeyBindings(input.VKeyAlt);
 
 input.bind(() => player.inventoryUI.toggleInventory(), "Tab", "KeyI");
+
+input.bind(new DOMListAction("Look Across", document.documentElement.classList, "look-across"), input.VKeyAlt);
+input.bind(new DOMListAction("Look Up", document.documentElement.classList, "look-up"), [input.VKeyAlt, "KeyQ"], [input.VKeyAlt, "NumpadSubtract"])
+input.bind(new DOMListAction("Look Down", document.documentElement.classList, "look-down"), [input.VKeyAlt, "KeyZ"], [input.VKeyAlt, "NumpadAdd"])
 
 mainLoop();

@@ -71,26 +71,46 @@ body {
     grid-area: display;
 }
 
-#gameDisplay canvas {
+canvas.viewport-layer {
     background: #08001480;
-    filter: blur(0);
+    filter: blur(0) brightness(1);
+    scale: calc(1 + var(--layer-offset) * .1);
 /*     mix-blend-mode: lighten; */
 }
 
-#gameDisplay canvas.layer-above {
+canvas.layer-above {
     filter: blur(0.75px) brightness(calc(1 + 0.1 * var(--layer-offset)));
     opacity: calc(1.1 - 0.2 * var(--layer-offset));
-    scale: calc(1 + var(--layer-offset) * .1);
     background: none;
 }
 
-#gameDisplay canvas.layer-below {
-    filter: blur(0.5px);
-    scale: calc(1 + var(--layer-offset) * .1);
+canvas.layer-below {
+    filter: blur(0.5px) brightness(1);
 }
 
-#gameDisplay canvas.layer-focus {
+canvas.layer-focus {
     border-color: currentColor;
+}
+
+:root:is(.look-across, .look-up, .look-down) canvas {
+    opacity: 0;
+    transition-duration: 0.1s;
+    transition-property: opacity filter;
+}
+
+:root.look-across canvas.layer-focus,
+:root.look-down canvas.layer-below,
+:root.look-up canvas.layer-above {
+    opacity: 1;
+    filter: blur(0) brightness(1);
+}
+
+:root:is(.look-down, .look-up) canvas.layer-focus {
+    opacity: 0.25;
+}
+
+:root.look-up canvas.viewport-layer {
+    z-index: calc(var(--layer-count) - var(--layer-index));
 }
 
 #statsPanel {

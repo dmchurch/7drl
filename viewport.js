@@ -55,10 +55,11 @@ export class Viewport {
         this.height = height;
 
         for (let i = 0; i < this.layers; i++) {
-            const expandViewport = i >= this.focusLayer ? 0 : 4 * (this.focusLayer - i);
+            const expandViewport = 4 * Math.abs(this.focusLayer - i);
             this.displays[i] = new FixedDisplay({...options, width: width + expandViewport, height: height + expandViewport});
             const layerContainer = this.displays[i].getContainer();
             this.container.appendChild(layerContainer);
+            layerContainer.classList.add("viewport-layer");
             layerContainer.dataset.index = String(i);
             layerContainer.style.setProperty("--layer-index", String(i));
         }
