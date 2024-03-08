@@ -144,7 +144,7 @@ export class Creature extends Actor {
     }
 
     async act(time=0) {
-        if (!this.worldMap?.hasSprite(this)) return false;
+        if (!this.worldMap?.hasSprite(this)) return this.die(null);
 
         const {role} = this;
         let roll = RNG.getPercentage();

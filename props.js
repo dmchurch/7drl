@@ -29,6 +29,7 @@ export class Prop extends MapSprite {
     /** @param {import("./actors.js").Actor} killer  */
     die(killer) {
         this.releaseFromOwner();
+        return false;
     }
 }
 

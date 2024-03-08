@@ -8,6 +8,7 @@
  * @prop {number} [aggression] Percentage chance that this mob will approach the player if it moves
  * @prop {number} [distraction] Percentage chance that this mob will move randomly
  * @prop {number} [baseDamage] Base amount of damage this mob will do (default 1)
+ * @prop {PopDefinition} [drops] What drops when this dies?
  */
 
 /** @satisfies {Record<string, RoleDefinition>} */
@@ -25,6 +26,9 @@ const roleDefinitions = {
         plural: "crabs",
         aggression: 30,
         distraction: 5,
+        drops: {
+            pop: "commonSoul",
+        }
     },
     player: {
         spriteTile: "PCfish",
