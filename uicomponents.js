@@ -392,7 +392,7 @@ export class MessageLogElement extends BaseComponent {
     /** @type {HTMLLIElement[]} */
     messages = []
 
-    #limit = 50;
+    #limit = (this.style.setProperty("--log-limit", "25"), 25);
     get limit() {
         return this.#limit;
     }
@@ -402,6 +402,16 @@ export class MessageLogElement extends BaseComponent {
             if (parseInt(this.getAttribute("limit")) !== v) {
                 this.setAttribute("limit", String(v));
             }
+            this.style.setProperty("--log-limit", String(v))
+        }
+    }
+
+    #startIndex = (this.style.setProperty("--log-start-index", "0"), 0);
+    get startIndex() { return this.#startIndex; }
+    set startIndex(v) {
+        if (v !== this.#startIndex) {
+            this.#startIndex = v;
+            this.style.setProperty("--log-start-index", String(v));
         }
     }
 
@@ -420,6 +430,8 @@ export class MessageLogElement extends BaseComponent {
         const li = document.createElement("li");
         li.className = "new message";
         li.append(...content);
+        li.style.setProperty("--log-index", String(this.messages.length + this.startIndex));
+        this.style.setProperty("--log-max-index", String(this.messages.length + this.startIndex));
         this.prepend(li);
         after(10).then(() => li.classList.remove("new"));
         this.messages.push(li);
@@ -427,9 +439,13 @@ export class MessageLogElement extends BaseComponent {
     }
 
     trimOldMessages() {
+        const oldLength = this.messages.length;
         while (this.messages.length && this.messages.length > this.limit) {
             const li = this.messages.shift();
             li?.remove();
+        }
+        if (oldLength !== this.messages.length) {
+            this.startIndex += oldLength - this.messages.length;
         }
     }
 }

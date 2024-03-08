@@ -19,15 +19,17 @@ body {
     display: grid;
     grid:
         "viewport console" 100dvh
-        / minmax(min-content, 100dvh) minmax(min-content, 1fr);
+        / 1fr minmax(min-content, 25rem);
 }
 
 #viewportRegion {
     grid-area: viewport;
     display: grid;
     margin: 1em;
+    border: 1px solid currentColor;
     align-items: center;
     justify-items: center;
+    overflow: hidden;
     contain: size;
     position: relative;
 }
@@ -58,13 +60,12 @@ body {
 }
 
 #gameDisplay {
-    border: 1px solid currentColor;
     display: grid;
     grid: "display" calc(16px * var(--focus-rows)) / calc(16px * var(--focus-cols));
     overflow: clip;
     align-items: center;
     justify-items: center;
-    scale: calc(min((var(--container-px-height)) / var(--viewport-px-height),
+    scale: calc(max((var(--container-px-height)) / var(--viewport-px-height),
                     (var(--container-px-width)) / var(--viewport-px-width)));
 }
 #gameDisplay > * {
@@ -141,6 +142,7 @@ canvas.layer-focus {
     font-family: monospace;
     font-size: 1.2rem;
     scale: 1;
+    opacity: max((var(--log-index) - var(--log-max-index) + 1), 0.75 * (var(--log-limit) - var(--log-max-index) + var(--log-index)) / var(--log-limit));
     filter: blur(0);
     transition-property: scale, filter;
     transition-duration: 0.25s;
