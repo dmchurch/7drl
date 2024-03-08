@@ -57,7 +57,7 @@ MoveAction.WAIT.addKeyBindings("Space", "Numpad5");
 
 MoveAction.DiagonalOnly.addKeyBindings(input.VKeyAlt);
 
-input.bind(() => player.inventoryUI.toggleInventory(), "Tab", "KeyI");
+input.bind(() => player.toggleInventory(), "Tab", "KeyI");
 
 input.bind(new DOMListAction("Look Across", document.documentElement.classList, "look-across"), input.VKeyAlt);
 input.bind(new DOMListAction("Look Up", document.documentElement.classList, "look-up"), [input.VKeyAlt, "KeyQ"], [input.VKeyAlt, "NumpadSubtract"])

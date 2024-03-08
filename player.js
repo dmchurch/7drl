@@ -30,6 +30,10 @@ export class Player extends Creature {
     /** @type {MessageLogElement} */
     messageLog;
 
+    get inventoryOpen() {
+        return this.inventoryUI.open;
+    }
+
     /** @type {{dx: number, dy: number, dz: number}[]} */
     moveQueue = [];
     /** @type {(v: any) => void} */
@@ -92,6 +96,10 @@ export class Player extends Creature {
     }
 
     queueMove(dx = 0, dy = 0, dz = 0) {
+        if (this.inventoryOpen) {
+            this.inventoryUI.moveSelection(dx, dy);
+            return;
+        }
         if (this.moveQueue.length < 5) {
             this.moveQueue.push({dx, dy, dz});
         }
@@ -99,6 +107,11 @@ export class Player extends Creature {
             this.#resolveAction(true);
             this.#resolveAction = null;
         }
+    }
+
+    /** @param {boolean} [force] */
+    toggleInventory(force) {
+        this.inventoryUI.toggleInventory(force);
     }
 
     move(dx = 0, dy = 0, dz = 0) {
@@ -131,6 +144,8 @@ export class InventoryUI {
     dialog;
     itemLabel;
     itemsList;
+    /** @type {HTMLButtonElement[]} */
+    itemButtons = [];
     actionButtons;
     itemTemplate;
 
@@ -141,6 +156,21 @@ export class InventoryUI {
         this.dialog.open = v;
     }
 
+    /** @type {HTMLButtonElement & {inventoryItem: Item}} */
+    #selectedItem;
+    get selectedItem() {
+        return this.#selectedItem;
+    }
+    set selectedItem(v) {
+        if (v === this.#selectedItem) return;
+        this.#selectedItem?.classList.remove("selected");
+        this.#selectedItem = v;
+        v?.classList.add("selected");
+    }
+
+    /** @type {HTMLButtonElement} */
+    focusButton;
+
     /** @param {Creature} owner @param {string|HTMLDialogElement} dialog */
     constructor(owner, dialog, itemTemplate) {
         this.owner = owner;
@@ -150,14 +180,38 @@ export class InventoryUI {
         this.actionButtons = Array.from(this.dialog.querySelectorAll("button.action-button")).map(e => getElement(e, HTMLButtonElement));
         this.itemTemplate = templateElement(itemTemplate ?? this.dialog.querySelector(".item-template") ?? "inventoryItemTemplate")
         this.keyEventListener = this.keyEventListener.bind(this);
-        this.dialog.addEventListener("keydown", this.keyEventListener);
-        this.dialog.addEventListener("keypress", this.keyEventListener);
-        this.dialog.addEventListener("keyup", this.keyEventListener);
+        this.focusListener = this.focusListener.bind(this);
+        this.itemClickListener = this.itemClickListener.bind(this);
+        this.actionClickListener = this.actionClickListener.bind(this);
+        for (const button of this.actionButtons) {
+            button.onfocus = this.focusListener;
+            button.onclick = this.actionClickListener;
+        }
     }
 
     /** @param {KeyboardEvent} event  */
     keyEventListener(event) {
         event.stopPropagation();
+    }
+
+    /** @param {FocusEvent & {target: HTMLButtonElement & {inventoryItem?: Item}}} event  */
+    focusListener(event) {
+        const {target} = event;
+        const item = target.inventoryItem;
+        if (item) {
+            this.itemLabel.textContent = item?.label ?? "Unknown";
+            // @ts-ignore
+            this.selectedItem = target;
+        }
+        this.focusButton = target;
+    }
+
+    itemClickListener(event) {
+        this.actionButtons[0].focus();
+    }
+
+    actionClickListener(event) {
+        this.open = false;
     }
 
     updateItems() {
@@ -176,6 +230,8 @@ export class InventoryUI {
             }
             return element;
         }));
+
+        this.itemButtons = Array.from(this.dialog.querySelectorAll("button.item-button")).map(e => getElement(e, HTMLButtonElement));
     }
 
     /** @param {Item} item  */
@@ -183,9 +239,10 @@ export class InventoryUI {
         const element = cloneTemplate(this.itemTemplate, true).firstElementChild;
         element["inventoryItem"] = item;
         const button = element.querySelector("button");
-        button.onfocus = () => {
-            this.itemLabel.textContent = item.label;
-        }
+        button["inventoryItem"] = item;
+        button.classList.add("item-button");
+        button.onfocus = this.focusListener;
+        button.onclick = this.itemClickListener;
         const displayContainer = element.querySelector(".display-container");
         if (displayContainer) {
             element["rotDisplay"] = null;
@@ -209,6 +266,25 @@ export class InventoryUI {
         } else {
             this.updateItems();
             this.dialog.showModal();
+        }
+    }
+
+    moveSelection(dx=0, dy=0) {
+        if (!dx && !dy) return;
+        const itemIndex = this.itemButtons.indexOf(this.focusButton);
+        const actionIndex = this.actionButtons.indexOf(this.focusButton);
+        if (dx !== 0) {
+            if (itemIndex >= 0) {
+                this.itemButtons.at((itemIndex + dx) % this.itemButtons.length).focus();
+            } else if (actionIndex >= 0) {
+                this.actionButtons.at((actionIndex + dx) % this.actionButtons.length).focus();
+            }
+        } else if (dy !== 0) {
+            if (itemIndex >= 0) {
+                this.actionButtons[0].focus();
+            } else if (actionIndex >= 0) {
+                (this.selectedItem ?? this.itemButtons[0])?.focus();
+            }
         }
     }
 }

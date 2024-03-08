@@ -93,7 +93,7 @@ canvas.layer-focus {
     border-color: currentColor;
 }
 
-:root:is(.look-across, .look-up, .look-down) canvas {
+:root:is(.look-across, .look-up, .look-down) canvas.viewport-layer {
     opacity: 0;
     transition-duration: 0.1s;
     transition-property: opacity filter;
@@ -218,6 +218,18 @@ canvas.layer-focus {
     border: none;
     background: none;
     color: #3d4e9c;
+}
+
+#inventory button:focus-visible {
+    outline: none;
+}
+
+#inventory button.selected {
+    outline: 1px solid currentColor;
+}
+
+#inventory button:focus {
+    outline: 3px solid currentColor;
 }
 
 keyboard-cue {

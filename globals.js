@@ -14,6 +14,8 @@ export let worldMap = new WorldMap();
 export const player = new Player({
     inventory: [
         new Item("geodeSoul"),
+        new Item("deliciousSoul", {stackSize: 10}),
+        new Item("disgustingSoul", {stackSize: 2}),
     ],
 });
 
