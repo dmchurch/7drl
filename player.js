@@ -1,14 +1,27 @@
-import { Display } from "rot-js";
-import { Creature } from "./actors.js";
+import { Display, RNG } from "rot-js";
+import { Actor, Creature } from "./actors.js";
 import { cloneTemplate, dialogElement, getElement, htmlElement, mapEntries, templateElement } from "./helpers.js";
 import { Item } from "./props.js";
-import { Stat, allStats } from "./stats.js";
+import { Stat, StatUI, allStats, isStatName } from "./stats.js";
 import { Tileset } from "./tileset.js";
 import { Astar3D } from "./rot3d.js";
 
 export class Player extends Creature {
+    /** @type {Record<StatName, StatUI>} */
+    statUIs = {
+        head: null,
+        dorsal: null,
+        belly: null,
+        fins: null,
+        tail: null,
+    };
+
     /** @type {Record<StatName, Stat>} */
     stats;
+
+    get liveStats() {
+        return Object.values(this.stats).filter(stat => stat.current > 0);
+    }
 
     inventoryUI = new InventoryUI(this, "inventory");
 
@@ -24,7 +37,36 @@ export class Player extends Creature {
     /** @param {Overrides<Player>} options */
     constructor(options, {stats, ...rest} = options) {
         super("player", rest);
-        this.stats = mapEntries(allStats, (_def, name) => new Stat(name, stats?.[name]));
+        this.stats = mapEntries(allStats, (_def, name) => new Stat(name, stats?.[name] ?? {current: this.durability, max: this.durability}));
+    }
+
+    /** @param {NodeListOf<Element>} elements  */
+    bindStatUIs(elements) {
+        for (const bpContainer of elements) {
+            const bodypart = htmlElement(bpContainer).dataset.bodypart;
+            if (!isStatName(bodypart)) {
+                throw new Error(`Bad data-bodypart: ${bodypart}`);
+            }
+            this.statUIs[bodypart] = new StatUI(this.stats[bodypart], bpContainer);
+        }
+    }
+
+    /** @param {number} amount @param {Actor} source  */
+    takeDamage(amount, source) {
+        const stat = RNG.getItem(this.liveStats);
+        stat.current -= amount;
+        if (stat.current <= 0) {
+            stat.current === 0;
+            this.losePart(stat, source);
+        }
+        this.statUIs[stat.name].update();
+    }
+
+    /** @param {Stat} stat @param {Actor} source  */
+    losePart(stat, source) {
+        if (!this.liveStats.length) {
+            this.die(source);
+        }
     }
 
     addedToWorldMap(worldMap) {

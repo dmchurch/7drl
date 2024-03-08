@@ -21,11 +21,6 @@ export const player = new Player({
     x: worldMap.width >> 1,
     y: worldMap.height >> 1,
     z: worldMap.depth >> 1,
-    stats: {
-        head: {
-            current: 4,
-        }
-    },
     inventory: [
         new Item("geodeSoul"),
     ],
@@ -56,15 +51,7 @@ regenerate().then(() => {
 
 viewport.trackSize(document.getElementById("viewportRegion"));
 
-export const statUIs = {};
-
-for (const bpContainer of document.querySelectorAll(".bodypart")) {
-    const bodypart = htmlElement(bpContainer).dataset.bodypart;
-    if (!isStatName(bodypart)) {
-        throw new Error(`Bad data-bodypart: ${bodypart}`);
-    }
-    statUIs[bodypart] = new StatUI(player.stats[bodypart], bpContainer);
-}
+player.bindStatUIs(document.querySelectorAll(".bodypart"));
 
 const input = InputManager.instance;
 input.attach();

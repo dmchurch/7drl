@@ -15,6 +15,11 @@ export class Actor extends Prop {
     plural = "odd things";
     description = "Indescribable.";
     collision = true;
+    baseDamage = 1;
+
+    get role() {
+        return roles[this.roleName];
+    }
 
     /** @overload @param {RoleName} roleName @param {Overrides<Actor>} [options] */
     /** @param {RoleName} explicitRoleName @param {Overrides<Actor>} options */
@@ -35,18 +40,32 @@ export class Actor extends Prop {
         this.plural = label ?? this.plural;
         this.description = description ?? this.description;
         this.collision = collision ?? this.collision;
+        this.baseDamage = this.role.baseDamage ?? this.baseDamage;
+    }
+
+    toString() {
+        return `${this.constructor.name} "${this.roleName}" @ ${this.x},${this.y},${this.z}`;
+    }
+
+    /** @param {Prop} target */
+    attack(target) {
+        const roll = Math.round(RNG.getNormal(this.baseDamage, this.baseDamage / 2));
+        target.takeDamage(roll, this);
     }
 
     move(dx = 0, dy = 0, dz = 0) {
         if (!dx && !dy && !dz) return false;
 
-        const {x, y, z, collision} = this;
+        const {x, y, z, collision, worldMap} = this;
 
         const nx = x + dx;
         const ny = y + dy;
         const nz = z + dz;
 
-        if (collision && !this.worldMap.isPassable(nx, ny, nz)) {
+        if (collision && !worldMap.isPassable(nx, ny, nz)) {
+            if (worldMap.blockingSprite instanceof Prop) {
+                worldMap.blockingSprite.getCollidedWith(this);
+            }
             return false;
         }
 
@@ -55,8 +74,8 @@ export class Actor extends Prop {
         this.z = nz;
 
         if (this.visible) {
-            this.worldMap.drawTile(x, y, z);
-            this.worldMap.drawTile(nx, ny, nz);
+            worldMap.drawTile(x, y, z);
+            worldMap.drawTile(nx, ny, nz);
         }
 
         return true;
@@ -117,10 +136,25 @@ export class Creature extends Actor {
         return true;
     }
 
+    /** @param {Actor} collider */
+    getCollidedWith(collider) {
+        if (collider instanceof Creature) {
+            collider.attack(this);
+        }
+    }
+
     async act(time=0) {
         if (!this.worldMap?.hasSprite(this)) return false;
 
-        if (RNG.getPercentage() <= 50) {
+        const {role} = this;
+        let roll = RNG.getPercentage();
+
+        const {
+            aggression = 0,
+            distraction = 0,
+        } = role;
+
+        if ((roll -= distraction) <= 0) {
             const [x, y, z] = RNG.getItem([
                 [1, 0, 0],
                 [-1, 0, 0],
@@ -134,7 +168,10 @@ export class Creature extends Actor {
                 [0, 0, -1],
             ]);
             this.move(x, y, z);
-        } else {
+            return true;
+        }
+
+        if ((roll -= aggression) <= 0) {
             let foundMove = false;
             let nx = this.x, ny = this.y, nz = this.z;
             this.tangible = false;

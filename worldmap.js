@@ -36,6 +36,9 @@ export class WorldMap {
     /** @type {MapSprite[]} */
     sprites = [];
 
+    /** @type {MapSprite} Which sprite, if any, blocked the last isPassable() check? */
+    blockingSprite;
+
     /** @type {Viewport} */
     mainViewport;
 
@@ -191,13 +194,15 @@ export class WorldMap {
 
     isPassable(x=0, y=0, z=0) {
         const baseTile = this.getBaseTile(x, y, z);
-        if (baseTile && !baseTile.insubstantial) {
-            return false;
-        }
         for (const sprite of this.getSpritesAt(x, y, z)) {
             if (sprite.tangible && "blocksActors" in sprite && sprite.blocksActors) {
+                this.blockingSprite = sprite;
                 return false;
             }
+        }
+        this.blockingSprite = null;
+        if (baseTile && !baseTile.insubstantial) {
+            return false;
         }
         return true;
     }

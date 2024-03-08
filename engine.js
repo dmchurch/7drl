@@ -1,5 +1,6 @@
 import { Scheduler } from "rot-js";
 import { Actor } from "./actors.js";
+import { player } from "./main.js";
 
 /** @type {import("rot-js/lib/scheduler/simple").default<Actor>} */
 export const scheduler = new Scheduler.Simple();
@@ -10,6 +11,10 @@ export async function mainLoop() {
         const actor = scheduler.next();
         if (!actor) {
             console.error("No actors remaining! Exiting main loop");
+            break;
+        }
+        if (actor !== player && scheduler.getTimeOf(player) == null) {
+            console.warn("Player not scheduled, exiting main loop");
             break;
         }
         let result;

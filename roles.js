@@ -5,6 +5,9 @@
  * @prop {string} label
  * @prop {string} plural
  * @prop {string} [description]
+ * @prop {number} [aggression] Percentage chance that this mob will approach the player if it moves
+ * @prop {number} [distraction] Percentage chance that this mob will move randomly
+ * @prop {number} [baseDamage] Base amount of damage this mob will do (default 1)
  */
 
 /** @satisfies {Record<string, RoleDefinition>} */
@@ -13,11 +16,15 @@ const roleDefinitions = {
         spriteTile: "fish",
         label: "A fish",
         plural: "fish",
+        aggression: 10,
+        distraction: 50,
     },
     crab: {
         spriteTile: "crab",
         label: "A crab",
         plural: "crabs",
+        aggression: 30,
+        distraction: 5,
     },
     player: {
         spriteTile: "PCfish",

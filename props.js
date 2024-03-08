@@ -4,11 +4,31 @@ import { MapSprite } from "./worldmap.js";
 export class Prop extends MapSprite {
     blocksActors = false;
 
+    durability = 5;
+
     /** @overload @param {TileName} spriteTile @param {Overrides<Prop>} [options] */
     /** @param {TileName} spriteTile @param {Overrides<Prop>} options */
     constructor(spriteTile, options, {blocksActors, ...rest} = options ?? {}) {
         super(spriteTile, rest);
         this.blocksActors = blocksActors ?? this.blocksActors;
+    }
+
+    /** @param {import("./actors.js").Actor} collider */
+    getCollidedWith(collider) {
+        console.warn("probably shouldn't have collided with something that doesn't know how to get collided with");
+    }
+
+    /** @param {number} amount @param {import("./actors.js").Actor} source */
+    takeDamage(amount, source) {
+        this.durability -= amount;
+        if (this.durability <= 0) {
+            this.die(source);
+        }
+    }
+
+    /** @param {import("./actors.js").Actor} killer  */
+    die(killer) {
+        this.releaseFromOwner();
     }
 }
 
