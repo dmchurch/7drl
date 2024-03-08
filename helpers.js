@@ -8,6 +8,39 @@ export function inSemiOpenRange(value, min, max) {
     return value >= min && value < max;
 }
 
+/** @param {Partial<BoundingBox>} bbox */
+export function inBBox({x: [xMin, xMax] = [-Infinity, Infinity],
+                        y: [yMin, yMax] = [-Infinity, Infinity],
+                        z: [zMin, zMax] = [-Infinity, Infinity]},
+                        x = 0, y = 0, z = 0) {
+    return inInclusiveRange(x, xMin, xMax) 
+        && inInclusiveRange(y, yMin, yMax)
+        && inInclusiveRange(z, zMin, zMax);
+}
+
+/** @param {BoundingBox} bbox  */
+export function setBBox(bbox, x = 0, y = 0, z = 0, w = 0, h = 0, d = 0) {
+    bbox.x[0] = x;
+    bbox.x[1] = x + w - 1;
+    bbox.y[0] = y;
+    bbox.y[1] = y + h - 1;
+    bbox.z[0] = z;
+    bbox.z[1] = z + d - 1;
+    return bbox;
+}
+
+/** @param {BoundingBox} bbox @param {(x: number, y: number, z: number) => any} callback  */
+export function walkBBox(bbox, callback) {
+    const {x: [xMin, xMax], y: [yMin, yMax], z: [zMin, zMax]} = bbox;
+    for (let z = zMin; z <= zMax; z++) {
+        for (let y = yMin; y <= yMax; y++) {
+            for (let x = xMin; x <= xMax; x++) {
+                callback(x, y, z);
+            }
+        }
+    }
+}
+
 export function indexInArray(index = 0, {length = 0}) {
     return inSemiOpenRange(index, 0, length);
 }

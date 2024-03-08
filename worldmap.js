@@ -1,9 +1,14 @@
-import { RNG } from "rot-js";
-import { inInclusiveRange, inSemiOpenRange, typedEntries } from "./helpers.js";
+import { FOV, RNG } from "rot-js";
+import { inBBox, inInclusiveRange, inSemiOpenRange, setBBox, typedEntries, walkBBox } from "./helpers.js";
 import { tiles, wallRules } from "./tiles.js";
 import { Tileset } from "./tileset.js";
 import { Viewport } from "./viewport.js";
 import { WallRule } from "./walls.js";
+import { Precise3DShadowcasting } from "./rot3d.js";
+import { player } from "./main.js";
+
+export const FOG_KNOWN = 1 << 0;
+export const FOG_VISIBLE = 1 << 1;
 
 export class WorldMap {
     width;
@@ -25,6 +30,9 @@ export class WorldMap {
         "solidwall",
     ]
 
+    /** @type {Uint8Array} */
+    fogMap;
+
     /** @type {MapSprite[]} */
     sprites = [];
 
@@ -33,6 +41,15 @@ export class WorldMap {
 
     /** @type {number[]} */
     surroundingIndices = [];
+
+    fov = new Precise3DShadowcasting((x, y, z) => this.lightPasses(x, y, z), {topology: 8});
+
+    /** @type {BoundingBox} */
+    displayBounds = {
+        x: [-Infinity, Infinity],
+        y: [-Infinity, Infinity],
+        z: [-Infinity, Infinity],
+    };
 
     constructor(width = 127, height = 127, depth = 15) {
         this.width = width;
@@ -43,6 +60,7 @@ export class WorldMap {
         this.depthBits = Math.ceil(Math.log2(depth));
         this.baseMap = new Uint8Array(1 << (this.widthBits + this.heightBits + this.depthBits));
         this.baseFrames = new Int8Array(this.baseMap.length).fill(-1);
+        this.fogMap = new Uint8Array(this.baseMap.length);
         this.surroundingIndices = WallRule.bitDirections.slice(0, 8).map(([dx, dy]) => this.toIndex(dx, dy));
     }
 
@@ -151,6 +169,23 @@ export class WorldMap {
         return total;
     }
 
+    lightPasses(x=0, y=0, z=0) {
+        if (!inBBox(this.displayBounds, x, y, z)) {
+            return false;
+        }
+        
+        const baseTile = this.getBaseTile(x, y, z);
+        if (baseTile && !baseTile.transparent) {
+            return false;
+        }
+        for (const sprite of this.getSpritesAt(x, y, z)) {
+            if ("blocksLight" in sprite && sprite.blocksLight) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     isPassable(x=0, y=0, z=0) {
         const baseTile = this.getBaseTile(x, y, z);
         if (baseTile && !baseTile.insubstantial) {
@@ -175,6 +210,10 @@ export class WorldMap {
             }
         }
         return true;
+    }
+
+    computeVisibility(cx=0, cy=0, cz=0, R=30) {
+        this.fov.compute3D(cx, cy, cz, R, (x, y, z) => this.fogMap[this.toIndex(x, y, z)] |= FOG_KNOWN | FOG_VISIBLE);
     }
 
     /** @param {MapSprite} sprite */
@@ -250,6 +289,15 @@ export class WorldMap {
         if (focusOffset && this.baseMap[baseIndex + focusOffset] === 0) {
             fg = focusOpacity;
         }
+        const fog = this.inMap(x, y, z) ? this.fogMap[baseIndex] : FOG_KNOWN;
+        if (!(fog & FOG_VISIBLE)) {
+            if (fog & FOG_KNOWN) {
+                fg ??= 1;
+                fg *= 0.5;
+            } else {
+                return;
+            }
+        }
 
         const baseTile = this.getBaseTile(x, y, z);
         /** @type {string[]} */
@@ -296,6 +344,13 @@ export class WorldMap {
 
     /** @param {import("rot-js").Display[]} displays */
     drawLayers(displays, centerX = 0, centerY = 0, zOrigin = 0, zFocus = Infinity) {
+        const [maxWidth, maxHeight] = displays.map(d => [d.getOptions().width, d.getOptions().height]).reduce((a, b) => a[0] > b[0] ? a : b);
+        setBBox(this.displayBounds,
+                centerX - (maxWidth >> 1) - 1, centerY - (maxWidth >> 1) - 1, zOrigin,
+                maxWidth + 2, maxHeight + 2, displays.length);
+        
+        walkBBox(this.displayBounds, (x, y, z) => this.fogMap[this.toIndex(x, y, z)] &= ~FOG_VISIBLE);
+        this.computeVisibility(player.x, player.y, player.z, 8);
         for (const [k, display] of displays.entries()) {
             this.drawLayer(display, centerX, centerY, zOrigin + k, zFocus);
         }
@@ -428,4 +483,4 @@ export class MapSprite {
     }
 }
 
-Object.assign(self, {WorldMap, MapSprite});
+Object.assign(self, {WorldMap, MapSprite, FOG_KNOWN, FOG_VISIBLE});

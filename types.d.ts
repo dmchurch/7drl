@@ -50,6 +50,12 @@ declare interface TileFrame extends TileInfo {
     sourceFrame?: AsepriteFrame;
 }
 
+declare type BoundingBox = {
+    x: [xMin: number, xMax: number],
+    y: [yMin: number, yMax: number],
+    z: [zMin: number, zMax: number],
+}
+
 declare type TileSheetDef = import("./tiles.js").TileSheetDef;
 declare type TileSheetName = keyof (typeof import("./tiles.js"))["tileSheets"];
 declare type WallRuleName = keyof (typeof import("./tiles.js"))["wallRules"];

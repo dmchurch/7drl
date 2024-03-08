@@ -52,6 +52,8 @@ export const wallRules = {
  * @prop {WallRuleName} [wallRules]
  * @prop {boolean} [insubstantial] Whether Actors can pass through this tile, default false.
  *                                 Only matters for tiles that can go on the base tilemap, not for sprites.
+ * @prop {boolean|"opaquefloor"} [transparent] Whether light passes through this tile.
+ *                                             "opaquefloor" means light won't go from this tile to the next one down
  */
 
 /** @satisfies {Record<string, TileInfo>} */
