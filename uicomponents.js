@@ -1,4 +1,4 @@
-import { fromTypedEntries, getElement, invertMap, mapToEntries, mapToValues, svgElement, tuple, typedEntries } from "./helpers.js";
+import { animationFrame as nextAnimationFrame, fromTypedEntries, getElement, invertMap, mapToEntries, mapToValues, svgElement, tuple, typedEntries, after } from "./helpers.js";
 
 /** @satisfies {Record<string, (strings: TemplateStringsArray, ...exprs: any[]) => any>} */
 export const Rendered = {
@@ -72,7 +72,51 @@ export const Rendered = {
     },
 }
 
-export class KeyboardCueElement extends HTMLElement {
+export class BaseComponent extends HTMLElement {
+    static tagName = "";
+
+    /** @type {CSSStyleSheet[]} */
+    static stylesheets = [];
+
+    /** @type {DocumentFragment|false} */
+    static template;
+
+    static cloneTemplate() {
+        this.template ??= this.makeTemplate();
+        return this.template ? /** @type {DocumentFragment} */(this.template.cloneNode(true)) : undefined;
+    }
+
+    /** @returns {DocumentFragment} */
+    static makeTemplate() {
+        this.stylesheets = [];
+        return null;
+    }
+
+    static defineElement() {
+        customElements.define(this.tagName, this);
+        console.log(`Defined ${this.tagName} as ${this.name}`);
+    }
+
+    /** @returns {string[]} */
+    static get observedAttributes() {
+        return [];
+    }
+
+    /** @param {ShadowRootInit} [shadowRootInit] */
+    constructor(shadowRootInit = {mode: "open"}) {
+        super();
+        const shadowContent = new.target.cloneTemplate();
+        const shadow = this.attachShadow(shadowRootInit);
+        shadow.append(shadowContent);
+        shadow.adoptedStyleSheets.push(...new.target.stylesheets);
+    }
+
+    /** @param {string} name @param {string} oldValue @param {string} newValue */
+    attributeChangedCallback(name, oldValue, newValue) {
+    }
+}
+
+export class KeyboardCueElement extends BaseComponent {
     static tagName = "keyboard-cue";
     static defaultSrc = "img/keyboard.svg";
 
@@ -178,19 +222,8 @@ export class KeyboardCueElement extends HTMLElement {
         return ["keys", "highlight", "lowlight", "secondary", "tertiary", "view-box", "view", "src"];
     }
 
-    /** @type {CSSStyleSheet[]} */
-    static stylesheets = [];
-
-    /** @type {DocumentFragment|false} */
-    static template;
-
-    static cloneTemplate() {
-        this.template ??= this.makeTemplate();
-        return this.template ? /** @type {DocumentFragment} */(this.template.cloneNode(true)) : undefined;
-    }
-
     static makeTemplate() {
-        this.stylesheets = [];
+        super.makeTemplate();
         return Rendered.html`<svg viewBox="0 0 1226 349" part="svg"></svg>`;
     }
 
@@ -260,25 +293,13 @@ export class KeyboardCueElement extends HTMLElement {
     }
 
     /** @type {SVGSVGElement} */
-    svg;
+    svg = this.shadowRoot.querySelector("svg");
 
     /** @type {SVGElement} */
-    keyContainer;
+    keyContainer = this.svg;
 
     /** @type {Readonly<Record<KeyboardCueName, SVGRect>>} */
-    keyRects;
-
-    /** @param {ShadowRootInit} [shadowRootInit] */
-    constructor(shadowRootInit = {mode: "open"}) {
-        super();
-        const shadowContent = new.target.cloneTemplate();
-        const shadow = this.attachShadow(shadowRootInit);
-        shadow.append(shadowContent);
-        shadow.adoptedStyleSheets.push(...new.target.stylesheets);
-        this.svg = shadow.querySelector("svg");
-        this.keyContainer = this.svg;
-        this.updateKeyRects();
-    }
+    keyRects = (this.updateKeyRects(), null);
 
     /** @param {string} name @param {string} oldValue @param {string} newValue */
     attributeChangedCallback(name, oldValue, newValue) {
@@ -354,9 +375,62 @@ export class KeyboardCueElement extends HTMLElement {
 
         return element;
     }
+}
 
-    static defineElement() {
-        customElements.define(this.tagName, this);
+export class MessageLogElement extends BaseComponent {
+    static tagName = "message-log";
+
+    static get observedAttributes() {
+        return ["limit"];
+    }
+
+    static makeTemplate() {
+        super.makeTemplate();
+        return Rendered.html`<slot></slot>`;
+    }
+
+    /** @type {HTMLLIElement[]} */
+    messages = []
+
+    #limit = 50;
+    get limit() {
+        return this.#limit;
+    }
+    set limit(v) {
+        if (v !== this.#limit) {
+            this.#limit = v;
+            if (parseInt(this.getAttribute("limit")) !== v) {
+                this.setAttribute("limit", String(v));
+            }
+        }
+    }
+
+    /** @param {string} name @param {string} oldValue @param {string} newValue */
+    attributeChangedCallback(name, oldValue, newValue) {
+        if (name === "limit") {
+            const newLimit = parseInt(newValue);
+            if (Number.isSafeInteger(newLimit))
+            this.#limit = Math.max(newLimit, 0);
+            this.trimOldMessages();
+        }
+    }
+
+    /** @param {...string|Node} content  */
+    addMessage(...content) {
+        const li = document.createElement("li");
+        li.className = "new message";
+        li.append(...content);
+        this.prepend(li);
+        after(10).then(() => li.classList.remove("new"));
+        this.messages.push(li);
+        this.trimOldMessages();
+    }
+
+    trimOldMessages() {
+        while (this.messages.length && this.messages.length > this.limit) {
+            const li = this.messages.shift();
+            li?.remove();
+        }
     }
 }
 
@@ -477,4 +551,8 @@ export function isKeyName(key) {
     return KeyboardCueElement.allKeys.includes(key);
 }
 
+console.groupCollapsed("Defining custom HTML components");
+KeyboardCueElement.defineElement();
+MessageLogElement.defineElement();
+console.groupEnd();
 Object.assign(self, {KeyboardCueElement, KeyTokenList, isKeyName});

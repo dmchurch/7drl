@@ -1,13 +1,13 @@
 import { RNG } from "rot-js";
-import { MapSprite, WorldMap } from "./worldmap.js";
+import { MapSprite } from "./worldmap.js";
 import { Tileset } from "./tileset.js";
 import { after, htmlElement, typedEntries, valueElement } from "./helpers.js";
 import { tiles, wallRules } from "./tiles.js";
 import { WallRule } from "./walls.js";
-import { player, viewport } from "./main.js";
+import { viewport } from "./globals.js";
+import { player } from "./globals.js";
 import { Cellular3D } from "./cellular3d.js";
-
-export const worldMap = new WorldMap();
+import { worldMap } from "./globals.js";
 
 export const generator = new Cellular3D(worldMap.width, worldMap.height, worldMap.depth);
 

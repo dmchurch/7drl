@@ -1,6 +1,8 @@
 import { items } from "./items.js";
 import { MapSprite } from "./worldmap.js";
 
+console.debug("Starting props.js");
+
 export class Prop extends MapSprite {
     blocksActors = false;
 

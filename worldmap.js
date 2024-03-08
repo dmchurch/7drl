@@ -5,7 +5,8 @@ import { Tileset } from "./tileset.js";
 import { Viewport } from "./viewport.js";
 import { WallRule } from "./walls.js";
 import { Precise3DShadowcasting } from "./rot3d.js";
-import { player } from "./main.js";
+
+console.debug("Starting worldmap.js");
 
 export const FOG_KNOWN = 1 << 0;
 export const FOG_VISIBLE = 1 << 1;
@@ -44,6 +45,11 @@ export class WorldMap {
 
     /** @type {number[]} */
     surroundingIndices = [];
+
+    /** @type {MapSprite} */
+    visibilitySource;
+
+    visibilityRadius = 8;
 
     fov = new Precise3DShadowcasting((x, y, z) => this.lightPasses(x, y, z), {topology: 8});
 
@@ -358,7 +364,8 @@ export class WorldMap {
                 maxWidth + 2, maxHeight + 2, displays.length);
         
         walkBBox(this.displayBounds, (x, y, z) => this.fogMap[this.toIndex(x, y, z)] &= ~FOG_VISIBLE);
-        this.computeVisibility(player.x, player.y, player.z, 8);
+        const {x, y, z} = this.visibilitySource ?? {};
+        this.computeVisibility(x, y, z, this.visibilityRadius);
         for (const [k, display] of displays.entries()) {
             this.drawLayer(display, centerX, centerY, zOrigin + k, zFocus);
         }

@@ -5,6 +5,9 @@ import { Item } from "./props.js";
 import { Stat, StatUI, allStats, isStatName } from "./stats.js";
 import { Tileset } from "./tileset.js";
 import { Astar3D } from "./rot3d.js";
+import { MessageLogElement } from "./uicomponents.js";
+
+console.debug("Starting player.js");
 
 export class Player extends Creature {
     /** @type {Record<StatName, StatUI>} */
@@ -24,6 +27,8 @@ export class Player extends Creature {
     }
 
     inventoryUI = new InventoryUI(this, "inventory");
+    /** @type {MessageLogElement} */
+    messageLog;
 
     /** @type {{dx: number, dy: number, dz: number}[]} */
     moveQueue = [];
@@ -51,6 +56,11 @@ export class Player extends Creature {
         }
     }
 
+    /** @param {MessageLogElement} messageLog  */
+    bindMessageLog(messageLog) {
+        this.messageLog = messageLog;
+    }
+
     /** @param {number} amount @param {Actor} source  */
     takeDamage(amount, source) {
         const stat = RNG.getItem(this.liveStats);
@@ -60,6 +70,13 @@ export class Player extends Creature {
             this.losePart(stat, source);
         }
         this.statUIs[stat.name].update();
+        this.messageLog.addMessage(`The ${source.label} attacks you ${stat.current > 0 ? `and your ${stat.name} takes ${amount} damage.` : `for ${amount} damage. Your ${stat.name} breaks!`}`);
+    }
+
+    attack(target) {
+        const damage = super.attack(target);
+        this.messageLog.addMessage(`The ${target.label} takes ${damage} damage${target.durability <= 0 ? " and dies" : ""}.`)
+        return damage;
     }
 
     /** @param {Stat} stat @param {Actor} source  */
@@ -98,12 +115,14 @@ export class Player extends Creature {
         while (!this.moveQueue.length) {
             // redraw whenever we go into a wait
             this.worldMap.mainViewport.redraw();
+            console.log("awaiting");
             await new Promise(r => this.#resolveAction = r);
+            console.log("awaited");
         }
         const {dx, dy, dz} = this.moveQueue.shift();
         this.move(dx, dy, dz);
         return true;
-}
+    }
 }
 
 export class InventoryUI {

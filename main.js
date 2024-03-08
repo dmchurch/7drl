@@ -1,44 +1,31 @@
 import { WorldMap } from "./worldmap.js";
-import { Viewport } from "./viewport.js";
-import { Tileset } from "./tileset.js";
-import { Player } from "./player.js";
-import { getElement, htmlElement } from "./helpers.js";
+import { animationFrame, getElement, htmlElement } from "./helpers.js";
 import { StatUI, isStatName } from "./stats.js";
-import { Item } from "./props.js";
 import { Creature } from "./actors.js";
-import { KeyboardCueElement } from "./uicomponents.js";
-import { DOMListAction, InputManager, MoveAction } from "./input.js";
-import { regenerate, worldMap } from "./debug.js";
-import { mainLoop } from "./engine.js";
+import { KeyboardCueElement, MessageLogElement } from "./uicomponents.js";
+import { DOMListAction, MoveAction } from "./input.js";
+import { regenerate } from "./debug.js";
+import { worldMap, input, player, viewport } from "./globals.js";
+import { scheduler } from "./engine.js";
 
 console.log("Starting main.js");
-KeyboardCueElement.defineElement();
-console.log("Defined custom elements");
 
-export const tileset = Tileset.light;
-
-export const player = new Player({
+worldMap.addSprite(player, {
     x: worldMap.width >> 1,
     y: worldMap.height >> 1,
     z: worldMap.depth >> 1,
-    inventory: [
-        new Item("geodeSoul"),
-    ],
 });
 
-/** @type {ConstructorParameters<typeof Viewport>[2]} */
-let o = {
-    ...await tileset.getDisplayOptions(),
-	width: 31,
-	height: 31,
-    layers: 7,
-    focusLayer: 3,
-};
-export const viewport = worldMap.mainViewport = new Viewport(worldMap, "gameDisplay", o);
+viewport.trackSize(document.getElementById("viewportRegion"));
 
-Object.assign(self, {o, tileset, player, viewport});
+player.bindStatUIs(document.querySelectorAll(".bodypart"));
 
-worldMap.addSprite(player);
+const messageLog = getElement(document.querySelector("#messagesPanel message-log"), MessageLogElement);
+Object.assign(self, {messageLog});
+
+player.bindMessageLog(messageLog);
+
+messageLog.addMessage("The abyss beckons... welcome to Deiphage.");
 
 export let crab, fish;
 
@@ -49,11 +36,6 @@ regenerate().then(() => {
     Object.assign(self, {crab, fish});
 });
 
-viewport.trackSize(document.getElementById("viewportRegion"));
-
-player.bindStatUIs(document.querySelectorAll(".bodypart"));
-
-const input = InputManager.instance;
 input.attach();
 input.keyIndicator = getElement("indicator", KeyboardCueElement);
 
@@ -81,4 +63,4 @@ input.bind(new DOMListAction("Look Across", document.documentElement.classList, 
 input.bind(new DOMListAction("Look Up", document.documentElement.classList, "look-up"), [input.VKeyAlt, "KeyQ"], [input.VKeyAlt, "NumpadSubtract"])
 input.bind(new DOMListAction("Look Down", document.documentElement.classList, "look-down"), [input.VKeyAlt, "KeyZ"], [input.VKeyAlt, "NumpadAdd"])
 
-mainLoop();
+scheduler.mainLoop();

@@ -1,17 +1,17 @@
 import { RNG } from "rot-js";
-import { scheduler } from "./engine.js";
-import { mapEntries } from "./helpers.js";
 import { Item, Prop } from "./props.js";
 import { roles } from "./roles.js";
-import { Stat, allStats } from "./stats.js";
 import { WorldMap } from "./worldmap.js";
-import { player } from "./main.js";
 import { Astar3D } from "./rot3d.js";
+import { scheduler } from "./engine.js";
+
+console.debug("Starting actors.js");
 
 export class Actor extends Prop {
     /** @type {RoleName} */
     roleName;
-    label = "Something odd";
+    singular = "An odd thing";
+    label = "odd thing";
     plural = "odd things";
     description = "Indescribable.";
     collision = true;
@@ -28,7 +28,8 @@ export class Actor extends Prop {
                 {
                     roleName = explicitRoleName,
                     spriteTile = roles[roleName].spriteTile,
-                    label = roles[roleName].label,
+                    singular = roles[roleName].label,
+                    label = singular.replace(/^An? /, ""),
                     plural = roles[roleName].plural,
                     description = roles[roleName].description,
                     collision,
@@ -36,6 +37,7 @@ export class Actor extends Prop {
                 } = options ?? {}) {
         super(spriteTile, {blocksActors: true, ...rest});
         this.roleName = roleName;
+        this.singular = singular ?? this.singular;
         this.label = label ?? this.label;
         this.plural = label ?? this.plural;
         this.description = description ?? this.description;
@@ -51,6 +53,7 @@ export class Actor extends Prop {
     attack(target) {
         const roll = Math.round(RNG.getNormal(this.baseDamage, this.baseDamage / 2));
         target.takeDamage(roll, this);
+        return roll;
     }
 
     move(dx = 0, dy = 0, dz = 0) {
@@ -93,6 +96,9 @@ export class Actor extends Prop {
 }
 
 export class Creature extends Actor {
+    /** @type {import("./player.js").Player} */
+    static activePlayer;
+
     /** @type {Item[]} */
     inventory = [];
 
@@ -170,6 +176,8 @@ export class Creature extends Actor {
             this.move(x, y, z);
             return true;
         }
+
+        const player = Creature.activePlayer;
 
         if ((roll -= aggression) <= 0) {
             let foundMove = false;

@@ -50,6 +50,11 @@ export function after(ms) {
     return new Promise(r => setTimeout(r, ms));
 }
 
+/** @returns {Promise<DOMHighResTimeStamp>} */
+export function animationFrame() {
+    return new Promise(r => requestAnimationFrame(r));
+}
+
 /**
  * @template T
  * @template {keyof T} K

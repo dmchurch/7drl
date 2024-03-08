@@ -2,6 +2,8 @@ import { mapEntries, memoize, typedEntries } from "./helpers.js";
 import { tileSheets, tiles, wallRules } from "./tiles.js";
 import { WallRule } from "./walls.js";
 
+console.debug("Starting tileset.js");
+
 export class Tileset {
     static get light() {
         const sheetmap = mapEntries(tileSheets, this.makeSheetDef);

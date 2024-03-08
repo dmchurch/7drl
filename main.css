@@ -133,6 +133,24 @@ canvas.layer-focus {
     background: #141335;
     padding: 1em;
     flex-grow: 1;
+    overflow: hidden auto;
+}
+
+.message {
+    list-style: none;
+    font-family: monospace;
+    font-size: 1.2rem;
+    scale: 1;
+    filter: blur(0);
+    transition-property: scale, filter;
+    transition-duration: 0.25s;
+    transition-timing-function: cubic-bezier(.55,.06,.68,.19);
+}
+
+.message.new {
+    filter: blur(20px);
+    scale: 1.5;
+    transition-duration: 0s;
 }
 
 #inventory {
