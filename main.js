@@ -25,6 +25,8 @@ Object.assign(self, {messageLog});
 
 player.bindMessageLog(messageLog);
 
+worldMap.startAnimation();
+
 messageLog.addMessage("The abyss beckons... welcome to Deiphage.");
 
 export let crab, fish;

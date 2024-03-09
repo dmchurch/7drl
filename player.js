@@ -145,6 +145,7 @@ export class Player extends Creature {
             killer.visibilityRadius -= 2;
             worldMap.clearFogMap(FOG_KNOWN);
             worldMap.mainViewport.redraw();
+            worldMap.stopAnimation();
         });
         // death will stop the event loop, so force one more redraw
         this.worldMap.mainViewport.redraw();

@@ -212,6 +212,7 @@ meter {
     transition-property: scale, filter;
     transition-duration: 0.25s;
     transition-timing-function: cubic-bezier(.55,.06,.68,.19);
+    margin-bottom: 0.25lh;
 }
 
 .message.unread {
@@ -229,6 +230,9 @@ meter {
 }
 .fatal {
     color: var(--fatal-color);
+}
+.message:has(>.fatal:only-child) {
+    text-align: center;
 }
 
 #inventory {

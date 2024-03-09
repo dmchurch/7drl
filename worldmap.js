@@ -58,6 +58,11 @@ export class WorldMap {
         z: [-Infinity, Infinity],
     };
 
+    #animationActive = false;
+    get animationActive() {
+        return this.#animationActive;
+    }
+
     constructor(width = 127, height = 127, depth = 31) {
         this.width = width;
         this.height = height;
@@ -72,6 +77,43 @@ export class WorldMap {
         this.isPassable = this.isPassable.bind(this);
         this.lightPasses = this.lightPasses.bind(this);
         this.isEmpty = this.isEmpty.bind(this);
+        this.animationHandler = this.animationHandler.bind(this);
+    }
+
+    #animationFrameRequest;
+    startAnimation() {
+        if (this.#animationActive) return;
+        this.#animationActive = true;
+        this.#animationFrameRequest = requestAnimationFrame(this.animationHandler);
+    }
+
+    stopAnimation() {
+        if (!this.#animationActive) return;
+        this.#animationActive = false;
+        cancelAnimationFrame(this.#animationFrameRequest);
+    }
+
+    /** @param {DOMHighResTimeStamp} timestamp  */
+    animationHandler(timestamp) {
+        if (!this.#animationActive) return;
+        let hadUpdate = false;
+        for (const sprite of this.sprites) {
+            const {animated, visible, tileFrame} = sprite
+            if (animated && visible && (tileFrame.frameType ?? "animation") === "animation") {
+                if (!sprite.animationFrameStart) {
+                    sprite.animationFrameStart = timestamp;
+                }
+                const nextFrame = Math.max(timestamp - 2000, sprite.animationFrameStart + tileFrame.sourceFrame.duration);
+                if (timestamp >= nextFrame) {
+                    sprite.spriteFrame = (sprite.spriteFrame + 1) % tileFrame.frames.length;
+                    sprite.animationFrameStart = nextFrame;
+                    hadUpdate = true;
+                    // this.drawTile(sprite.x, sprite.y, sprite.z);
+                }
+            }
+        }
+        this.mainViewport?.redraw();
+        this.#animationFrameRequest = requestAnimationFrame(this.animationHandler);
     }
 
     /** @param {TileName} tileName  */
@@ -399,6 +441,11 @@ export class MapSprite {
     tangible = true;
     displayLayer = 0;
     visibilityRadius = 8;
+    animationFrameStart = 0;
+
+    get tileFrame() {
+        return Tileset.light.layerFrames[this.spriteTile]?.at(this.spriteFrame)
+    }
 
     /** @type {WeakRef<WorldMap>} */
     #worldMap;
