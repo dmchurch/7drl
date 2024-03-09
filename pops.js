@@ -67,21 +67,23 @@ export const popDefinitions = {
         ]
     },
     mediumPlace: {
-        pickeach: [
-            { pop: "sparseArea", count: [1, 2]},
-            { pop: "fishSchool", count: [0, 4]},
-            { pop: "crabGang", count: [0, 3]},
-            { pop: "horribleZone", chance: [50, 5, 1, 1]}
+        chance: [100, 10, 10, 5, 5, 5],
+        pickone: [
+            { pop: "sparseArea", count: [1, 2], weight: 10},
+            { pop: "fishSchool", count: [1, 2], weight: 6},
+            { pop: "crabGang", weight: 10},
+            { pop: "horribleZone", weight: 1},
         ]
-   },
-   hardPlace: {
-       pickeach: [
-       { pop: "sparseArea", count: [2, 4]},
-       { pop: "fishSchool", count: [1, 5]},
-       { pop: "crabGang", count: [1, 3]},
-       { pop: "horribleZone", count: [1, 4]}
-       ]
-   },
+    },
+    hardPlace: {
+        chance: [100, 75, 50, 5, 5, 5],
+        pickone: [
+            { pop: "sparseArea", weight: 5},
+            { pop: "fishSchool", weight: 1},
+            { pop: "crabGang", count: [1, 3], weight: 10},
+            { pop: "horribleZone", count: [1, 2], weight: 5},
+        ]
+    },
     horribleZone: {
         pickeach: [
         { role: "toothFish", chance: [100, 25, 5] },
