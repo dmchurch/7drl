@@ -64,6 +64,16 @@ export const tileDefinitions = {
         frameType: "animation",
     },
     
+    bigFish: {
+        sheet: "tiles1",
+        frameType: "animation"
+    },
+
+    toothFish: {
+        sheet: "tiles1",
+        frameType: "animation"
+    },
+
     fish: {
         sheet: "tiles1",
         frameType: "animation",
