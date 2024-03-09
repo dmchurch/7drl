@@ -1,9 +1,12 @@
 import { RNG } from "rot-js";
-import { indexInArray, walkBBox } from "./helpers.js";
+import { after, animationFrame, indexInArray, newBBox, setBBox, walkBBox } from "./helpers.js";
 import { fixPopDefinition, pops } from "./pops.js";
 import { MapSprite, WorldMap } from "./worldmap.js";
 import { Item } from "./props.js";
 import { Actor } from "./actors.js";
+import { Player } from "./player.js";
+import { Cellular3D } from "./cellular3d.js";
+import { viewport } from "./globals.js";
 
 /** @param {PopDefinition} popDef @returns {Generator<ItemPopDefinition | RolePopDefinition, void>} */
 export function *generatePops(popDef) {
@@ -105,7 +108,7 @@ export function spawnPops(worldMap, popDef, distribution, context) {
 
 /** @param {MapSprite} sprite @param {PopDefinition|MapSprite} popDef @param {Parameters<MapSprite["distributeNearby"]>[0]} [options] */
 export function spawnNearby(sprite, popDef, options, worldMap = sprite.worldMap) {
-    console.log("spawning nearby", sprite, popDef, worldMap);
+    // console.log("spawning nearby", sprite, popDef, worldMap);
     return spawnPops(worldMap, popDef, sprite.distributeNearby(options, worldMap), sprite);
 }
 
@@ -119,6 +122,53 @@ export function distributeBBox(bbox) {
 
 /** @param {MapSprite} sprite @param {PopDefinition} popDef @param {BoundingBox} bbox */
 export function spawninBBox(sprite, popDef, bbox) {
-    console.log("spawning in bbox", bbox, popDef, sprite);
+    // console.log("spawning in bbox", bbox, popDef, sprite);
     return spawnPops(sprite.worldMap, popDef, distributeBBox(bbox), sprite);
+}
+
+/** @param {WorldMap} worldMap @param {Player} player */
+export async function generateWorld(worldMap, player) {
+    worldMap.clearAll();
+    const {width, height, depth} = worldMap;
+
+    player.z = depth - depth / 10;
+    player.x = width / 10;
+    player.y = height / 10;
+
+    const generator = new Cellular3D(worldMap.width, worldMap.height, worldMap.depth);
+    const setBaseCallback = worldMap.makeSetBaseCallback(0, 0, 0, {0: "roughwall", 1: null});
+
+    for (const _ of generator.generateMap(setBaseCallback, 5, 0.5, null, true)) {
+        await after(10);
+    }
+
+    const playerSpawn = spawnNearby(player, player, {maxRadius: 50}, worldMap);
+
+    const totalDistance = Math.max(width, height) + depth;
+    console.log("player spawned, popping pops",playerSpawn)
+
+    const bbox = newBBox();
+    for (let xOrg = 0; xOrg < width; xOrg += 10) {
+        for (let yOrg = 0; yOrg < height; yOrg += 10) {
+            for (let zOrg = 0; zOrg < depth; zOrg += 10) {
+                setBBox(bbox, xOrg, yOrg, zOrg, 10, 10, 10);
+                const playerDistance = Math.max(Math.abs(xOrg - player.x), Math.abs(yOrg - player.y)) + Math.abs(zOrg - player.z);
+                if (playerDistance / totalDistance < 0.25) {
+                    // spawn easy region
+                    // console.debug("spawning easy at",{xOrg, yOrg, zOrg});
+                    spawninBBox(player, {pop: "easyPlace"}, bbox);
+                } else if (playerDistance / totalDistance < 0.75) {
+                    // spawn moderate region
+                    // console.debug("spawning mid at",{xOrg, yOrg, zOrg});
+                    spawninBBox(player, {pop: "mediumPlace"}, bbox);
+                } else {
+                    // spawn hard region
+                    // console.debug("spawning hard at",{xOrg, yOrg, zOrg});
+                    spawninBBox(player, {pop: "hardPlace", chance: 50}, bbox);
+                }
+            }        
+        }
+    }
+
+    viewport.centerOn(player.x, player.y, player.z, true);
 }

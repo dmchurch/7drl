@@ -161,6 +161,12 @@ export class WorldMap {
             && inSemiOpenRange(z, 0, this.depth);
     }
 
+    clearAll() {
+        this.fogMap.fill(0);
+        this.baseMap.fill(0);
+        this.sprites.length = 0;
+    }
+
     /** @param {number} x @param {number} y @param {number} z */
     getBase(x, y, z) {
         return this.inMap(x, y, z) ? this.baseMap[this.toIndex(x, y, z)] : this.defaultTileIndex;

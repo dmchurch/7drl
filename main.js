@@ -7,32 +7,13 @@ import { DOMListAction, MoveAction } from "./input.js";
 import { regenerate } from "./debug.js";
 import { worldMap, input, player, viewport } from "./globals.js";
 import { scheduler } from "./engine.js";
-import { spawnNearby, spawninBBox } from "./procgen.js";
+import { generateWorld, spawnNearby, spawninBBox } from "./procgen.js";
 import { Cellular3D } from "./cellular3d.js";
 
 console.log("Starting main.js");
 
-const generator = new Cellular3D(worldMap.width, worldMap.height, worldMap.depth);
+await generateWorld(worldMap, player);
 
-const setBaseCallback = worldMap.makeSetBaseCallback(0, 0, 0, {0: "roughwall", 1: null})
-
-for (const _ of generator.generateMap(setBaseCallback, 5, 0.5, null, true)) {
-    console.log("Iteration");
-    await animationFrame();
-}
-
-player.z = worldMap.depth; // start near the top
-
-export const playerSpawn = spawnNearby(player, player, {maxRadius: 50}, worldMap);
-Object.assign(self, {playerSpawn});
-
-// worldMap.addSprite(player, {
-//     x: worldMap.width >> 1,
-//     y: worldMap.height >> 1,
-//     z: worldMap.depth >> 1,
-// });
-
-viewport.centerOn(player.x, player.y, player.z, true);
 viewport.trackSize(document.getElementById("viewportRegion"));
 
 player.bindStatUIs(document.querySelectorAll(".bodypart"));

@@ -18,6 +18,15 @@ export function inBBox({x: [xMin, xMax] = [-Infinity, Infinity],
         && inInclusiveRange(z, zMin, zMax);
 }
 
+/** @returns {BoundingBox} */
+export function newBBox(x = 0, y = 0, z = 0, w = 0, h = 0, d = 0) {
+    return {
+        x: [x, x + w - 1],
+        y: [y, y + w - 1],
+        z: [z, z + w - 1],
+    }
+}
+
 /** @param {BoundingBox} bbox  */
 export function setBBox(bbox, x = 0, y = 0, z = 0, w = 0, h = 0, d = 0) {
     if (!bbox) return bbox;

@@ -9,7 +9,7 @@ import { WorldMap } from "./worldmap.js";
 
 console.debug("Starting globals.js");
 
-export let worldMap = new WorldMap();
+export let worldMap = new WorldMap(50, 50, 20);
 
 export const player = new Player({
     inventory: [
