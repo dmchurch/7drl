@@ -52,7 +52,7 @@ const clean = true;
 const shuffle = true;
 
 /** @satisfies {Record<string, ItemDefinition>} */
-export const itemDefinitions = {
+export const itemDefinitions = /** @type {const} */({
     geodeSoul: {
         spriteTile: "geodeSoul",
         label: "A geode soul",
@@ -215,7 +215,7 @@ export const itemDefinitions = {
         message: "Your body wrenches into new shapes!",
         behavior: {shuffle},
     },
-}
+})
 
 /** @typedef {keyof typeof itemDefinitions} ItemName */
 
@@ -225,7 +225,7 @@ export const itemDefinitions = {
  * @prop {string} [description]
  */
 
-/** @satisfies {Partial<Record<ItemName, Partial<Record<StatName, EquipmentDefinition>>>>} */
+/** @satisfies {Record<EquipmentName, Record<StatName, EquipmentDefinition | false>>} */
 export const equipmentDefinitions = {
     geodeSoul: {
         head: {
@@ -363,7 +363,7 @@ export const equipmentDefinitions = {
 
 /** @type {Record<string, ItemDefinition>} */
 export const items = itemDefinitions;
-/** @type {Partial<Record<ItemName, Partial<Record<StatName, EquipmentDefinition>>>>} */
+/** @type {Record<EquipmentName, Record<StatName, EquipmentDefinition | false>>} */
 export const equipment = equipmentDefinitions;
 
 Object.assign(self, {items, equipment});
