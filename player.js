@@ -2,7 +2,7 @@ import { Display, RNG } from "rot-js";
 import { Actor, Creature } from "./actors.js";
 import { cloneTemplate, dialogElement, getElement, htmlElement, mapEntries, templateElement } from "./helpers.js";
 import { Item } from "./props.js";
-import { Stat, StatUI, allStats, isStatName } from "./stats.js";
+import { SoulUI, Stat, StatUI, allStats, isStatName } from "./stats.js";
 import { Tileset } from "./tileset.js";
 import { Astar3D } from "./rot3d.js";
 import { MessageLogElement } from "./uicomponents.js";
@@ -18,6 +18,7 @@ export class Player extends Creature {
         fins: null,
         tail: null,
     };
+    soulUI = null;
 
     /** @type {Record<StatName, Stat>} */
     stats;
@@ -53,10 +54,13 @@ export class Player extends Creature {
     bindStatUIs(elements) {
         for (const bpContainer of elements) {
             const bodypart = htmlElement(bpContainer).dataset.bodypart;
-            if (!isStatName(bodypart)) {
+            if (isStatName(bodypart)) {
+                this.statUIs[bodypart] = new StatUI(this.stats[bodypart], bpContainer);
+            } else if (bodypart === "soul") {
+                this.soulUI = new SoulUI(this, bpContainer);
+            } else {
                 throw new Error(`Bad data-bodypart: ${bodypart}`);
             }
-            this.statUIs[bodypart] = new StatUI(this.stats[bodypart], bpContainer);
         }
     }
 
@@ -74,7 +78,7 @@ export class Player extends Creature {
             this.losePart(stat, source);
         }
         this.statUIs[stat.name].update();
-        this.messageLog.addMessage(`The ${source.label} attacks you ${stat.current > 0 ? `and your ${stat.name} takes ${amount} damage.` : `for ${amount} damage. Your ${stat.name} breaks!`}`);
+        this.messageLog.addMessage(`The ${source.label} attacks you ${stat.current > 0 ? `and your ${stat.name} ${stat.name === "fins" ? "take" : "takes"} ${amount} damage.` : `for ${amount} damage. Your ${stat.name} breaks!`}`);
     }
 
     attack(target) {
@@ -86,8 +90,11 @@ export class Player extends Creature {
     /** @param {Item} item */
     dropItem(item, count = 1) {
         const result = super.dropItem(item, count);
-        if (result) {
-            this.messageLog.addMessage(`You drop ${item.getDefiniteLabel()}.`);
+        if (Array.isArray(result)) {
+            const [stack, floor] = result;
+            this.messageLog.addMessage(`You drop ${stack.getInventoryLabel(false)} onto the pile, and now there are ${floor.stackSize}.`);
+        } else if (result) {
+            this.messageLog.addMessage(`You drop ${result.getInventoryLabel(false)}.`);
         } else {
             this.messageLog.addMessage(`You try to drop ${item.getDefiniteLabel()} but it seems to be stuck to your fins.`);
         }
@@ -236,15 +243,26 @@ export class InventoryUI {
 
     /** @param {FocusEvent} event  */
     actionClickListener(event) {
-        this.open = false;
         const item = this.selectedItem?.inventoryItem;
         if (!item) return;
         const {action} = htmlElement(event.target).dataset;
+        if (action === "eat" || action === "drop") {
+            this.performAction(action);
+        }
+    }
+
+    /** @param {"eat"|"drop"} action  */
+    performAction(action) {
+        const item = this.selectedItem?.inventoryItem;
+        if (!this.open || !item) return false;
+        
         if (action === "eat") {
             this.player.queueEat(item);
         } else if (action === "drop") {
             this.player.queueDrop(item);
         }
+        this.dialog.close(action);
+        return true;
     }
 
     updateItems() {

@@ -742,7 +742,7 @@ function symbolMap(valueForTyping) {
     // @ts-ignore
     return {__proto__: null};
 }
-/** @typedef {(event: UIEvent) => void | Promise<void | Promise>} ActionFunction */
+/** @typedef {(event: UIEvent) => any | Promise<any>} ActionFunction */
 /** @typedef {Record<DOMKeySymbol, ActionBinding[]>} KeyBindingMap */
 /** @typedef {Record<string, ActionBinding[]>} CharBindingMap */
 

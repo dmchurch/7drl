@@ -17,6 +17,11 @@ export const player = new Player({
         new Item("deliciousSoul", {stackSize: 10}),
         new Item("disgustingSoul", {stackSize: 2}),
     ],
+    stats: {
+        head: {
+            current: 1,
+        }
+    }
 });
 
 worldMap.visibilitySource = player;

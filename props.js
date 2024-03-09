@@ -79,8 +79,8 @@ export class Item extends Prop {
         this.stackSize = stackSize ?? this.stackSize;
     }
 
-    getInventoryLabel() {
-        return this.stackSize === 1 ? this.label : `${this.stackSize} ${this.plural}`;
+    getInventoryLabel(capitalize = true) {
+        return this.stackSize === 1 ? (capitalize ? this.label : this.label.replace(/^(A|An|Some) /, s => s.toLowerCase())) : `${this.stackSize} ${this.plural}`;
     }
 
     getDefiniteLabel(capitalize = false) {

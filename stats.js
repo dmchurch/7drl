@@ -4,7 +4,7 @@ import { cloneTemplate, getElement, htmlElement, meterElement, outputElement } f
 export const allStats = {
     "head": {
         label: "Head",
-        defaultMax: 6,
+        defaultMax: 5,
     },
     "dorsal": {
         label: "Dorsal",
@@ -12,15 +12,15 @@ export const allStats = {
     },
     "belly": {
         label: "Belly",
-        defaultMax: 4,
+        defaultMax: 5,
     },
     "fins": {
         label: "Fins",
-        defaultMax: 4,
+        defaultMax: 5,
     },
     "tail": {
         label: "Tail",
-        defaultMax: 7,
+        defaultMax: 5,
     },
 }
 
@@ -62,6 +62,10 @@ export class StatUI {
     curOutput;
     maxOutput;
 
+    get label() {
+        return allStats[this.stat.name].label;
+    }
+
     /** @param {Stat} stat @param {string|Element} container  */
     constructor(stat, container, template = "bodypartTemplate") {
         this.stat = stat;
@@ -78,8 +82,8 @@ export class StatUI {
     }
 
     update() {
-        const {name, current, max} = this.stat;
-        this.title.textContent = allStats[name].label;
+        const {current, max} = this.stat;
+        this.title.textContent = this.label;
         this.meter.max = max;
         this.meter.optimum = max;
         this.meter.low = max / 4 + 0.01;
@@ -87,5 +91,24 @@ export class StatUI {
         this.meter.value = current;
         this.curOutput.value = String(current);
         this.maxOutput.value = String(max);
+        this.container.classList.toggle("broken", current <= 0);
+        this.container.classList.toggle("full", current === max);
     }
+}
+
+/** @typedef {{durability: number, maxDurability: number}} DurableObject */
+
+export class SoulUI extends StatUI {
+    get label() {
+        return "Soul";
+    }
+
+    /** @param {DurableObject} prop @param {string|Element} container  */
+    constructor(prop, container, template = "bodypartTemplate") {
+        super({
+            name: null,
+            get current() { return prop.durability; },
+            get max() { return prop.maxDurability; },
+        }, container, template);
+   }
 }

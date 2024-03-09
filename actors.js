@@ -145,18 +145,18 @@ export class Creature extends Actor {
     dropItem(item, count=1) {
         const stack = this.splitItemStack(item, count);
         if (!stack) {
-            return false;
+            return null;
         }
 
         const {x, y, z, worldMap} = this;
         for (const sprite of worldMap.getSpritesAt(x, y, z)) {
             if (sprite instanceof Item && sprite.visible && sprite.tangible && sprite.itemName === item.itemName) {
-                sprite.stackSize += item.stackSize;
-                return true;
+                sprite.stackSize += stack.stackSize;
+                return [stack, sprite];
             }
         }
         worldMap.addSprite(stack, {x, y, z})
-        return true;
+        return stack;
     }
 
     /** @param {Item} item  */

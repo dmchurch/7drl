@@ -59,6 +59,9 @@ MoveAction.DiagonalOnly.addKeyBindings(input.VKeyAlt);
 
 input.bind(() => player.toggleInventory(), "Tab", "KeyI");
 
+input.bind(() => player.inventoryUI?.performAction("eat"), "Digit1");
+input.bind(() => player.inventoryUI?.performAction("drop"), "Digit2");
+
 input.bind(new DOMListAction("Look Across", document.documentElement.classList, "look-across"), input.VKeyAlt);
 input.bind(new DOMListAction("Look Up", document.documentElement.classList, "look-up"), [input.VKeyAlt, "KeyQ"], [input.VKeyAlt, "NumpadSubtract"])
 input.bind(new DOMListAction("Look Down", document.documentElement.classList, "look-down"), [input.VKeyAlt, "KeyZ"], [input.VKeyAlt, "NumpadAdd"])
