@@ -35,6 +35,9 @@ const popTypes = /** @type {const} */([
 
 const allPopNames = /** @type {const} */([
     "world",
+    "easyPlace",
+    "mediumPlace",
+    "hardPlace",
     "sparseArea",
     "fishSchool",
     "crabGang",
@@ -54,6 +57,30 @@ export const popDefinitions = {
             { pop: "horribleZone", weight: 1}
         ]
     },
+    easyPlace: {
+        pickeach: [
+        { pop: "sparseArea", count: [3, 10]},
+        { pop: "fishSchool", count: [3, 6]},
+        { pop: "crabGang", chance: [50, 10, 10, 5, 5, 5]},
+        { pop: "horribleZone", chance: [1]}
+        ]
+    },
+    mediumPlace: {
+        pickeach: [
+        { pop: "sparseArea", count: [3, 10]},
+        { pop: "fishSchool", count: [5, 15]},
+        { pop: "crabGang", count: [3, 10]},
+        { pop: "horribleZone", chance: [50, 5, 1, 1]}
+        ]
+   },
+   hardPlace: {
+       pickeach: [
+       { pop: "sparseArea", count: [3, 10]},
+       { pop: "fishSchool", count: [1, 5]},
+       { pop: "crabGang", count: [3, 10]},
+       { pop: "horribleZone", count: [1, 5]}
+       ]
+   },
     horribleZone: {
         pickeach: [
         { role: "toothFish", chance: [100, 25, 5] },
