@@ -139,6 +139,10 @@ canvas.layer-focus {
     animation: 50ms linear 0s infinite alternate shaking;
 }
 
+:root.soul-uncovered #viewportRegion {
+    border-color: #FF3322;
+}
+
 @keyframes shaking {
     from {
         translate: 0em -0.05em;

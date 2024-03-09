@@ -19,12 +19,30 @@ export class Player extends Creature {
         tail: null,
     };
     soulUI = null;
+    soul = {
+        name: null,
+        self: this,
+        get current() {
+            return this.self.durability;
+        },
+        get max() {
+            return this.self.maxDurability;
+        },
+    };
 
     /** @type {Record<StatName, Stat>} */
     stats;
 
+    get soulUncovered() {
+        return Object.values(this.stats).some(s => s.current === 0);
+    }
+
     get liveStats() {
-        return Object.values(this.stats).filter(stat => stat.current > 0);
+        const stats = Object.values(this.stats).filter(stat => stat.current > 0);
+        if (this.soulUncovered) {
+            stats.push(this.soul);
+        }
+        return stats;
     }
 
     inventoryUI = new InventoryUI(this, "inventory");
@@ -78,6 +96,7 @@ export class Player extends Creature {
             this.losePart(stat, source);
         }
         this.statUIs[stat.name].update();
+        document.documentElement.classList.toggle("soul-uncovered", this.soulUncovered);
         this.messageLog.addMessage(`The ${source.label} attacks you ${stat.current > 0 ? `and your ${stat.name} ${stat.name === "fins" ? "take" : "takes"} ${amount} damage.` : `for ${amount} damage. Your ${stat.name} breaks!`}`);
     }
 

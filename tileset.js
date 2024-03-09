@@ -237,7 +237,7 @@ export class AsepriteTileSheet extends BaseTileSheet {
         /** @type {Record<string, TileFrame[]>} */
         const layerFrames = {};
         const allFrames = [];
-        const frameNameRe = /^([^(]+) \((.+)\)\s*(\d*)\.aseprite/;
+        const frameNameRe = /^(.+?) \((.+)\)\s*(\d*)\.aseprite/;
 
         for (const [name, sourceFrame] of Object.entries(data.frames)) {
             if (Array.isArray(data.frames) && name === "length") continue;
