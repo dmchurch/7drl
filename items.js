@@ -43,6 +43,19 @@ export const metaItemBehaviors = /** @type {const} */([
     "ray",
 ]);
 
+/** @returns {name is VoidItemBehaviorName} */
+export function isVoidBehavior(name) {
+    return voidItemBehaviors.includes(name);
+}
+/** @returns {name is NumericItemBehaviorName} */
+export function isNumericBehavior(name) {
+    return numericItemBehaviors.includes(name);
+}
+/** @returns {name is MetaItemBehaviorName} */
+export function isMetaItemBehavior(name) {
+    return metaItemBehaviors.includes(name);
+}
+
 // default values for the void behaviors
 const identify = true;
 const poison = true;

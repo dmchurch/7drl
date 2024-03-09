@@ -28,7 +28,7 @@ export class WorldMap {
     /** @type {TileName[]} */
     baseTiles = [
         null,
-        "solidwall",
+        "roughwall",
     ]
 
     /** @type {Uint8Array} */
@@ -60,7 +60,7 @@ export class WorldMap {
         z: [-Infinity, Infinity],
     };
 
-    constructor(width = 127, height = 127, depth = 15) {
+    constructor(width = 127, height = 127, depth = 31) {
         this.width = width;
         this.height = height;
         this.depth = depth;

@@ -47,7 +47,11 @@ export function indexInArray(index = 0, {length = 0}) {
 
 /** @returns {Promise<void>} */
 export function after(ms) {
-    return new Promise(r => setTimeout(r, ms));
+    let resolver = null;
+    let timedOut = false;
+    const promise = new Promise(r => (timedOut ? r() : (resolver = r)));
+    setTimeout(() => (timedOut = true, resolver?.()), ms);
+    return promise;
 }
 
 /** @returns {Promise<DOMHighResTimeStamp>} */
