@@ -90,4 +90,10 @@ declare type VoidItemBehaviorName = typeof import("./items.js").voidItemBehavior
 declare type NumericItemBehaviorName = typeof import("./items.js").numericItemBehaviors[number];
 declare type MetaItemBehaviorName = typeof import("./items.js").metaItemBehaviors[number];
 
-declare type ItemBehavior = VoidItemBehaviorName|[NumericItemBehaviorName, number]|[MetaItemBehaviorName, number, ItemBehavior, ...ItemBehavior];
+declare type ItemBehavior = {
+    [B in VoidItemBehaviorName]?: boolean
+} & {
+    [B in NumericItemBehaviorName]?: number
+} & {
+    [B in MetaItemBehaviorName]?: {r: number} & ItemBehavior
+};

@@ -24,6 +24,14 @@ const transmEggrify = "You feel your body changing."
  * @typedef {ItemDefinitionCommon & (ItemDefinitionEquipment | ItemDefinitionConsumable)} ItemDefinition
  */
 
+// default values for the void behaviors
+const identify = true;
+const poison = true;
+const stun = true;
+const fear = true;
+const clean = true;
+const shuffle = true;
+
 export const voidItemBehaviors = /** @type {const} */([
     "identify",
     "poison",
@@ -106,7 +114,7 @@ export const itemDefinitions = {
         description: `${bEggining} Taking the shape of a crystalline disc set in a chained ring of gold, this memory is of God's wisdom, their remaining insight from the time when they were named Index.`,
         effect: "Upon consumption, identifies a soul.",
         message: "Ancient knowledge flashes through your mind and you grasp for a scrap of it.",
-        behavior: "identify",
+        behavior: {identify},
     },
     sightSoul: {
         spriteTile: "sightSoul",
@@ -115,7 +123,7 @@ export const itemDefinitions = {
         description: `${bEggining} The unblinking eye within stares, pulling you into the memory of when God was all-seeing and we knew no peace, calling him Aiel.`,
         effect: "Upon consumption, increases your sight radius.",
         message: "Ancient knowledge flashes through your mind, and you grasp for meaning.",
-        behavior: ["sight", 2],
+        behavior: {sight: 2},
     },
     mendingSoul: {
         spriteTile: "mendingSoul",
@@ -124,7 +132,7 @@ export const itemDefinitions = {
         description: `${bEggining} The two-sided capsule of this soul is the twin memory of when God was nature and nurture, kindly guardians Vel and Daut.`,
         effect: "Upon consumption, heals you.",
         message: "The warm heat of ancient love flows through you.",
-        behavior: ["health", 5],
+        behavior: {health: 5},
     },
     sustenanceSoul: {
         spriteTile: "sustenanceSoul",
@@ -133,7 +141,7 @@ export const itemDefinitions = {
         description: `${justYolks} Their name, like the meager satiety they provide, was too easily forgotten.`,
         effect: "Upon consumption, reduces your satiety somewhat.",
         message: "The meal was adequate.",
-        behavior: ["satiety", 200],
+        behavior: {satiety: 200},
     },
     deliciousSoul: {
         spriteTile: "deliciousSoul",
@@ -142,7 +150,7 @@ export const itemDefinitions = {
         description: `${justYolks} Their name is forgotten, but the sweet virtuous fruit of their life remains.`,
         effect: "Upon consumption, reduces your satiety a lot and heals you.",
         message: "Delicious!",
-        behavior: [["satiety", 500], ["health", 2]],
+        behavior: {satiety: 500, health: 2},
     },
     disgustingSoul: {
         spriteTile: "disgustingSoul",
@@ -151,7 +159,7 @@ export const itemDefinitions = {
         description: `${justYolks} Rank betrayal plagued this soul's life, souring it terribly.`,
         effect: "Upon consumption, reduces your satiety somewhat but poisons you.",
         message: "You feel less hungry, but the accompanying nausea brings some regret.",
-        behavior: [["satiety", 50], "poison"],
+        behavior: {satiety: 50, poison},
     },
     terrorSoul: {
         spriteTile: "terrorSoul",
@@ -160,7 +168,7 @@ export const itemDefinitions = {
         description: `${bEggining} Within, a ghastly vision glares: the lingering rage-memory of when God was the tyrant named Zanback.`,
         effect: "Upon consumption, terrifies all who behold you.",
         message: "Eons of rage pour across the veil for a terrible moment.",
-        behavior: ["burst", 10, "fear"],
+        behavior: {burst: {r: 10, fear}},
     },
     summonSoul: {
         spriteTile: "summonSoul",
@@ -169,7 +177,7 @@ export const itemDefinitions = {
         description: `${bEggining} Pinpoint eyes from the depths evoke the memory of when God was the school itself, innumerable bodies together named We.`,
         effect: "Upon consumption, summons hostile mobs.",
         message: "You ring the dinner bell.",
-        behavior: ["summon", 5],
+        behavior: {summon: 5},
     },
     sickSoul: {
         spriteTile: "sickSoul",
@@ -178,7 +186,7 @@ export const itemDefinitions = {
         description: `${justYolks} God is not always brought low by its successor. Some fall prey to the very smallest fish, too small to possess ambition, and so they rot in the deep.`,
         effect: "Upon consumption, poisons all who behold you.",
         message: "Vile miasma clouds the water.",
-        behavior: ["burst", 5, "poison"],
+        behavior: {burst: {r: 5, poison}},
     },
     flashSoul: {
         spriteTile: "flashSoul",
@@ -187,7 +195,7 @@ export const itemDefinitions = {
         description: `${bEggining} Dazzling and brief is the memory of when God was the most bright. May we remember its name tomorrow.`,
         effect: "Upon consumption, stuns all who behold you.",
         message: "Divine billiance halts your foes!",
-        behavior: ["burst", 10, "stun"],
+        behavior: {burst: {r: 10, stun}},
     },
     cleanSoul: {
         spriteTile: "cleanSoul",
@@ -196,7 +204,7 @@ export const itemDefinitions = {
         description: `${bEggining} Intangible shine glitters, the memory of the God who undid what had been done, who made whole too much, who we called Catrolzy.`,
         effect: "Upon consumption, returns your body to its base form, returning equipped souls as eggs.",
         message: "Undone.",
-        behavior: "clean",
+        behavior: {clean},
     },
     shuffleSoul: {
         spriteTile: "shuffleSoul",
@@ -205,7 +213,7 @@ export const itemDefinitions = {
         description: `${bEggining} The discordant, pulsing colors within form the memory of when God was raw chaos, when God refused every name or claimed all of them.`,
         effect: "Upon consumption, all of your transformed limbs change to a random other form.",
         message: "Your body wrenches into new shapes!",
-        behavior: "shuffle",
+        behavior: {shuffle},
     },
 }
 
