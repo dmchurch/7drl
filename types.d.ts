@@ -66,6 +66,7 @@ declare type ConsumableItemDefinition = import("./items.js").ConsumableItemDefin
 declare type ItemName = import("./items.js").ItemName;
 type _AllItemDefinitions = typeof import("./items.js").itemDefinitions;
 declare type EquipmentName = {[K in keyof _AllItemDefinitions]: _AllItemDefinitions[K] extends {equippable: true} ? K : never}[keyof _AllItemDefinitions]
+declare type EquipmentDefinition = import("./items.js").EquipmentDefinition;
 declare type RoleDefinition = import("./roles.js").RoleDefinition;
 declare type RoleName = import("./roles.js").RoleName;
 declare type KeyboardCueName = keyof typeof import("./uicomponents.js").KeyboardCueElement["keysToDOMCodes"];
@@ -105,3 +106,11 @@ declare type ItemEffectValue<E extends ItemEffectName>
 declare type ItemBehavior = {
     [E in ItemEffectName]?: ItemEffectValue<E>
 };
+
+declare interface StatLike {
+    current: number;
+    max: number;
+    name?: StatName;
+    s?: string;
+    readonly equipDef: EquipmentDefinition;
+}

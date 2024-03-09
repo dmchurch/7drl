@@ -1,4 +1,6 @@
 import { cloneTemplate, getElement, htmlElement, meterElement, outputElement } from "./helpers.js";
+import { equipment } from "./items.js";
+import { Item } from "./props.js";
 
 /** @satisfies {Record<string, StatDef>} */
 export const allStats = {
@@ -43,8 +45,31 @@ export class Stat {
     /** @type {"s" | ""} */
     s;
 
-    current = 10;
-    max = 10;
+    #current = 10;
+    #max = 10;
+
+    get current() {
+        return this.equippedItem?.durability ?? this.#current;
+    }
+    set current(v) {
+        if (this.equippedItem) this.equippedItem.durability = v;
+        else this.#current = v;
+    }
+    get max() {
+        return this.equippedItem?.durability ?? this.#max;
+    }
+    set max(v) {
+        if (this.equippedItem) this.equippedItem.maxDurability = v;
+        else this.#max = v;
+    }
+
+    /** @type {Item} */
+    equippedItem;
+
+    /** @type {import("./items.js").EquipmentDefinition} */
+    get equipDef() {
+        return equipment[this.equippedItem?.itemName]?.[this.name];
+    }
 
     /** @overload @param {StatName} name @param {Overrides<Stat>} [options] */
     /** @param {StatName} nameArgument @param {Overrides<Stat>} [options] */
@@ -53,6 +78,17 @@ export class Stat {
         this.current = current;
         this.max = max;
         this.s = name === "fins" ? "" : "s";
+    }
+
+    /** @param {Item} item  */
+    equipItem(item) {
+        if (this.equippedItem) {
+            item.stackSize += this.equippedItem.durability;
+            this.equippedItem.releaseFromOwner();
+        }
+        item.releaseFromOwner();
+        item.durability = item.maxDurability = item.stackSize;
+        this.equippedItem = item;
     }
 }
 
@@ -70,7 +106,7 @@ export class StatUI {
         return allStats[this.stat.name].label;
     }
 
-    /** @param {Stat} stat @param {string|Element} container  */
+    /** @param {StatLike} stat @param {string|Element} container  */
     constructor(stat, container, template = "bodypartTemplate") {
         this.stat = stat;
         this.container = htmlElement(container);
@@ -86,8 +122,8 @@ export class StatUI {
     }
 
     update() {
-        const {current, max} = this.stat;
-        this.title.textContent = this.label;
+        const {current, max, equipDef} = this.stat;
+        this.title.textContent = equipDef?.label ?? this.label;
         this.meter.max = max;
         this.meter.optimum = max;
         this.meter.low = max / 4 + 0.01;
@@ -112,6 +148,7 @@ export class SoulUI extends StatUI {
         super({
             name: null,
             s: null,
+            equipDef: null,
             get current() { return prop.durability; },
             get max() { return prop.maxDurability; },
         }, container, template);

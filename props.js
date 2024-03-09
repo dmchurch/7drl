@@ -26,6 +26,8 @@ export class Prop extends MapSprite {
                     label,
                     plural,
                     description,
+                    durability,
+                    maxDurability,
                     ...rest
                 } = options ?? {}) {
         super(spriteTile, {displayLayer: 1, ...rest});
@@ -34,6 +36,8 @@ export class Prop extends MapSprite {
         this.plural = plural ?? this.plural;
         this.description = description ?? this.description;
         this.blocksActors = blocksActors ?? this.blocksActors;
+        this.durability = durability ?? this.durability;
+        this.maxDurability = maxDurability ?? this.maxDurability;
     }
 
     /** @param {import("./actors.js").Actor} collider */

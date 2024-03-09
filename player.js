@@ -1,12 +1,13 @@
 import { Display, RNG } from "rot-js";
 import { Actor, Creature } from "./actors.js";
-import { after, cloneTemplate, dialogElement, getElement, htmlElement, mapEntries, setBBoxCenter, setBBoxCenterRadius, templateElement } from "./helpers.js";
-import { EggItem, Item } from "./props.js";
+import { after, cloneTemplate, dialogElement, getElement, htmlElement, mapEntries, setBBoxCenter, setBBoxCenterRadius, templateElement, typedKeys } from "./helpers.js";
+import { EggItem, Item, SoulItem } from "./props.js";
 import { SoulUI, Stat, StatUI, allStats, isStatName } from "./stats.js";
 import { Tileset } from "./tileset.js";
 import { Astar3D } from "./rot3d.js";
 import { MessageLogElement } from "./uicomponents.js";
 import { FOG_KNOWN } from "./worldmap.js";
+import { equipment, isEquippableItemDefinition } from "./items.js";
 
 console.debug("Starting player.js");
 
@@ -23,6 +24,7 @@ export class Player extends Creature {
     soul = {
         name: null,
         s: null,
+        equipDef: null,
         self: this,
         get current() {
             return this.self.durability;
@@ -48,7 +50,8 @@ export class Player extends Creature {
     }
 
     get liveStats() {
-        const stats = Object.values(this.stats).filter(stat => stat.current > 0);
+        /** @type {StatLike[]} */
+        const stats = this.statList.filter(stat => stat.current > 0);
         if (this.soulUncovered) {
             stats.push(this.soul);
         }
@@ -217,10 +220,13 @@ export class Player extends Creature {
         return result;
     }
 
-    /** @param {Stat} stat @param {Actor} source @param {Item} item */
+    /** @param {StatLike} stat @param {Actor} source @param {Item} item */
     losePart(stat, source, item) {
-        if (!this.liveStats.length) {
+        if (this.durability <= 0) {
             this.die(source, item);
+        } else if (stat instanceof Stat && stat.equippedItem) {
+            this.messageLog.addMessage(`Your ${equipment[stat.equippedItem.itemName]?.[stat.name]?.label?.toLowerCase() ?? `transformed ${stat.name}`} revert${stat.s} to your original form.`);
+            stat.equippedItem = null;
         }
     }
 
@@ -320,9 +326,30 @@ export class Player extends Creature {
                 this.messageLog.addMessage(discoveryMessage.replace("{indefinite}", soulItem.getIndefiniteLabel(false)));
             }
             this.messageLog.addCallout(description);
-            // and then let super call the soul's digest
+            item = soulItem;
+            // and then let super call the soul's digest unless it's equipment
         }
+
         super.digestItemStack(item);
+
+        if (item.itemDef.equippable && item instanceof SoulItem) {
+            this.equipSoul(item);
+        }
+    }
+
+    equipSoul(soul) {
+        const eqDef = equipment[/** @type {EquipmentName} */(soul.itemName)];
+
+        const availableParts = typedKeys(eqDef).filter(p => this.stats[p].current > 0);
+        if (availableParts.length === 0) {
+            this.messageLog.addMessage("Unfortunately, you're left no better off than you were. Your body is too weak.");
+            return;
+        }
+        const equipTo = RNG.getItem(availableParts);
+        const stat = this.stats[equipTo];
+        
+        stat.equipItem(soul);
+        this.statUIs[equipTo].update();
     }
 
     async act(time = 0) {

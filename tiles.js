@@ -75,6 +75,11 @@ export const tileDefinitions = {
         frameType: "animation"
     },
 
+    godFish: {
+        sheet: "god",
+        frameType: "animation",
+    },
+
     fish: {
         sheet: "tiles1",
         frameType: "animation",

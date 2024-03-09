@@ -190,6 +190,13 @@ export class Decor extends Actor {
     constructor(roleName, options) {
         super(roleName, {displayLayer: 2.5, ...options});
     }
+    
+    /** @param {Actor} collider */
+    getCollidedWith(collider) {
+        if (collider instanceof Creature) {
+            collider.attack(this);
+        }
+    }
 }
 
 export class Creature extends Actor {
@@ -316,8 +323,8 @@ export class Creature extends Actor {
         }
 
         const {itemDef} = stack;
-        // default behavior for equippable items is to heal 1 durability
-        let behaviors = isConsumableItemDefinition(itemDef) ? itemDef.behavior : itemDef.equipBehavior ?? {health: 1};
+        // default behavior for equippable items is to do nothing
+        let behaviors = isConsumableItemDefinition(itemDef) ? itemDef.behavior : itemDef.equipBehavior;
         if (!Array.isArray(behaviors)) {
             behaviors = behaviors ? [behaviors] : [];
         }
