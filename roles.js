@@ -23,23 +23,31 @@ const roleDefinitions = {
         spriteTile: "fish",
         label: "A fish",
         plural: "fish",
+        destroyMessage: "The fish dies!",
+        durability: 2,
         aggression: 10,
+        bloodlust: 5,
         distraction: 50,
+        baseDamage: 1,
         drops: {
             pop: "commonSoul",
-            chance: 50,
+            chance: 5,
         }
     },
     crab: {
         spriteTile: "crab",
         label: "A crab",
         plural: "crabs",
-        aggression: 30,
-        distraction: 5,
+        destroyMessage: "The crab dies!",
+        durability: 8,
+        aggression: 10,
+        bloodlust: 15,
+        distraction: 50,
+        baseDamage: 1,
         drops: {
-            pickeach: [
-                {pop: "commonSoul", chance: 95},
-                {pop: "rareSoul", chance: 5},
+            pickone: [
+                {pop: "commonSoul", weight: 95},
+                {pop: "rareSoul", weight: 5},
             ],
             chance: 10,
         }
@@ -48,28 +56,66 @@ const roleDefinitions = {
         spriteTile: "bigFish",
         label: "A big fish",
         plural: "big fish",
-        aggression: 30,
-        distraction: 15,
+        destroyMessage: "The big fish dies!",
+        durability: 10,
+        aggression: 10,
+        bloodlust: 5,
+        distraction: 50,
+        baseDamage: 2,
         drops: {
-            pickeach: [
-                {pop: "commonSoul", chance: 75},
-                {pop: "rareSoul", chance: 25},
+            pickone: [
+                {pop: "commonSoul", weight: 75},
+                {pop: "rareSoul", weight: 25},
             ],
+            chance: 15,
         }
     },
     toothFish: {
         spriteTile: "toothFish",
         label: "A toothy fish",
         plural: "toothy fish",
-        aggression: 75,
-        distraction: 5,
+        destroyMessage: "The toothy fish dies!",
+        durability: 5,
+        aggression: 20,
+        bloodlust: 20,
+        distraction: 10,
+        baseDamage: 3,
         drops: {
-            pickeach: [
-                {pop: "commonSoul", chance: 50},
-                {pop: "rareSoul", chance: 50},
+            pickone: [
+                {pop: "commonSoul", weight: 50},
+                {pop: "rareSoul", weight: 50},
             ],
+            chance: 25,
         }
     },
+    eel: {
+        spriteTile: "fish",
+        label: "An eel",
+        plural: "eel",
+        destroyMessage: "The eel dies!",
+        durability: 5,
+        aggression: 10,
+        bloodlust: 25,
+        distraction: 10,
+        baseDamage: 1,
+        drops: {
+            pop: "commonSoul",
+            chance: 15,
+        }
+    },
+
+    godFish: {
+        spriteTile: "godFish",
+        label: "The Godfish",
+        plural: "Godfish",
+        destroyMessage: "You devour God!",
+        durability: 40,
+        aggression: 100,
+        bloodlust: 100,
+        distraction: 5,
+        baseDamage: 5
+    },
+
     player: {
         spriteTile: "PCfish",
         label: "You",
@@ -102,6 +148,13 @@ const roleDefinitions = {
         type: "decor",
         durability: 1,
         spawnRestrictions: ["onGround"],
+        drops: {
+            pickone: [
+                {pop: "commonSoul", weight: 70},
+                {pop: "rareSoul", weight: 30},
+            ],
+            chance: 25,
+        }
     },
 
     litter: {
