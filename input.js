@@ -297,14 +297,16 @@ export class InputManager {
         }
     }
 
+    // enabling any of these cause the input manager to think of these as "bound keys" and
+    // start blocking keyboard events by default
     /** @readonly */
     VKeyAlt = new VKeyAction("Alt").addKeyBindings("AltLeft", "AltRight").virtualKey;
-    /** @readonly */
-    VKeyShift = new VKeyAction("Shift").addKeyBindings("ShiftLeft", "ShiftRight").virtualKey;
-    /** @readonly */
-    VKeyControl = new VKeyAction("Control").addKeyBindings("ControlLeft", "ControlRight").virtualKey;
-    /** @readonly */
-    VKeyMeta = new VKeyAction("Meta").addKeyBindings("MetaLeft", "MetaRight").virtualKey;
+    // /** @readonly */
+    // VKeyShift = new VKeyAction("Shift").addKeyBindings("ShiftLeft", "ShiftRight").virtualKey;
+    // /** @readonly */
+    // VKeyControl = new VKeyAction("Control").addKeyBindings("ControlLeft", "ControlRight").virtualKey;
+    // /** @readonly */
+    // VKeyMeta = new VKeyAction("Meta").addKeyBindings("MetaLeft", "MetaRight").virtualKey;
 }
 
 export class InputAction {

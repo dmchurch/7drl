@@ -1,5 +1,4 @@
-import { FOV, RNG } from "rot-js";
-import { inBBox, inInclusiveRange, inSemiOpenRange, setBBox, typedEntries, walkBBox } from "./helpers.js";
+import { inBBox, inInclusiveRange, inSemiOpenRange, setBBox, tuple, typedEntries, walkBBox } from "./helpers.js";
 import { tiles, wallRules } from "./tiles.js";
 import { Tileset } from "./tileset.js";
 import { Viewport } from "./viewport.js";
@@ -514,12 +513,16 @@ export class MapSprite {
         this.container = container ?? this.container;
     }
 
-    /** @param {MapSprite} sprite  */
-    spawnNearby(sprite, {minRadius = 1, maxRadius = 10} = {}) {
+    /** @param {WorldMap} worldMap @param {PopDefinition} popDef @param {PopDefinition} rootPopDef @param {MapSprite} context */
+    canSpawnAt(x = 0, y = 0, z = 0, worldMap, popDef, rootPopDef, context) {
+        return worldMap.isEmpty(x, y, z);
+    }
+
+    *distributeNearby({minRadius = 1, maxRadius = 10} = {}) {
         const {worldMap, x, y, z} = this.rootSprite;
 
         const positions = [];
-        
+
         for (let radius = minRadius; radius <= maxRadius; radius++) {
             const zRadius = radius >> 2;
             for (let dz = -zRadius; dz <= zRadius; dz++) {
@@ -532,16 +535,13 @@ export class MapSprite {
                             continue;
                         }
                         if (worldMap.isEmpty(x + dx, y + dy, z + dz)) {
-                            positions.push([x + dx, y + dy, z + dz]);
+                            positions.push(tuple(x + dx, y + dy, z + dz));
                         }
                     }
                 }
             }
-            while (positions.length) {
-                // is okay to shadow these
-                const [x, y, z] = RNG.getItem(positions);
-                console.log(`Spawning ${sprite.spriteTile} at ${x}, ${y}, ${z} where ${worldMap.getBase(x, y, z)}`)
-                return worldMap.addSprite(sprite, {x, y, z}) ? sprite : null;
+            if (positions.length) {
+                yield positions;
             }
         }
         return null;

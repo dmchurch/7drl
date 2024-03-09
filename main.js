@@ -7,6 +7,7 @@ import { DOMListAction, MoveAction } from "./input.js";
 import { regenerate } from "./debug.js";
 import { worldMap, input, player, viewport } from "./globals.js";
 import { scheduler } from "./engine.js";
+import { spawnNearby } from "./procgen.js";
 
 console.log("Starting main.js");
 
@@ -32,8 +33,10 @@ messageLog.addMessage("The abyss beckons... welcome to Deiphage.");
 export let crab, fish;
 
 regenerate().then(() => {
-    crab = player.spawnNearby(new Creature("crab"), {minRadius: 3});
-    fish = player.spawnNearby(new Creature("fish"));
+    console.log("Spawning crab gang...");
+    crab = spawnNearby(player, {pop: "crabGang"}, {minRadius: 3});
+    console.log("Spawning fish school...");
+    fish = spawnNearby(player, {pop: "fishSchool"});
 
     Object.assign(self, {crab, fish});
 });

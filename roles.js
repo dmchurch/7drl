@@ -4,6 +4,7 @@
  * @prop {number} [spriteFrame]
  * @prop {string} label
  * @prop {string} plural
+ * @prop {"creature"|"actor"|"player"} [type]
  * @prop {string} [description]
  * @prop {number} [aggression] Percentage chance that this mob will approach the player if it moves
  * @prop {number} [distraction] Percentage chance that this mob will move randomly
@@ -19,6 +20,10 @@ const roleDefinitions = {
         plural: "fish",
         aggression: 10,
         distraction: 50,
+        drops: {
+            pop: "commonSoul",
+            chance: 50,
+        }
     },
     crab: {
         spriteTile: "crab",
@@ -27,13 +32,17 @@ const roleDefinitions = {
         aggression: 30,
         distraction: 5,
         drops: {
-            pop: "commonSoul",
+            pickeach: [
+                {pop: "commonSoul", chance: 75},
+                {pop: "rareSoul", chance: 25},
+            ],
         }
     },
     player: {
         spriteTile: "PCfish",
         label: "You",
         plural: "instances of you",
+        type: "player",
     }
 };
 

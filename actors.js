@@ -10,6 +10,16 @@ import { typedEntries, typedKeys } from "./helpers.js";
 console.debug("Starting actors.js");
 
 export class Actor extends Prop {
+    /** @param {RoleName} roleName @param {Overrides<Actor>} options @returns {Actor} */
+    static create(roleName, options) {
+        roleName = options?.roleName ?? roleName;
+        const roleType = roles[roleName]?.type ?? "creature";
+        if (roleType !== "actor" && this === Actor) {
+            return Creature.create(roleName, options);
+        }
+        return new this(roleName, options);
+    }
+
     /** @type {RoleName} */
     roleName;
     collision = true;

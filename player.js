@@ -175,6 +175,7 @@ export class Player extends Creature {
             this.messageLog.addMessage(`Your soul heals over, but the wound still aches.`);
         }
         this.statUIs[name].update();
+        document.documentElement.classList.toggle("soul-uncovered", this.soulUncovered);
     }
 
     attack(target) {

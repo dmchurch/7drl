@@ -71,6 +71,8 @@ declare type RoleName = import("./roles.js").RoleName;
 declare type KeyboardCueName = keyof typeof import("./uicomponents.js").KeyboardCueElement["keysToDOMCodes"];
 declare type DOMKeyCode = keyof typeof import("./input.js").InputManager["keyCodesToKeyCues"];
 declare type PopDefinition = import("./pops.js").PopDefinition;
+declare type ItemPopDefinition = import("./pops.js").ItemPopDefinition;
+declare type RolePopDefinition = import("./pops.js").RolePopDefinition;
 declare type PopName = import("./pops.js").PopName;
 
 declare type StatDef = import("./stats.js").StatDef;

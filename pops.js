@@ -13,8 +13,8 @@
  * @prop {"pickeach"} [type]
  * @prop {PopDefinition[]} pickeach
  * 
- * @typedef ItemPopDefinition @prop {"item"} [type] @prop {ItemName} item
- * @typedef RolePopDefinition @prop {"role"} [type] @prop {RoleName} role
+ * @typedef ItemPopDefinition @prop {"item"} [type] @prop {ItemName} item @prop {Record<string, any>} [overrides]
+ * @typedef RolePopDefinition @prop {"role"} [type] @prop {RoleName} role @prop {Record<string, any>} [overrides]
  * @typedef PopPopDefinition  @prop {"pop"}  [type] @prop {PopName} pop
  * 
  * @typedef {(PopDefinitionCommon & PickOnePopDefinition)
@@ -23,6 +23,15 @@
  *         | (PopDefinitionCommon & RolePopDefinition)
  *         | (PopDefinitionCommon & PopPopDefinition)} PopDefinition
  */
+
+/** @satisfies {PopDefinition["type"][]} */
+const popTypes = /** @type {const} */([
+    "pickone",
+    "pickeach",
+    "item",
+    "role",
+    "pop",
+])
 
 const allPopNames = /** @type {const} */([
     "world",
@@ -70,6 +79,21 @@ export const popDefinitions = {
 };
 
 /** @typedef {typeof allPopNames[number]} PopName */
-/** @type {Record<PopName, PopDefinition>} */
 
-export const pops = popDefinitions;
+/** @param {PopDefinition} popDef */
+export function fixPopDefinition(popDef) {
+    for (const type of popTypes) {
+        if (type in popDef) {
+            popDef.type = type;
+            if (type === "pickeach" || type === "pickone") {
+                popDef[type].forEach(fixPopDefinition);
+            }
+            break;
+        }
+    }
+    return /** @type {Required<PopDefinition>} */(popDef);
+}
+
+import { mapEntries } from "./helpers.js";
+/** @type {Record<PopName, Required<PopDefinition>>} */
+export const pops = mapEntries(popDefinitions, fixPopDefinition);
