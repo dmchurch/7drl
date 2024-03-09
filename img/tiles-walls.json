@@ -1,5 +1,5 @@
 { "frames": {
-   "7drl-walls (solidwall) 0.aseprite": {
+   "7drl-walls (solidwall).aseprite": {
     "frame": { "x": 0, "y": 0, "w": 272, "h": 144 },
     "rotated": false,
     "trimmed": false,
@@ -7,7 +7,7 @@
     "sourceSize": { "w": 272, "h": 144 },
     "duration": 100
    },
-   "7drl-walls (outlinedwall) 0.aseprite": {
+   "7drl-walls (outlinedwall).aseprite": {
     "frame": { "x": 0, "y": 144, "w": 272, "h": 144 },
     "rotated": false,
     "trimmed": false,
@@ -15,7 +15,7 @@
     "sourceSize": { "w": 272, "h": 144 },
     "duration": 100
    },
-   "7drl-walls (roughwall) 0.aseprite": {
+   "7drl-walls (roughwall).aseprite": {
     "frame": { "x": 0, "y": 288, "w": 272, "h": 144 },
     "rotated": false,
     "trimmed": false,
@@ -26,7 +26,7 @@
  },
  "meta": {
   "app": "https://www.aseprite.org/",
-  "version": "1.x-dev",
+  "version": "1.3.5-x64",
   "image": "tiles-walls.png",
   "format": "I8",
   "size": { "w": 272, "h": 432 },
