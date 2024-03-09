@@ -67,22 +67,23 @@ export function createSpriteFor(pop) {
 
 /**
  * @param {WorldMap} worldMap 
- * @param {PopDefinition} popDef
+ * @param {PopDefinition|MapSprite} popDef
  * @param {Iterable<[x:number,y:number,z:number][], void>} distribution
  * @param {MapSprite} [context]
  */
 export function spawnPops(worldMap, popDef, distribution, context) {
-    const generator = generatePops(popDef);
+    const generator = popDef instanceof MapSprite ? null : generatePops(popDef);
     /** @type {Iterator<[x:number,y:number,z:number][], void>} */
     const distributor = distribution[Symbol.iterator]();
     let cells = distributor.next()?.value;
-    let pop = generator.next()?.value;
-    let sprite = pop ? createSpriteFor(pop) : null;
+    let pop = generator?.next()?.value;
+    let sprite = popDef instanceof MapSprite ? popDef : pop ? createSpriteFor(pop) : null;
     const sprites = [];
-    while (pop && cells) {
+    while (sprite && cells) {
         for (const index of RNG.shuffle(Array.from(cells.keys()))) {
             const [x, y, z] = cells[index];
-            if (sprite.canSpawnAt(x, y, z, worldMap, pop, popDef, context)) {
+            // @ts-ignore
+            if (sprite.canSpawnAt(x, y, z, worldMap, pop, popDef instanceof MapSprite ? null : popDef, context)) {
                 // success
                 worldMap.addSprite(sprite, {x, y, z});
                 cells.splice(index, 1);
@@ -95,16 +96,17 @@ export function spawnPops(worldMap, popDef, distribution, context) {
             // couldn't find anywhere in this cell list, let's get another
             cells = distributor.next()?.value;
         } else {
-            pop = generator.next()?.value;
+            pop = generator?.next()?.value;
             sprite = pop ? createSpriteFor(pop) : null;
         }
     }
     return sprites;
 }
 
-/** @param {MapSprite} sprite @param {PopDefinition} popDef @param {Parameters<MapSprite["distributeNearby"]>[0]} [options] */
-export function spawnNearby(sprite, popDef, options) {
-    return spawnPops(sprite.worldMap, popDef, sprite.distributeNearby(options), sprite);
+/** @param {MapSprite} sprite @param {PopDefinition|MapSprite} popDef @param {Parameters<MapSprite["distributeNearby"]>[0]} [options] */
+export function spawnNearby(sprite, popDef, options, worldMap = sprite.worldMap) {
+    console.log("spawning nearby", sprite, popDef, worldMap);
+    return spawnPops(worldMap, popDef, sprite.distributeNearby(options, worldMap), sprite);
 }
 
 /** @param {BoundingBox} bbox */

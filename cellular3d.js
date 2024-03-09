@@ -116,11 +116,12 @@ export class Cellular3D extends Map.Cellular {
     }
 
     population() {
-        let count = 0;
-        for (let i = 0; i < this.data.length; i++) {
-            count += this.data[i];
-        }
-        return count;
+        return "disabled"
+        // let count = 0;
+        // for (let i = 0; i < this.data.length; i++) {
+        //     count += this.data[i];
+        // }
+        // return count;
     }
 
     _service3DCallback(callback) {

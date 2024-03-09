@@ -30,6 +30,8 @@ export class WorldMap {
         "roughwall",
     ]
 
+    defaultTileIndex = 1;
+
     /** @type {Uint8Array} */
     fogMap;
 
@@ -161,7 +163,7 @@ export class WorldMap {
 
     /** @param {number} x @param {number} y @param {number} z */
     getBase(x, y, z) {
-        return this.inMap(x, y, z) ? this.baseMap[this.toIndex(x, y, z)] : 0;
+        return this.inMap(x, y, z) ? this.baseMap[this.toIndex(x, y, z)] : this.defaultTileIndex;
     }
 
     /** @param {number} x @param {number} y @param {number} z */
@@ -195,11 +197,11 @@ export class WorldMap {
     isIndexSameBaseAs(index, base) {
         // this is simple right now but it could eventually incorporate "similar-enough" logic for
         // different wall sprites that should nonetheless count each other for tiling purposes
-        return (this.baseMap[index] ?? 0) === base;
+        return (this.baseMap[index] ?? this.defaultTileIndex) === base;
     }
 
     /** @param {number} baseIndex  */
-    getTileFrameFor(baseIndex, base = this.baseMap[baseIndex]) {
+    getTileFrameFor(baseIndex, base = this.baseMap[baseIndex] ?? this.defaultTileIndex) {
         if (!base) return undefined;
         const tileInfo = Tileset.light.layerFrames[this.toTileName(base)]?.[0];
         let baseFrame = this.baseFrames[baseIndex];
@@ -215,7 +217,7 @@ export class WorldMap {
     }
 
     /** @param {number} baseIndex */
-    getWallInfoFor(baseIndex, base = this.baseMap[baseIndex]) {
+    getWallInfoFor(baseIndex, base = this.baseMap[baseIndex] ?? this.defaultTileIndex) {
         let total = 0;
         const {surroundingIndices} = this;
         for (let bit = 0; bit < 8; bit++) {
@@ -528,13 +530,13 @@ export class MapSprite {
         return worldMap.isEmpty(x, y, z);
     }
 
-    *distributeNearby({minRadius = 1, maxRadius = 10} = {}) {
-        const {worldMap, x, y, z} = this.rootSprite;
+    *distributeNearby({minRadius = 1, maxRadius = 10} = {}, worldMap = this.rootSprite?.worldMap) {
+        const {x, y, z} = this.rootSprite;
 
         const positions = [];
 
         for (let radius = minRadius; radius <= maxRadius; radius++) {
-            const zRadius = radius >> 2;
+            const zRadius = radius;
             for (let dz = -zRadius; dz <= zRadius; dz++) {
                 const latRadius = radius - Math.abs(dz << 1);
                 for (let dy = -latRadius; dy <= latRadius; dy++) {
@@ -544,8 +546,9 @@ export class MapSprite {
                             // don't spawn on top of, directly above, or directly underneath, or too close
                             continue;
                         }
-                        if (worldMap.isEmpty(x + dx, y + dy, z + dz)) {
-                            positions.push(tuple(x + dx, y + dy, z + dz));
+                        const nx = x + dx, ny = y + dy, nz = z + dz;
+                        if (worldMap.inMap(nx, ny, nz) && worldMap.isEmpty(nx, ny, nz)) {
+                            positions.push(tuple(nx, ny, nz));
                         }
                     }
                 }
