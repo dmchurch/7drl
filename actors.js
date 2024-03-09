@@ -184,6 +184,21 @@ export class Actor extends Prop {
     async act(time=0) {
         return false;
     }
+
+    die(killer, item) {
+        this.tangible = false;
+        this.visible = false;
+        const {destroyMessage, drops} = this.role;
+        if (killer && ("receiveDestroyMessage" in killer) && destroyMessage) {
+            console.log("sendingdestroy message to", killer,destroyMessage);
+            killer.receiveDestroyMessage(destroyMessage, this);
+        }
+        if (drops && this.worldMap?.hasSprite(this)) {
+            console.log("spawning drops", this, drops);
+            this.spawnNearby(drops, {minRadius: 0}, this.worldMap);
+        }
+        return super.die(killer, item)
+    }
 }
 
 export class Decor extends Actor {

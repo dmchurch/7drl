@@ -62,6 +62,8 @@ export class Player extends Creature {
     /** @type {MessageLogElement} */
     messageLog;
 
+    destroyMessages = new WeakMap();
+
     get inventoryOpen() {
         return this.inventoryUI.open;
     }
@@ -183,7 +185,8 @@ export class Player extends Creature {
 
     attack(target) {
         const damage = super.attack(target);
-        this.messageLog.addMessage(`The ${target.label} takes ${damage} damage${target.durability <= 0 ? " and dies" : ""}.`)
+        const destroyMessage = this.destroyMessages.get(target);
+        this.messageLog.addMessage(`The ${target.label} takes ${damage} damage${target.durability <= 0 ? (destroyMessage ? `. ${destroyMessage}` : " and dies.") : "."}`)
         return damage;
     }
 
@@ -228,6 +231,10 @@ export class Player extends Creature {
             this.messageLog.addMessage(`Your ${equipment[stat.equippedItem.itemName]?.[stat.name]?.label?.toLowerCase() ?? `transformed ${stat.name}`} revert${stat.s} to your original form.`);
             stat.equippedItem = null;
         }
+    }
+
+    receiveDestroyMessage(message, victim) {
+        this.destroyMessages.set(victim, message);
     }
 
     /** @param {import("./worldmap.js").WorldMap} worldMap  */

@@ -536,6 +536,14 @@ export class MapSprite {
         return worldMap.isEmpty(x, y, z);
     }
 
+    /** @type {import("./procgen.js")["spawnNearby"]} */
+    static spawnNearbyFunction;
+
+    /** @param {PopDefinition} popDef @param {{minRadius?: number, maxRadius?: number}} options */
+    spawnNearby(popDef, options, worldMap = this.rootSprite?.worldMap ?? this.worldMap) {
+        MapSprite.spawnNearbyFunction?.(this, popDef, options, worldMap);
+    }
+
     *distributeNearby({minRadius = 1, maxRadius = 10} = {}, worldMap = this.rootSprite?.worldMap) {
         const {x, y, z} = this.rootSprite;
 

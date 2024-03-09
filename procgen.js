@@ -112,6 +112,8 @@ export function spawnNearby(sprite, popDef, options, worldMap = sprite.worldMap)
     return spawnPops(worldMap, popDef, sprite.distributeNearby(options, worldMap), sprite);
 }
 
+MapSprite.spawnNearbyFunction = spawnNearby;
+
 /** @param {BoundingBox} bbox */
 export function distributeBBox(bbox) {
     /** @type {[number, number, number][]} */

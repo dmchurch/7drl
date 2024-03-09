@@ -17,11 +17,11 @@ export const player = new Player({
         Item.create("deliciousSoul", {stackSize: 10}),
         Item.create("disgustingSoul", {stackSize: 2}),
     ],
-    stats: {
-        head: {
-            current: 1,
-        }
-    }
+    // stats: {
+    //     head: {
+    //         current: 1,
+    //     }
+    // }
 });
 
 worldMap.visibilitySource = player;
