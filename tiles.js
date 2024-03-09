@@ -20,6 +20,7 @@ export const tileSheets = {
     props: "tiles-props",
     souls: "tiles-souls",
     eggs: "tiles-eggs",
+    god: "tiles-god",
 }
 /*
  o: 1
