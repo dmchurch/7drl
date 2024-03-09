@@ -40,11 +40,38 @@ export class InputManager {
     keysPressed = symbolMap(true);
     charsPressed = symbolMap("");
 
-    /** @type {KeyboardCueElement} */
-    keyIndicator;
+    /** @type {KeyboardCueElement[]} */
+    keyIndicators = [];
+
+    #singleKeyIndicator = [this.keyIndicators[0]];
+
+    get activeKeyIndicators() {
+        if (this.keyIndicators.length === 0 || this.helpOpen) {
+            return this.keyIndicators;
+        }
+        this.#singleKeyIndicator[0] = this.keyIndicators[0];
+        return this.#singleKeyIndicator;
+    }
+    
+    /** @type {HTMLDialogElement} */
+    helpDialog;
+
+    /** @type {HTMLElement} */
+    bindingLabel;
+
+    get helpOpen() {
+        return this.helpDialog?.open ?? false;
+    }
+
+    /** @type {InputAction[]} */
+    #activatedMatches = [];
+    /** @type {InputAction[]} */
+    #deactivatedMatches = [];
 
     repeatDelay = 500;
     repeatInterval = 250;
+
+    paused = false;
 
     /** @type {KeyBindingMap} */
     keyBindings = {};
@@ -124,7 +151,9 @@ export class InputManager {
                 const arr = (this.keyBindings[key] ??= [])
                 if (!arr.includes(binding))
                     arr.push(binding);
-                this.keyIndicator?.lowlight.add(...(keySymbolsToKeyCues[key] ?? []))
+                for (const ki of this.keyIndicators) {
+                    ki.lowlight.add(...(keySymbolsToKeyCues[key] ?? []))
+                }
                 if (binding.action instanceof VKeyAction) {
                     (keySymbolsToKeyCues[binding.action.virtualKey] ??= []).push(...(keySymbolsToKeyCues[key] ?? []));
                 }
@@ -146,7 +175,9 @@ export class InputManager {
                 if (index >= 0) {
                     this.keyBindings[key].splice(index, 1);
                 }
-                this.keyIndicator?.lowlight.remove(...(InputManager.keySymbolsToKeyCues[key] ?? []))
+                for (const ki of this.keyIndicators) {
+                    ki.lowlight.remove(...(InputManager.keySymbolsToKeyCues[key] ?? []))
+                }
             }
         }
         if (binding instanceof ActionCharBinding) {
@@ -200,9 +231,11 @@ export class InputManager {
         if (!isDown && this.charsPressed[sym]) {
             this.charsPressed[sym] = null;
         }
-        if (this.keyIndicator && doHighlight) {
+        if (doHighlight) {
+            for (const ki of this.activeKeyIndicators) {
             for (const keyname of InputManager.keySymbolsToKeyCues[sym] ?? []) {
-                this.keyIndicator.highlight.toggle(keyname, isDown);
+                    ki.highlight.toggle(keyname, isDown);
+                }
             }
         }
     }
@@ -248,6 +281,9 @@ export class InputManager {
 
         const wasActive = this.activeActions.length > 0;
 
+        this.#activatedMatches.length = 0;
+        this.#deactivatedMatches.length = 0;
+
         const sym = InputManager.isKeyCode(event.code) ? keySymbol(event.code) : null;
         
         if (sym) {
@@ -269,6 +305,12 @@ export class InputManager {
                 this.setBindingActive(binding, matches, event);
             }
         }
+
+        if (this.#activatedMatches.length) {
+            this.bindingLabel.textContent = `Activated: ${this.#activatedMatches.map(a => a.name).join(", ")}`;
+        } else if (this.#deactivatedMatches.length) {
+            this.bindingLabel.textContent = `Deactivated: ${this.#deactivatedMatches.map(a => a.name).join(", ")}`;
+        }
         
         if (wasActive || this.activeActions.length > 0) {
             event.preventDefault();
@@ -289,13 +331,32 @@ export class InputManager {
         const {activeActions} = this;
         if (active && !activeActions.includes(action)) {
             activeActions.push(action);
+            if (action.name && !(action instanceof VKeyAction)) {
+                this.#activatedMatches.push(action);
+            }
         } else if (!active) {
             const index = activeActions.indexOf(action);
             if (index >= 0) {
                 activeActions.splice(index, 1);
+                if (action.name && !(action instanceof VKeyAction)) {
+                    this.#deactivatedMatches.push(action);
+                }
             }
         }
     }
+
+    toggleHelp() {
+        this.bindingLabel.textContent = "";
+        if (this.helpOpen) {
+            this.helpDialog.close("cancel");
+            this.paused = false;
+        } else {
+            this.helpDialog.showModal();
+            this.paused = true;
+        }
+    }
+
+    HelpAction = new CallbackAction(() => this.toggleHelp(), "Help", false);
 
     // enabling any of these cause the input manager to think of these as "bound keys" and
     // start blocking keyboard events by default
@@ -335,6 +396,11 @@ export class InputAction {
         this.name = name;
         this.repeatable = repeatable;
         this.disabled = disabled;
+    }
+
+    setName(name) {
+        this.name = name;
+        return this;
     }
 
     /** @param {UIEvent} event  */
@@ -470,13 +536,17 @@ export class DOMListAction extends InputAction {
     /** @param {UIEvent} event */
     activate(event, input = InputManager.instance) {
         super.activate(event, input);
-        this.tokenList.add(this.item);
+        if (!input.paused) {
+            this.tokenList.add(this.item);
+        }
     }
 
     /** @param {UIEvent} event */
     deactivate(event, input = InputManager.instance) {
         super.deactivate(event, input);
-        this.tokenList.remove(this.item);
+        if (!input.paused) {
+            this.tokenList.remove(this.item);
+        }
     }
 }
 
@@ -511,11 +581,15 @@ export class CallbackAction extends InputAction {
 
     activate(event, input = InputManager.instance) {
         super.activate(event, input);
-        this.callback(event);
+        if (!input.paused) {
+            this.callback(event);
+        }
     }
 
-    repeat() {
-        this.callback(null);
+    repeat(input = InputManager.instance) {
+        if (!input.paused) {
+            this.callback(null);
+        }
     }
 
 }
@@ -591,12 +665,16 @@ export class MoveAction extends InputAction {
             }
             MoveAction.lastMovedEvent = event;
         }
-        input.triggerMoveHandler(dx, dy, dz);
+        if (!input.paused) {
+            input.triggerMoveHandler(dx, dy, dz);
+        }
     }
 
     repeat(input = InputManager.instance) {
         const {dx, dy, dz} = this;
-        input.triggerMoveHandler(dx, dy, dz);
+        if (!input.paused) {
+            input.triggerMoveHandler(dx, dy, dz);
+        }
     }
 }
 

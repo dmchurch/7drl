@@ -26,6 +26,100 @@
             <li><button class="action-button" data-shortcut-key="2" data-action="drop"><kbd>2</kbd> Drop</button></li>
         </menu>
     </dialog>
+    <dialog id="help">
+        <label class="binding-label"></label>
+        <keyboard-cue id="help-indicator" view="full"></keyboard-cue>
+        <dl class="left controls">
+            <div>
+                <dt><keyboard-cue view="leftSide" secondary="w a s d"></keyboard-cue></dt>
+                <dd>Move orthogonally</dd>
+            </div>
+            <div>
+                <dt><keyboard-cue view="leftSpace" secondary="l-alt r-alt"></keyboard-cue></dt>
+                <dd>Diagonal movement only</dd>
+            </div>
+            <div>
+                <dt><keyboard-cue view="leftSide" secondary="q z"></keyboard-cue></dt>
+                <dd>Surface/dive</dd>
+            </div>
+            <div>
+                <dt><keyboard-cue view="spaceEnvirons" secondary="space"></keyboard-cue></dt>
+                <dd>Wait/select</dd>
+            </div>
+            <div>
+                <dt><keyboard-cue view="leftSide" secondary="g"></keyboard-cue></dt>
+                <dd>Pick up</dd>
+            </div>
+            <div>
+                <dt><keyboard-cue view="leftSide" secondary="tab"></keyboard-cue></dt>
+                <dd>Show inventory</dd>
+            </div>
+            <div>
+                <dt><keyboard-cue view="full" secondary="f1"></keyboard-cue></dt>
+                <dd>Help</dd>
+            </div>
+        </dl>
+        <dl class="center controls">
+            <div>
+                <dt><keyboard-cue view="vimKeys" secondary="h j k l"></keyboard-cue></dt>
+                <dd>Move orthogonally</dd>
+            </div>
+            <div>
+                <dt><keyboard-cue view="vimKeys" secondary="y u b n"></keyboard-cue></dt>
+                <dd>Move diagonally</dd>
+            </div>
+            <div>
+                <dt><kbd>&lt;</kbd> and <kbd>&gt;</kbd></dt>
+                <dd>Surface/dive</dd>
+            </div>
+            <div>
+                <dt><keyboard-cue view="spaceEnvirons" secondary="space"></keyboard-cue></dt>
+                <dd>Wait/select</dd>
+            </div>
+            <div>
+                <dt><kbd>,</kbd></dt>
+                <dd>Pick up</dd>
+            </div>
+            <div>
+                <dt><keyboard-cue view="vimKeys" secondary="i"></keyboard-cue></dt>
+                <dd>Show inventory</dd>
+            </div>
+            <div>
+                <dt><kbd>Alt</kbd> + <kbd>`</kbd></dt>
+                <dd>Show debug controls</dd>
+            </div>
+        </dl>
+        <dl class="right controls">
+            <div>
+                <dt><keyboard-cue view="extraKeys" secondary="kp2 kp4 kp6 kp8 up left down right"></keyboard-cue></dt>
+                <dd>Move orthogonally</dd>
+            </div>
+            <div>
+                <dt><keyboard-cue view="extraKeys" secondary="kp1 kp3 kp7 kp9"></keyboard-cue></dt>
+                <dd>Move diagonally</dd>
+            </div>
+            <div>
+                <dt><keyboard-cue view="extraKeys" secondary="subtract add"></keyboard-cue></dt>
+                <dd>Surface/dive</dd>
+            </div>
+            <div>
+                <dt><keyboard-cue view="extraKeys" secondary="kp5"></keyboard-cue></dt>
+                <dd>Wait/select</dd>
+            </div>
+            <div>
+                <dt><keyboard-cue view="spaceEnvirons" secondary="l-alt r-alt"></keyboard-cue></dt>
+                <dd>Look across</dd>
+            </div>
+            <div>
+                <dt><keyboard-cue view="full" secondary="l-alt r-alt q subtract"></keyboard-cue></dt>
+                <dd>Look up</dd>
+            </div>
+            <div>
+                <dt><keyboard-cue view="full" secondary="l-alt r-alt z add"></keyboard-cue></dt>
+                <dd>Look down</dd>
+            </div>
+        </dl>
+    </dialog>
     <template id="inventoryItemTemplate">
         <li class="inventory-item">
             <button class="item-button display-container"><label class="stack-size"></label></button>
@@ -58,38 +152,15 @@
         <div id="messagesPanel">
             <message-log limit="50"></message-log>
         </div>
-        <dl id="controls">
-            <div>
-                <dt>
-                    <keyboard-cue view="leftSide" highlight="w a s d" secondary="q z"></keyboard-cue>
-                    or
-                    <keyboard-cue view="vimKeys" highlight="h j k l" tertiary="y u b n"></keyboard-cue>
-                    or ←↓↑→&lt;&gt;
-                </dt>
-                <dd>Move player</dd>
-            </div>
-            <div>
-                <dt>Space</dt>
-                <dd>Wait</dd>
-            </div>
-            <div>
-                <dt>Alt+Move</dt>
-                <dd>Diagonal movement only</dd>
-            </div>
-            <div>
-                <dt>Shift+Move</dt>
-                <dd>Move camera</dd>
-            </div>
-            <div>
-                <dt><kbd>Tab</kbd> or <kbd>I</kbd></dt>
-                <dd>Show inventory</dd>
-            </div>
-            <div>
-                <dt>Alt+`</dt>
-                <dd>Show debug controls</dd>
-            </div>
-        </dl>
-        <keyboard-cue id="indicator" view="full"></keyboard-cue>
+        <div id="controlsHelp">
+            <dl id="controls">
+                <div>
+                    <dt><kbd>F1</kbd></dt>
+                    <dd>Help</dd>
+                </div>
+            </dl>
+            <keyboard-cue id="indicator" view="full"></keyboard-cue>
+        </div>
         <dl id="debugControls" class="debugInfo hidden">
             <div>
                 <dt>Shift+Alt+T</dt>

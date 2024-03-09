@@ -22,7 +22,7 @@ export class Engine extends Scheduler.Simple {
                 break;
             }
             let result;
-            console.log(`Scheduling ${actor.roleName} at ${actor.x},${actor.y},${actor.z} at time ${this.getTime()}`);
+            console.debug(`Scheduling ${actor.roleName} at ${actor.x},${actor.y},${actor.z} at time ${this.getTime()}`);
             try {
                 result = await actor.act(this.getTime());
             } catch (e) {

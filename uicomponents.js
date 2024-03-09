@@ -166,12 +166,37 @@ export class KeyboardCueElement extends BaseComponent {
     static views = {
         leftSide: {
             keys: [
-                "grave", "1", "2", "3", "4", "5", "6",
-                "tab", "q", "w", "e", "r", "t",
-                "capslock", "a", "s", "d", "f", "g",
-                "l-shift", "z", "x", "c", "v",
+                "grave", "1", "2", "3", "4", "5", "6", "7",
+                "tab", "q", "w", "e", "r", "t", "y", "u",
+                "capslock", "a", "s", "d", "f", "g", "h", "j",
+                "l-shift", "z", "x", "c", "v", "b", "n", "m",
+                "l-control", "l-meta", "l-alt", "space",
             ],
-            viewBox: [5, 127, 312, 162],
+            viewBox: [5, 101, 380, 202],
+        },
+        leftSpace: {
+            keys: [
+                "capslock", "a", "s", "d", "f", "g", "h", "j", "k", "l", "semicolon", "quote", "return",
+                "l-shift", "z", "x", "c", "v", "b", "n", "m", "comma", "period", "slash", "r-shift",
+                "l-control", "l-meta", "l-alt", "space", "r-alt", "r-meta", "contextmenu", "r-control",
+            ],
+            viewBox: [93, 216, 294, 129],
+        },
+        spaceEnvirons: {
+            keys: [
+                "capslock", "a", "s", "d", "f", "g", "h", "j", "k", "l", "semicolon", "quote", "return",
+                "l-shift", "z", "x", "c", "v", "b", "n", "m", "comma", "period", "slash", "r-shift",
+                "l-control", "l-meta", "l-alt", "space", "r-alt", "r-meta", "contextmenu", "r-control",
+            ],
+            viewBox: [93, 216, 612, 129],
+        },
+        rightSpace: {
+            keys: [
+                "capslock", "a", "s", "d", "f", "g", "h", "j", "k", "l", "semicolon", "quote", "return",
+                "l-shift", "z", "x", "c", "v", "b", "n", "m", "comma", "period", "slash", "r-shift",
+                "l-control", "l-meta", "l-alt", "space", "r-alt", "r-meta", "contextmenu", "r-control",
+            ],
+            viewBox: [390, 216, 294, 129],
         },
         vimKeys: {
             keys: [
@@ -200,6 +225,19 @@ export class KeyboardCueElement extends BaseComponent {
                 "kp0", "decimal",
             ],
             viewBox: [995, 68, 230, 281],
+        },
+        extraKeys: {
+            keys: [
+                "ins", "home", "pgup", "del", "end", "pgdn",
+                "up", "left", "down", "right",
+
+                "numlock", "divide", "multiply", "subtract",
+                "kp7", "kp8", "kp9", "add",
+                "kp4", "kp5", "kp6",
+                "kp1", "kp2", "kp3", "kpenter",
+                "kp0", "decimal",
+            ],
+            viewBox: [826, 68, 397, 275],
         },
         full: {
             keys: this.allKeys,
@@ -241,7 +279,7 @@ export class KeyboardCueElement extends BaseComponent {
 
     get viewBox() {
         const vbProp = this.getAttribute("view-box");
-        return vbProp?.split(" ").map(Number) ?? KeyboardCueElement.views[this.view].viewBox ?? [0, 0, 1226, 349];
+        return vbProp?.split(" ").map(Number) ?? KeyboardCueElement.views[this.view]?.viewBox ?? [0, 0, 1226, 349];
     }
     set viewBox(v) {
         if (v) {

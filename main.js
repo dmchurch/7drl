@@ -1,5 +1,5 @@
 import { WorldMap } from "./worldmap.js";
-import { animationFrame, getElement, htmlElement } from "./helpers.js";
+import { animationFrame, dialogElement, getElement, htmlElement } from "./helpers.js";
 import { StatUI, isStatName } from "./stats.js";
 import { Creature } from "./actors.js";
 import { KeyboardCueElement, MessageLogElement } from "./uicomponents.js";
@@ -40,11 +40,22 @@ regenerate().then(() => {
 });
 
 input.attach();
-input.keyIndicator = getElement("indicator", KeyboardCueElement);
+input.keyIndicators.push(getElement("indicator", KeyboardCueElement));
+input.helpDialog = dialogElement("help");
+input.bindingLabel = htmlElement(input.helpDialog.querySelector(".binding-label"));
+input.keyIndicators.push(...Array.from(input.helpDialog.querySelectorAll("keyboard-cue")).map(e => getElement(e, KeyboardCueElement)))
+input.helpDialog.addEventListener("close", () => {
+    input.paused = false;
+    for (const ki of input.keyIndicators.slice(1)) {
+        ki.highlight.remove(...ki.highlight);
+    }
+});
 
 input.moveHandler = player.queueMove.bind(player);
 
 input.ignoreKeys("F5");
+
+input.HelpAction.addKeyBindings("F1");
 
 MoveAction.UP.addKeyBindings("KeyW", "KeyK", "ArrowUp", "Numpad8");
 MoveAction.DOWN.addKeyBindings("KeyS", "KeyJ", "ArrowDown", "Numpad2");
@@ -60,11 +71,11 @@ MoveAction.WAIT.addKeyBindings("Space", "Numpad5");
 
 MoveAction.DiagonalOnly.addKeyBindings(input.VKeyAlt);
 
-input.bind(() => player.toggleInventory(), "Tab", "KeyI");
+input.bind(() => player.toggleInventory(), "Tab", "KeyI").setName("Inventory");
 
-input.bind(() => player.inventoryUI?.performAction("eat"), "Digit1");
-input.bind(() => player.inventoryUI?.performAction("drop"), "Digit2");
-input.bind(() => player.queueAction(() => player.takeItems()), "KeyG").addCharBinding(",");
+input.bind(() => player.inventoryUI?.performAction("eat"), "Digit1").setName("Eat");
+input.bind(() => player.inventoryUI?.performAction("drop"), "Digit2").setName("Drop");
+input.bind(() => player.queueAction(() => player.takeItems()), "KeyG").setName("Pick up").addCharBinding(",");
 
 input.bind(new DOMListAction("Look Across", document.documentElement.classList, "look-across"), input.VKeyAlt);
 input.bind(new DOMListAction("Look Up", document.documentElement.classList, "look-up"), [input.VKeyAlt, "KeyQ"], [input.VKeyAlt, "NumpadSubtract"])
