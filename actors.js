@@ -1,5 +1,5 @@
 import { RNG } from "rot-js";
-import { Item, Prop } from "./props.js";
+import { EggItem, Item, Prop } from "./props.js";
 import { roles } from "./roles.js";
 import { WorldMap } from "./worldmap.js";
 import { Astar3D } from "./rot3d.js";
@@ -148,6 +148,12 @@ export class Creature extends Actor {
     /** @param {Item} item  */
     takeItem(item) {
         if (this.hasItem(item)) return false;
+        const addToStack = this.inventory.find(i => i.itemName === item.itemName);
+        if (addToStack) {
+            addToStack.stackSize += item.stackSize;
+            item.releaseFromOwner();
+            return true;
+        }
         this.inventory.push(item);
         item.container = this;
         return true;
@@ -185,6 +191,18 @@ export class Creature extends Actor {
         }
         this.inventory.splice(this.inventory.indexOf(item), 1);
         item.container = null;
+        return true;
+    }
+
+    /** @param {Item} item @param {Item} withItem */
+    replaceItem(item, withItem) {
+        const index = this.inventory.indexOf(item);
+        if (index < 0 || this.inventory.includes(withItem)) {
+            return false;
+        }
+        this.inventory[index] = withItem;
+        item.container = null;
+        withItem.container = this;
         return true;
     }
 
@@ -227,6 +245,11 @@ export class Creature extends Actor {
 
     /** @param {Item} stack */
     digestItemStack(stack) {
+        if (stack instanceof EggItem) {
+            // default egg behavior is to just eat the soul.
+            return this.digestItemStack(stack.soulItem);
+        }
+
         const {itemDef} = stack;
         // default behavior for equippable items is to heal 1 durability
         let behaviors = isConsumableItemDefinition(itemDef) ? itemDef.behavior : itemDef.equipBehavior ?? {health: 1};

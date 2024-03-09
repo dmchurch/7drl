@@ -1,7 +1,7 @@
 import { Display, RNG } from "rot-js";
 import { Actor, Creature } from "./actors.js";
 import { after, cloneTemplate, dialogElement, getElement, htmlElement, mapEntries, templateElement } from "./helpers.js";
-import { Item } from "./props.js";
+import { EggItem, Item } from "./props.js";
 import { SoulUI, Stat, StatUI, allStats, isStatName } from "./stats.js";
 import { Tileset } from "./tileset.js";
 import { Astar3D } from "./rot3d.js";
@@ -207,9 +207,9 @@ export class Player extends Creature {
         const result = super.dropItem(item, count);
         if (Array.isArray(result)) {
             const [stack, floor] = result;
-            this.messageLog.addMessage(`You drop ${stack.getInventoryLabel(false)} onto the pile, and now there are ${floor.stackSize}.`);
+            this.messageLog.addMessage(`You drop ${stack.getIndefiniteLabel(false)} onto the pile, and now there are ${floor.stackSize}.`);
         } else if (result) {
-            this.messageLog.addMessage(`You drop ${result.getInventoryLabel(false)}.`);
+            this.messageLog.addMessage(`You drop ${result.getIndefiniteLabel(false)}.`);
         } else {
             this.messageLog.addMessage(`You try to drop ${item.getDefiniteLabel()} but it seems to be stuck to your fins.`);
         }
@@ -273,12 +273,51 @@ export class Player extends Creature {
         const {x, y, z} = this;
         this.path.setTarget(x, y, z);
         this.worldMap?.mainViewport.centerOn(x, y, z, true);
+        const items = (this.worldMap?.getSpritesAt(x, y, z) ?? []).map(s => s instanceof Item && s.visible ? s : null).filter(s => s);
+        const hasUnseen = items.some(i => !i.seen);
+        const discoveries = items.filter(i => i.discover());
+        if (discoveries.length || hasUnseen) {
+            // full report
+            const firstItem = items[0].getIndefiniteLabel(true);
+            const otherItems = items.slice(1).map(i => i.getIndefiniteLabel(false));
+            otherItems.push(`and ${otherItems.pop()}`);
+            const allItems = [firstItem, ...otherItems];
+            if (items.length > 2) {
+                this.messageLog.addMessage(`${allItems.join(", ")} float here.`)
+            } else if (items.length === 2) {
+                this.messageLog.addMessage(`${allItems.join(" ")} float here.`)
+            } else if (items.length === 1) {
+                this.messageLog.addMessage(`${firstItem} float${items[0].s} here.`);
+            }
+        } else {
+            // brief report
+            for (const item of items) {
+                this.messageLog.addMessage(`${item.getIndefiniteLabel(true)}.`);
+            }
+        }
+        if (discoveries.length) {
+            // new discoveries
+            for (const item of discoveries) {
+                if (item.description) {
+                    this.messageLog.addCallout(item.description);
+                }
+            }
+        }
         return true;
     }
 
     /** @param {Item} item  */
     digestItemStack(item) {
         this.messageLog.addMessage(item.itemDef.message);
+        if (item instanceof EggItem) {
+            const soulItem = item.identify(this.worldMap);
+            const {description, discoveryMessage = `It is {indefinite}!`} = soulItem.itemDef;
+            if (discoveryMessage) {
+                this.messageLog.addMessage(discoveryMessage.replace("{indefinite}", soulItem.getIndefiniteLabel(false)));
+            }
+            this.messageLog.addCallout(description);
+            // and then let super call the soul's digest
+        }
         super.digestItemStack(item);
     }
 
@@ -356,7 +395,7 @@ export class InventoryUI {
         const {target} = event;
         const item = target.inventoryItem;
         if (item) {
-            this.itemLabel.textContent = item?.getInventoryLabel() ?? "Unknown";
+            this.itemLabel.textContent = item?.getIndefiniteLabel() ?? "Unknown";
             // @ts-ignore
             this.selectedItem = target;
         }

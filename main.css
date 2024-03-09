@@ -235,6 +235,16 @@ meter {
     text-align: center;
 }
 
+.callout {
+    text-align: center;
+    font-style: italic;
+    font-family: serif;
+    margin: 1ex 1em;
+}
+.callout:last-of-type {
+    margin-bottom: 0.5lh;
+}
+
 #inventory {
     font-family: monospace;
     background: #141335;

@@ -160,7 +160,7 @@ export class CompositeTileSheet extends BaseTileSheet {
             const sheetRef = tileInfo.sheet;
             const layerName = tileInfo.layerName ?? tileName;
             const sheetOffset = this.componentSheetOffsets[sheetRef];
-            const frameIndex = tileInfo.frameIndex ?? 0;
+            const frameIndex = tileInfo.frameIndex;
             const frameType = tileInfo.frameType;
             
             const layerFrames = sheetLayers[sheetRef]?.[layerName];
@@ -168,13 +168,13 @@ export class CompositeTileSheet extends BaseTileSheet {
                 console.warn(`Unable to find layer ${layerName} in sheet ${sheetRef} for tile ${tileName}, skipping`);
                 continue;
             }
-            const targetFrames = (frameType ? layerFrames : [layerFrames[frameIndex]]);
+            const targetFrames = ((frameType || frameIndex == undefined) ? layerFrames : [layerFrames[frameIndex]]);
             const frames = targetFrames.map((tInfo, frameIndex) => ({
                 ...tInfo,
                 ...tileInfo,
                 char: String.fromCodePoint(codePoint++),
                 y: tInfo.y + sheetOffset,
-                frameIndex,
+                frameIndex: frameIndex ?? 0,
                 layerName: tileName,
                 tileName,
             }));

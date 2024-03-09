@@ -97,6 +97,19 @@ export function mapEntries(source, mapFunc) {
 }
 
 /**
+ * @template {string|number|symbol} K
+ * @template V
+ * @template {(value: V, key: K, index: number, entries: [K, V]) => boolean} F
+ * @param {Record<K, V>} source 
+ * @param {F} mapFunc 
+ * @returns {Record<K, F extends (value: V, key: K, index:number, entries:[K, V]) => value is infer V2 ? V2 : V>}
+ */
+export function filterEntries(source, mapFunc) {
+    // @ts-ignore
+    return fromTypedEntries(typedEntries(source).map(([k, v], i, a) => [k, mapFunc(v, k, i, a)]));
+}
+
+/**
  * @template {any[]} A
  * @template {[string|number|symbol, any]} E
  * @param {A} source 

@@ -2,6 +2,9 @@
 const bEggining = "An egg containing one of the innumerable souls of Abyssal Gods past."
 const justYolks = "Within this egg sits the soul of a lowly godlet consumed by the abyss."
 const transmEggrify = "You feel your body changing."
+const eggDescription = ""
+const eggMessage = "You eagerly bite into the egg."
+const discoveryMessage = "It is {indefinite}!";
 
 /**
  * @typedef ItemDefinitionCommon
@@ -12,6 +15,7 @@ const transmEggrify = "You feel your body changing."
  * @prop {string} [description]
  * @prop {string} [effect]
  * @prop {string} [message]
+ * @prop {string} [discoveryMessage]
  * 
  * @typedef ItemDefinitionEquipment
  * @prop {true} equippable
@@ -43,6 +47,7 @@ export const voidItemEffects = /** @type {const} */([
     "fear",
     "clean",
     "shuffle",
+    "egg",
 ]);
 export const numericItemEffects = /** @type {const} */([
     "sight",
@@ -74,6 +79,7 @@ const stun = true;
 const fear = true;
 const clean = true;
 const shuffle = true;
+const egg = true;
 
 /** @satisfies {Record<string, ItemDefinition>} */
 export const itemDefinitions = /** @type {const} */({
@@ -84,6 +90,7 @@ export const itemDefinitions = /** @type {const} */({
         description: `${bEggining} This glittering stone, an egg within an egg, is a memory of when God was cold and crystalline, when she bore the name Sah-fet.`,
         effect: "Upon consumption, transforms the body part of your choice.",
         message: transmEggrify,
+        discoveryMessage,
         equippable: true,
     },
     cavitationSoul: {
@@ -93,6 +100,7 @@ export const itemDefinitions = /** @type {const} */({
         description: `${bEggining} This warped bubble of nothingness, this cracking void, is a memory of when God was the killing force of emptiness, and we called it Mantis.`,
         effect: "Upon consumption, transforms the body part of your choice.",
         message: transmEggrify,
+        discoveryMessage,
         equippable: true,
     },
     slimeSoul: {
@@ -102,6 +110,7 @@ export const itemDefinitions = /** @type {const} */({
         description: `${bEggining} The wad of dripping mucus floating within is a memory of when God was amorphous and bade us be slow, when he was named Cyclost.`,
         effect: "Upon consumption, transforms the body part of your choice.",
         message: transmEggrify,
+        discoveryMessage,
         equippable: true,
     },
     venomSoul: {
@@ -111,6 +120,7 @@ export const itemDefinitions = /** @type {const} */({
         description: `${bEggining} This syrupy draught that burns the tongue and stops the heart is a memory of when God was a bringer of slow death, and we called it Iruka.`,
         effect: "Upon consumption, transforms the body part of your choice.",
         message: transmEggrify,
+        discoveryMessage,
         equippable: true,
     },
     dreadSoul: {
@@ -120,6 +130,7 @@ export const itemDefinitions = /** @type {const} */({
         description: `${bEggining} Something within stares back: the memory of when God was every fear we knew, and he named himself Pit.`,
         effect: "Upon consumption, transforms the body part of your choice.",
         message: transmEggrify,
+        discoveryMessage,
         equippable: true,
     },
     spineSoul: {
@@ -129,6 +140,7 @@ export const itemDefinitions = /** @type {const} */({
         description: `${bEggining} Spines floating within gleam with the memory of when God was a vengeful impaler, and she took the name Xeka.`,
         effect: "Upon consumption, transforms the body part of your choice.",
         message: transmEggrify,
+        discoveryMessage,
         equippable: true,
     },
     wiseSoul: {
@@ -138,6 +150,7 @@ export const itemDefinitions = /** @type {const} */({
         description: `${bEggining} Taking the shape of a crystalline disc set in a chained ring of gold, this memory is of God's wisdom, their remaining insight from the time when they were named Index.`,
         effect: "Upon consumption, identifies a soul.",
         message: "Ancient knowledge flashes through your mind and you grasp for a scrap of it.",
+        discoveryMessage,
         behavior: {identify},
     },
     sightSoul: {
@@ -147,6 +160,7 @@ export const itemDefinitions = /** @type {const} */({
         description: `${bEggining} The unblinking eye within stares, pulling you into the memory of when God was all-seeing and we knew no peace, calling him Aiel.`,
         effect: "Upon consumption, increases your sight radius.",
         message: "Ancient knowledge flashes through your mind, and you grasp for meaning.",
+        discoveryMessage,
         behavior: {sight: 2},
     },
     mendingSoul: {
@@ -156,6 +170,7 @@ export const itemDefinitions = /** @type {const} */({
         description: `${bEggining} The two-sided capsule of this soul is the twin memory of when God was nature and nurture, kindly guardians Vel and Daut.`,
         effect: "Upon consumption, heals you.",
         message: "The warm heat of ancient love flows through you.",
+        discoveryMessage,
         behavior: {health: 5},
     },
     sustenanceSoul: {
@@ -165,6 +180,7 @@ export const itemDefinitions = /** @type {const} */({
         description: `${justYolks} Their name, like the meager satiety they provide, was too easily forgotten.`,
         effect: "Upon consumption, reduces your satiety somewhat.",
         message: "The meal was adequate.",
+        discoveryMessage: "",
         behavior: {satiety: 200},
     },
     deliciousSoul: {
@@ -174,6 +190,7 @@ export const itemDefinitions = /** @type {const} */({
         description: `${justYolks} Their name is forgotten, but the sweet virtuous fruit of their life remains.`,
         effect: "Upon consumption, reduces your satiety a lot and heals you.",
         message: "Delicious!",
+        discoveryMessage: "It is delicious.",
         behavior: {satiety: 500, health: 2},
     },
     disgustingSoul: {
@@ -183,6 +200,7 @@ export const itemDefinitions = /** @type {const} */({
         description: `${justYolks} Rank betrayal plagued this soul's life, souring it terribly.`,
         effect: "Upon consumption, reduces your satiety somewhat but poisons you.",
         message: "You feel less hungry, but the accompanying nausea brings some regret.",
+        discoveryMessage: "You immediately wish you hadn't.",
         behavior: {satiety: 50, poison},
     },
     terrorSoul: {
@@ -192,6 +210,7 @@ export const itemDefinitions = /** @type {const} */({
         description: `${bEggining} Within, a ghastly vision glares: the lingering rage-memory of when God was the tyrant named Zanback.`,
         effect: "Upon consumption, terrifies all who behold you.",
         message: "Eons of rage pour across the veil for a terrible moment.",
+        discoveryMessage,
         behavior: {burst: {r: 10, fear}},
     },
     summonSoul: {
@@ -201,6 +220,7 @@ export const itemDefinitions = /** @type {const} */({
         description: `${bEggining} Pinpoint eyes from the depths evoke the memory of when God was the school itself, innumerable bodies together named We.`,
         effect: "Upon consumption, summons hostile mobs.",
         message: "You ring the dinner bell.",
+        discoveryMessage,
         behavior: {summon: 5},
     },
     sickSoul: {
@@ -210,6 +230,7 @@ export const itemDefinitions = /** @type {const} */({
         description: `${justYolks} God is not always brought low by its successor. Some fall prey to the very smallest fish, too small to possess ambition, and so they rot in the deep.`,
         effect: "Upon consumption, poisons all who behold you.",
         message: "Vile miasma clouds the water.",
+        discoveryMessage,
         behavior: {burst: {r: 5, poison}},
     },
     flashSoul: {
@@ -219,6 +240,7 @@ export const itemDefinitions = /** @type {const} */({
         description: `${bEggining} Dazzling and brief is the memory of when God was the most bright. May we remember its name tomorrow.`,
         effect: "Upon consumption, stuns all who behold you.",
         message: "Divine billiance halts your foes!",
+        discoveryMessage,
         behavior: {burst: {r: 10, stun}},
     },
     cleanSoul: {
@@ -228,6 +250,7 @@ export const itemDefinitions = /** @type {const} */({
         description: `${bEggining} Intangible shine glitters, the memory of the God who undid what had been done, who made whole too much, who we called Catrolzy.`,
         effect: "Upon consumption, returns your body to its base form, returning equipped souls as eggs.",
         message: "Undone.",
+        discoveryMessage,
         behavior: {clean},
     },
     shuffleSoul: {
@@ -237,7 +260,160 @@ export const itemDefinitions = /** @type {const} */({
         description: `${bEggining} The discordant, pulsing colors within form the memory of when God was raw chaos, when God refused every name or claimed all of them.`,
         effect: "Upon consumption, all of your transformed limbs change to a random other form.",
         message: "Your body wrenches into new shapes!",
+        discoveryMessage,
         behavior: {shuffle},
+    },
+    emptyEgg: {
+        spriteTile: "emptyEgg",
+        label: "An empty egg",
+        plural: "empty eggs",
+        description: eggDescription,
+        message: eggMessage,
+        behavior: {egg},
+    },
+    flickeringEgg: {
+        spriteTile: "flickeringEgg",
+        label: "A flickering egg",
+        plural: "flickering eggs",
+        description: eggDescription,
+        message: eggMessage,
+        behavior: {egg},
+    },
+    blinkingEgg: {
+        spriteTile: "blinkingEgg",
+        label: "A blinking egg",
+        plural: "blinking eggs",
+        description: eggDescription,
+        message: eggMessage,
+        behavior: {egg},
+    },
+    writhingEgg: {
+        spriteTile: "writhingEgg",
+        label: "A writhing egg",
+        plural: "writhing eggs",
+        description: eggDescription,
+        message: eggMessage,
+        behavior: {egg},
+    },
+    mistyEgg: {
+        spriteTile: "mistyEgg",
+        label: "A misty egg",
+        plural: "misty eggs",
+        description: eggDescription,
+        message: eggMessage,
+        behavior: {egg},
+    },
+    buzzingEgg: {
+        spriteTile: "buzzingEgg",
+        label: "A buzzing egg",
+        plural: "buzzing eggs",
+        description: eggDescription,
+        message: eggMessage,
+        behavior: {egg},
+    },
+    pouringEgg: {
+        spriteTile: "pouringEgg",
+        label: "A pouring egg",
+        plural: "pouring eggs",
+        description: eggDescription,
+        message: eggMessage,
+        behavior: {egg},
+    },
+    wavingEgg: {
+        spriteTile: "wavingEgg",
+        label: "A waving egg",
+        plural: "waving eggs",
+        description: eggDescription,
+        message: eggMessage,
+        behavior: {egg},
+    },
+    pacingEgg: {
+        spriteTile: "pacingEgg",
+        label: "A pacing egg",
+        plural: "pacing eggs",
+        description: eggDescription,
+        message: eggMessage,
+        behavior: {egg},
+    },
+    twitchingEgg: {
+        spriteTile: "twitchingEgg",
+        label: "A twitching egg",
+        plural: "twitching eggs",
+        description: eggDescription,
+        message: eggMessage,
+        behavior: {egg},
+    },
+    boilingEgg: {
+        spriteTile: "boilingEgg",
+        label: "A boiling egg",
+        plural: "boiling eggs",
+        description: eggDescription,
+        message: eggMessage,
+        behavior: {egg},
+    },
+    twinklingEgg: {
+        spriteTile: "twinklingEgg",
+        label: "A twinkling egg",
+        plural: "twinkling eggs",
+        description: eggDescription,
+        message: eggMessage,
+        behavior: {egg},
+    },
+    tidalEgg: {
+        spriteTile: "tidalEgg",
+        label: "A tidal egg",
+        plural: "tidal eggs",
+        description: eggDescription,
+        message: eggMessage,
+        behavior: {egg},
+    },
+    gleamingEgg: {
+        spriteTile: "gleamingEgg",
+        label: "A gleaming egg",
+        plural: "gleaming eggs",
+        description: eggDescription,
+        message: eggMessage,
+        behavior: {egg},
+    },
+    pulsingEgg: {
+        spriteTile: "pulsingEgg",
+        label: "A pulsing egg",
+        plural: "pulsing eggs",
+        description: eggDescription,
+        message: eggMessage,
+        behavior: {egg},
+    },
+    rollingEgg: {
+        spriteTile: "rollingEgg",
+        label: "A rolling egg",
+        plural: "rolling eggs",
+        description: eggDescription,
+        message: eggMessage,
+        behavior: {egg},
+    },
+    spinningEgg: {
+        spriteTile: "spinningEgg",
+        label: "A spinning egg",
+        plural: "spinning eggs",
+        description: eggDescription,
+        message: eggMessage,
+        behavior: {egg},
+    },
+    swirlingEgg: {
+        spriteTile: "swirlingEgg",
+        label: "A swirling egg",
+        plural: "swirling eggs",
+        description: eggDescription,
+        message: eggMessage,
+        behavior: {egg},
+    },
+    fizzingEgg: {
+        spriteTile: "fizzingEgg",
+        label: "A fizzing egg",
+        plural: "fizzing eggs",
+        description: eggDescription,
+        message: eggMessage,
+        behavior: {egg},
     },
 })
 
@@ -385,7 +561,7 @@ export const equipmentDefinitions = {
     }
 }
 
-/** @type {Record<string, ItemDefinition>} */
+/** @type {Record<ItemName, ItemDefinition>} */
 export const items = itemDefinitions;
 /** @type {Record<EquipmentName, Record<StatName, EquipmentDefinition | false>>} */
 export const equipment = equipmentDefinitions;

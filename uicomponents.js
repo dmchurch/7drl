@@ -429,6 +429,13 @@ export class MessageLogElement extends BaseComponent {
     }
 
     /** @param {...string|Node} content  */
+    addCallout(...content) {
+        const div = Rendered.html`<div class="callout"></div>`.firstElementChild;
+        div.append(...content);
+        this.addMessage(div);
+    }
+
+    /** @param {...string|Node} content  */
     addFatal(...content) {
         const span = Rendered.html`<span class="fatal"></span>`.firstElementChild;
         span.append(...content);
@@ -459,6 +466,7 @@ export class MessageLogElement extends BaseComponent {
         }
         const li = this.unreadMessage;
         li.append(...content);
+        return li;
     }
 
     trimOldMessages() {

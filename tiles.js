@@ -1,4 +1,4 @@
-import { typedKeys } from "./helpers.js"
+import { typedEntries, typedKeys } from "./helpers.js"
 import { WallRule } from "./walls.js"
 
 /**
@@ -19,6 +19,7 @@ export const tileSheets = {
     },
     props: "tiles-props",
     souls: "tiles-souls",
+    eggs: "tiles-eggs",
 }
 /*
  o: 1
@@ -204,9 +205,72 @@ export const tileDefinitions = {
         sheet: "souls",
         layerName: "shuffle-soul",
     },
+
+    emptyEgg: {
+        sheet: "eggs",
+    },
+    flickeringEgg: {
+        sheet: "eggs",
+    },
+    blinkingEgg: {
+        sheet: "eggs",
+    },
+    writhingEgg: {
+        sheet: "eggs",
+    },
+    mistyEgg: {
+        sheet: "eggs",
+    },
+    buzzingEgg: {
+        sheet: "eggs",
+    },
+    pouringEgg: {
+        sheet: "eggs",
+    },
+    wavingEgg: {
+        sheet: "eggs",
+    },
+    pacingEgg: {
+        sheet: "eggs",
+    },
+    twitchingEgg: {
+        sheet: "eggs",
+    },
+    boilingEgg: {
+        sheet: "eggs",
+    },
+    twinklingEgg: {
+        sheet: "eggs",
+    },
+    tidalEgg: {
+        sheet: "eggs",
+    },
+    gleamingEgg: {
+        sheet: "eggs",
+    },
+    pulsingEgg: {
+        sheet: "eggs",
+    },
+    rollingEgg: {
+        sheet: "eggs",
+    },
+    spinningEgg: {
+        sheet: "eggs",
+    },
+    swirlingEgg: {
+        sheet: "eggs",
+    },
+    fizzingEgg: {
+        sheet: "eggs",
+    },
 }
 
 /** @type {Record<TileName, TileInfo>} */
 export const tiles = tileDefinitions;
+
+/** @type {readonly TileName[]} */
+export const soulTiles = typedEntries(tileDefinitions).flatMap((([k, v]) => (v.sheet === "souls" ? k : [])))
+/** @type {readonly TileName[]} */
+export const eggTiles = typedEntries(tileDefinitions).flatMap((([k, v]) => (v.sheet === "eggs" ? k : [])))
 
 Object.assign(self, {wallRules, tiles, tileSheets})

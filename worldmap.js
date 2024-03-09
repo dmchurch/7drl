@@ -103,7 +103,7 @@ export class WorldMap {
                 if (!sprite.animationFrameStart) {
                     sprite.animationFrameStart = timestamp;
                 }
-                const nextFrame = Math.max(timestamp - 2000, sprite.animationFrameStart + tileFrame.sourceFrame.duration);
+                const nextFrame = Math.max(timestamp - 50, sprite.animationFrameStart + tileFrame.sourceFrame.duration);
                 if (timestamp >= nextFrame) {
                     sprite.spriteFrame = (sprite.spriteFrame + 1) % tileFrame.frames.length;
                     sprite.animationFrameStart = nextFrame;
@@ -300,6 +300,15 @@ export class WorldMap {
         return false;
     }
 
+    /** @template {MapSprite} T @param {MapSprite} fromSprite @param {T} toSprite @param {Overrides<T>} [overrides] */
+    swapSprite(fromSprite, toSprite, overrides) {
+        if (this.removeSprite(fromSprite)) {
+            const {x, y, z, visible, tangible} = fromSprite;
+            return this.addSprite(toSprite, {x, y, z, visible, tangible, ...overrides});
+        }
+        return false;
+    }
+
     /** @param {Record<number, TileName>} [tileMapping] */
     makeSetBaseCallback(xOrigin = 0, yOrigin = 0, zOrigin = 0, tileMapping = this.baseTiles) {
         /** @param {number} x @param {number} y @param {number} z @param {number} w */
@@ -425,9 +434,16 @@ export class WorldMap {
  * @prop {WorldMap} worldMap
  * @prop {SpriteContainer} container
  * @prop {MapSprite} rootSprite
+ * @prop {MapSprite[]} inventory
  * @prop {(sprite: MapSprite) => boolean} hasItem
  * @prop {(sprite: MapSprite) => boolean} relinquishItem
+ * @prop {(sprite: MapSprite, withSprite: MapSprite) => boolean} replaceItem
  */
+
+/** @param {MapSprite} sprite @returns {sprite is SpriteContainer} */
+export function isSpriteContainer(sprite) {
+    return "hasItem" in sprite && "relinquishItem" in sprite;
+}
 
 export class MapSprite {
     x = 0;
@@ -490,7 +506,8 @@ export class MapSprite {
         this.y = y ?? this.y;
         this.z = z ?? this.z;
         this.spriteFrame = spriteFrame ?? this.spriteFrame;
-        this.animated = animated ?? this.animated;
+        const {frameType, frames} = this.tileFrame ?? {};
+        this.animated = animated ?? (frameType === "animation" ? true : frameType === undefined ? frames?.length > 1 : false);
         this.visible = visible ?? this.visible;
         this.displayLayer = displayLayer ?? this.displayLayer;
         this.worldMap = worldMap ?? this.worldMap;
