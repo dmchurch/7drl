@@ -2,6 +2,7 @@
 const bEggining = "An egg containing one of the innumerable souls of Abyssal Gods past."
 const justYolks = "Within this egg sits the soul of a lowly godlet consumed by the abyss."
 const transmEggrify = "You feel your body changing."
+const transformDescription = "Upon consumption, transforms a random body part.";
 const eggDescription = ""
 const eggMessage = "You eagerly bite into the egg."
 const discoveryMessage = "It is {indefinite}!";
@@ -88,7 +89,7 @@ export const itemDefinitions = /** @type {const} */({
         label: "A geode soul",
         plural: "geode souls",
         description: `${bEggining} This glittering stone, an egg within an egg, is a memory of when God was cold and crystalline, when she bore the name Sah-fet.`,
-        effect: "Upon consumption, transforms the body part of your choice.",
+        effect: transformDescription,
         message: transmEggrify,
         discoveryMessage,
         equippable: true,
@@ -98,7 +99,7 @@ export const itemDefinitions = /** @type {const} */({
         label: "A cavitation soul",
         plural: "cavitation souls",
         description: `${bEggining} This warped bubble of nothingness, this cracking void, is a memory of when God was the killing force of emptiness, and we called it Mantis.`,
-        effect: "Upon consumption, transforms the body part of your choice.",
+        effect: transformDescription,
         message: transmEggrify,
         discoveryMessage,
         equippable: true,
@@ -108,7 +109,7 @@ export const itemDefinitions = /** @type {const} */({
         label: "A slime soul",
         plural: "slime souls",
         description: `${bEggining} The wad of dripping mucus floating within is a memory of when God was amorphous and bade us be slow, when he was named Cyclost.`,
-        effect: "Upon consumption, transforms the body part of your choice.",
+        effect: transformDescription,
         message: transmEggrify,
         discoveryMessage,
         equippable: true,
@@ -118,7 +119,7 @@ export const itemDefinitions = /** @type {const} */({
         label: "A venom soul",
         plural: "venom souls",
         description: `${bEggining} This syrupy draught that burns the tongue and stops the heart is a memory of when God was a bringer of slow death, and we called it Iruka.`,
-        effect: "Upon consumption, transforms the body part of your choice.",
+        effect: transformDescription,
         message: transmEggrify,
         discoveryMessage,
         equippable: true,
@@ -128,7 +129,7 @@ export const itemDefinitions = /** @type {const} */({
         label: "A dread soul",
         plural: "dread souls",
         description: `${bEggining} Something within stares back: the memory of when God was every fear we knew, and he named himself Pit.`,
-        effect: "Upon consumption, transforms the body part of your choice.",
+        effect: transformDescription,
         message: transmEggrify,
         discoveryMessage,
         equippable: true,
@@ -138,7 +139,7 @@ export const itemDefinitions = /** @type {const} */({
         label: "A spine soul",
         plural: "spine souls",
         description: `${bEggining} Spines floating within gleam with the memory of when God was a vengeful impaler, and she took the name Xeka.`,
-        effect: "Upon consumption, transforms the body part of your choice.",
+        effect: transformDescription,
         message: transmEggrify,
         discoveryMessage,
         equippable: true,
