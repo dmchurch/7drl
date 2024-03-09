@@ -38,6 +38,7 @@ const allPopNames = /** @type {const} */([
     "sparseArea",
     "fishSchool",
     "crabGang",
+    "horribleZone",
     "junkyard",
     "commonSoul",
     "rareSoul",
@@ -47,29 +48,41 @@ const allPopNames = /** @type {const} */([
 export const popDefinitions = {
     world: {
         pickone: [
-            { pop: "sparseArea", weight: 5 },
-            { pop: "fishSchool", weight: 2 },
-            { pop: "crabGang", weight: 1 },
+            { pop: "sparseArea", weight: 10 },
+            { pop: "fishSchool", weight: 4 },
+            { pop: "crabGang", weight: 3 },
+            { pop: "horribleZone", weight: 1}
+        ]
+    },
+    horribleZone: {
+        pickeach: [
+        { role: "toothFish", chance: [100, 25, 5] },
+        { role: "eel", count: [4, 12]}
         ]
     },
     crabGang: {
         role: "crab",
-        count: [5, 10],
+        count: [3, 10],
     },
     fishSchool: {
-        role: "fish",
-        count: [20, 30],
+        pickeach: [
+            { role: "fish", count: [10, 25]},
+            { role: "bigFish", chance: [5, 1]}
+        ]
     },
     sparseArea: {
         pickeach: [
             { role: "crab", chance: [50, 10, 10] },
-            { role: "fish", count: [2, 8] },
+            { role: "eel", chance: 10 },
+            { role: "bigFish", chance: 5},
+            { role: "fish", count: [1, 6] },
         ],
+    
     },
     junkyard: {
         pickeach: [
             { role: "pottery", count: [2, 5] },
-            { role: "litter", count: [20, 30] },
+            { role: "litter", count: [10, 20] },
             { role: "ground", count: [20, 30] },
             { role: "weeds", count: [3, 7] },
         ],
