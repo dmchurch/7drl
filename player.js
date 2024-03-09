@@ -34,8 +34,8 @@ export class Player extends Creature {
         return this.inventoryUI.open;
     }
 
-    /** @type {{dx: number, dy: number, dz: number}[]} */
-    moveQueue = [];
+    /** @type {(() => void)[]} */
+    actionQueue = [];
     /** @type {(v: any) => void} */
     #resolveAction;
 
@@ -45,7 +45,7 @@ export class Player extends Creature {
     /** @overload @param {Overrides<Player>} options */
     /** @param {Overrides<Player>} options */
     constructor(options, {stats, ...rest} = options) {
-        super("player", rest);
+        super("player", {displayLayer: Infinity, ...rest});
         this.stats = mapEntries(allStats, (_def, name) => new Stat(name, stats?.[name] ?? {current: this.durability, max: this.durability}));
     }
 
@@ -83,6 +83,17 @@ export class Player extends Creature {
         return damage;
     }
 
+    /** @param {Item} item */
+    dropItem(item, count = 1) {
+        const result = super.dropItem(item, count);
+        if (result) {
+            this.messageLog.addMessage(`You drop ${item.getDefiniteLabel()}.`);
+        } else {
+            this.messageLog.addMessage(`You try to drop ${item.getDefiniteLabel()} but it seems to be stuck to your fins.`);
+        }
+        return result;
+    }
+
     /** @param {Stat} stat @param {Actor} source  */
     losePart(stat, source) {
         if (!this.liveStats.length) {
@@ -95,13 +106,27 @@ export class Player extends Creature {
         this.path = new Astar3D(this.x, this.y, this.z, worldMap.isPassable);
     }
 
+    queueEat(item, count=1) {
+        this.queueAction(() => this.eatItem(item, count));
+    }
+
+    queueDrop(item, count=1) {
+        this.queueAction(() => this.dropItem(item, count));
+    }
+
     queueMove(dx = 0, dy = 0, dz = 0) {
         if (this.inventoryOpen) {
             this.inventoryUI.moveSelection(dx, dy);
             return;
         }
-        if (this.moveQueue.length < 5) {
-            this.moveQueue.push({dx, dy, dz});
+        const action = () => this.move(dx, dy, dz);
+        this.queueAction(action);
+    }
+
+    /** @param {() => void} action  */
+    queueAction(action) {
+        if (this.actionQueue.length < 5) {
+            this.actionQueue.push(action);
         }
         if (this.#resolveAction) {
             this.#resolveAction(true);
@@ -125,21 +150,20 @@ export class Player extends Creature {
     }
 
     async act(time = 0) {
-        while (!this.moveQueue.length) {
+        while (!this.actionQueue.length) {
             // redraw whenever we go into a wait
             this.worldMap.mainViewport.redraw();
             console.log("awaiting");
             await new Promise(r => this.#resolveAction = r);
             console.log("awaited");
         }
-        const {dx, dy, dz} = this.moveQueue.shift();
-        this.move(dx, dy, dz);
+        this.actionQueue.shift()();
         return true;
     }
 }
 
 export class InventoryUI {
-    owner;
+    player;
     /** @type {HTMLDialogElement} */
     dialog;
     itemLabel;
@@ -171,9 +195,9 @@ export class InventoryUI {
     /** @type {HTMLButtonElement} */
     focusButton;
 
-    /** @param {Creature} owner @param {string|HTMLDialogElement} dialog */
-    constructor(owner, dialog, itemTemplate) {
-        this.owner = owner;
+    /** @param {Player} player @param {string|HTMLDialogElement} dialog */
+    constructor(player, dialog, itemTemplate) {
+        this.player = player;
         this.dialog = dialogElement(dialog);
         this.itemsList = htmlElement(this.dialog.querySelector(".items-list"));
         this.itemLabel = htmlElement(this.dialog.querySelector(".item-label"));
@@ -210,8 +234,17 @@ export class InventoryUI {
         this.actionButtons[0].focus();
     }
 
+    /** @param {FocusEvent} event  */
     actionClickListener(event) {
         this.open = false;
+        const item = this.selectedItem?.inventoryItem;
+        if (!item) return;
+        const {action} = htmlElement(event.target).dataset;
+        if (action === "eat") {
+            this.player.queueEat(item);
+        } else if (action === "drop") {
+            this.player.queueDrop(item);
+        }
     }
 
     updateItems() {
@@ -222,7 +255,7 @@ export class InventoryUI {
                 itemMap.set(element.inventoryItem, element);
             }
         }
-        this.itemsList.replaceChildren(...this.owner.inventory.map((item, index) => {
+        this.itemsList.replaceChildren(...this.player.validInventory.map((item, index) => {
             const element = itemMap.get(item) ?? this.createItemElement(item);
             const button = element.querySelector("button");
             if (button) {

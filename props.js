@@ -4,14 +4,32 @@ import { MapSprite } from "./worldmap.js";
 console.debug("Starting props.js");
 
 export class Prop extends MapSprite {
+    singular = "An prop";
+    label = "prop";
+    plural = "props";
+    description = "It's a prop.";
     blocksActors = false;
 
     durability = 5;
+    maxDurability = 5;
 
     /** @overload @param {TileName} spriteTile @param {Overrides<Prop>} [options] */
     /** @param {TileName} spriteTile @param {Overrides<Prop>} options */
-    constructor(spriteTile, options, {blocksActors, ...rest} = options ?? {}) {
+    constructor(spriteTile,
+                options,
+                {
+                    blocksActors,
+                    singular,
+                    label,
+                    plural,
+                    description,
+                    ...rest
+                } = options ?? {}) {
         super(spriteTile, rest);
+        this.singular = singular ?? this.singular;
+        this.label = label ?? this.singular?.replace(/^(An?|Some) /, "") ?? this.label;
+        this.plural = plural ?? this.plural;
+        this.description = description ?? this.description;
         this.blocksActors = blocksActors ?? this.blocksActors;
     }
 
@@ -39,9 +57,6 @@ export class Item extends Prop {
     /** @type {ItemName} */
     itemName;
     stackSize = 1;
-    label = "A jar of peanut butter";
-    plural = "jars of peanut butter";
-    description = "Hard to open.";
 
     /** @overload @param {ItemName} itemName @param {Overrides<Item>} [options] */
     /** @param {TileName} explicitItemName @param {Overrides<Item>} options */
@@ -50,21 +65,37 @@ export class Item extends Prop {
                 {
                     itemName = explicitItemName,
                     spriteTile = items[itemName].spriteTile,
-                    label = items[itemName].label,
-                    plural = items[itemName].plural,
-                    description = items[itemName].description,
+                    singular = items[itemName].label ?? "A jar of peanut butter",
+                    plural = items[itemName].plural ?? "jars of peanut butter",
+                    description = items[itemName].description ?? "Hard to open.",
                     stackSize,
                     ...rest
                 } = options ?? {}) {
-        super(spriteTile, {...rest});
-        this.label = label ?? this.label;
-        this.plural = plural ?? this.plural;
-        this.description = description ?? this.description;
+        super(spriteTile, {
+            singular, plural, description,
+            ...rest
+        });
         this.stackSize = stackSize ?? this.stackSize;
     }
 
     getInventoryLabel() {
         return this.stackSize === 1 ? this.label : `${this.stackSize} ${this.plural}`;
+    }
+
+    getDefiniteLabel(capitalize = false) {
+        return this.stackSize === 1 ? `${capitalize ? "The" : "the"} ${this.label}` : `${this.stackSize} ${this.plural}`;
+    }
+
+    takeStack(count = 1) {
+        count = Math.min(count, this.stackSize);
+        if (count <= 0) return null;
+        if (count === this.stackSize) {
+            this.releaseFromOwner();
+            return this;
+        }
+        const newStack = new Item(this.itemName, {...this, stackSize: count});
+        this.stackSize -= newStack.stackSize;
+        return newStack;
     }
 }
 

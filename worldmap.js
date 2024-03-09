@@ -278,7 +278,7 @@ export class WorldMap {
     }
 
     getSpritesAt(x = 0, y = 0, z = 0, fromSprites = this.sprites) {
-        return fromSprites.filter(s => s.x === x && s.y === y && s.z === z);
+        return fromSprites.filter(s => s.x === x && s.y === y && s.z === z).sort((a, b) => a.displayLayer - b.displayLayer);
     }
 
     drawTile(x = 0, y = 0, z = 0,

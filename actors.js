@@ -10,10 +10,6 @@ console.debug("Starting actors.js");
 export class Actor extends Prop {
     /** @type {RoleName} */
     roleName;
-    singular = "An odd thing";
-    label = "odd thing";
-    plural = "odd things";
-    description = "Indescribable.";
     collision = true;
     baseDamage = 1;
 
@@ -28,19 +24,14 @@ export class Actor extends Prop {
                 {
                     roleName = explicitRoleName,
                     spriteTile = roles[roleName].spriteTile,
-                    singular = roles[roleName].label,
-                    label = singular.replace(/^An? /, ""),
-                    plural = roles[roleName].plural,
-                    description = roles[roleName].description,
+                    singular = roles[roleName].label ?? "An odd thing",
+                    plural = roles[roleName].plural ?? "odd things",
+                    description = roles[roleName].description ?? "Indescribable.",
                     collision,
                     ...rest
                 } = options ?? {}) {
-        super(spriteTile, {blocksActors: true, ...rest});
+        super(spriteTile, {blocksActors: true, singular, plural, description, ...rest});
         this.roleName = roleName;
-        this.singular = singular ?? this.singular;
-        this.label = label ?? this.label;
-        this.plural = label ?? this.plural;
-        this.description = description ?? this.description;
         this.collision = collision ?? this.collision;
         this.baseDamage = this.role.baseDamage ?? this.baseDamage;
     }
@@ -102,11 +93,15 @@ export class Creature extends Actor {
     /** @type {Item[]} */
     inventory = [];
 
+    get validInventory() {
+        return this.inventory.filter(i => this.hasItem(i));
+    }
+
     /** @overload @param {RoleName} roleName @param {Overrides<Creature>} [options]  */
     /** @param {RoleName} roleName @param {Overrides<Creature>} [options]  */
     constructor(roleName, options, {inventory, ...rest} = options ?? {}) {
         super(roleName, {animated: true, ...rest});
-        if (inventory) this.inventory.push(...inventory);
+        inventory?.forEach(this.takeItem.bind(this));
     }
 
     /** @param {Item} item  */
@@ -118,12 +113,19 @@ export class Creature extends Actor {
 
     /** @param {Item} item  */
     hasItem(item) {
-        return this.inventory.includes(item);
+        if (this.inventory.includes(item)) {
+            if (item.container === this) {
+                return true;
+            } else {
+                this.relinquishItem(item);
+            }
+        }
+        return false;
     }
 
     /** @param {Item} item  */
     relinquishItem(item) {
-        if (!this.hasItem(item)) {
+        if (!this.inventory.includes(item)) {
             return false;
         }
         this.inventory.splice(this.inventory.indexOf(item), 1);
@@ -132,14 +134,47 @@ export class Creature extends Actor {
     }
 
     /** @param {Item} item  */
-    dropItem(item) {
-        if (!this.relinquishItem(item)) {
+    splitItemStack(item, count = 1) {
+        if (!this.hasItem(item)) {
+            return null;
+        }
+        return item.takeStack(count);
+    }
+
+    /** @param {Item} item  */
+    dropItem(item, count=1) {
+        const stack = this.splitItemStack(item, count);
+        if (!stack) {
             return false;
         }
 
         const {x, y, z, worldMap} = this;
-        worldMap.addSprite(item, {x, y, z})
+        for (const sprite of worldMap.getSpritesAt(x, y, z)) {
+            if (sprite instanceof Item && sprite.visible && sprite.tangible && sprite.itemName === item.itemName) {
+                sprite.stackSize += item.stackSize;
+                return true;
+            }
+        }
+        worldMap.addSprite(stack, {x, y, z})
         return true;
+    }
+
+    /** @param {Item} item  */
+    eatItem(item, count=1) {
+        const stack = this.splitItemStack(item, count);
+        if (!stack) {
+            return false;
+        }
+
+        this.digestItemStack(stack);
+        return true;
+    }
+
+    /** @param {Item} stack */
+    digestItemStack(stack) {
+        if (this.durability < this.maxDurability) {
+            this.durability = Math.min(this.maxDurability, this.durability + stack.stackSize);
+        }
     }
 
     /** @param {Actor} collider */
