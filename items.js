@@ -24,14 +24,6 @@ const transmEggrify = "You feel your body changing."
  * @typedef {ItemDefinitionCommon & (ItemDefinitionEquipment | ItemDefinitionConsumable)} ItemDefinition
  */
 
-// default values for the void behaviors
-const identify = true;
-const poison = true;
-const stun = true;
-const fear = true;
-const clean = true;
-const shuffle = true;
-
 export const voidItemBehaviors = /** @type {const} */([
     "identify",
     "poison",
@@ -50,6 +42,14 @@ export const metaItemBehaviors = /** @type {const} */([
     "burst",
     "ray",
 ]);
+
+// default values for the void behaviors
+const identify = true;
+const poison = true;
+const stun = true;
+const fear = true;
+const clean = true;
+const shuffle = true;
 
 /** @satisfies {Record<string, ItemDefinition>} */
 export const itemDefinitions = {
