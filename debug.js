@@ -51,11 +51,12 @@ export async function regenerate(iters = iterations, randomizeProb = fillRatio, 
         RNG.setSeed(seed);
         lastSeed = seed;
     }
+    let next = after(iterationDelay);
     for (const _ of generator.generateMap(setBaseCallback, iters, randomizeProb, clearAroundPlayer, true)) {
-        const next = after(iterationDelay);
         console.log("Redrawing viewport and delaying", iterationDelay);
         viewport.redraw();
         await next;
+        next = after(iterationDelay)
     }
     console.log("Generated world map");
     viewport.redraw();
