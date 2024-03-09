@@ -30,7 +30,7 @@ export class Actor extends Prop {
                     collision,
                     ...rest
                 } = options ?? {}) {
-        super(spriteTile, {blocksActors: true, singular, plural, description, ...rest});
+        super(spriteTile, {blocksActors: true, displayLayer: 2, singular, plural, description, ...rest});
         this.roleName = roleName;
         this.collision = collision ?? this.collision;
         this.baseDamage = this.role.baseDamage ?? this.baseDamage;
@@ -100,7 +100,7 @@ export class Creature extends Actor {
     /** @overload @param {RoleName} roleName @param {Overrides<Creature>} [options]  */
     /** @param {RoleName} roleName @param {Overrides<Creature>} [options]  */
     constructor(roleName, options, {inventory, ...rest} = options ?? {}) {
-        super(roleName, {animated: true, ...rest});
+        super(roleName, {animated: true, displayLayer: 4, ...rest});
         inventory?.forEach(this.takeItem.bind(this));
     }
 

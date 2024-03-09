@@ -25,7 +25,7 @@ export class Prop extends MapSprite {
                     description,
                     ...rest
                 } = options ?? {}) {
-        super(spriteTile, rest);
+        super(spriteTile, {displayLayer: 1, ...rest});
         this.singular = singular ?? this.singular;
         this.label = label ?? this.singular?.replace(/^(An?|Some) /, "") ?? this.label;
         this.plural = plural ?? this.plural;
@@ -72,6 +72,7 @@ export class Item extends Prop {
                     ...rest
                 } = options ?? {}) {
         super(spriteTile, {
+            displayLayer: 3,
             singular, plural, description,
             ...rest
         });

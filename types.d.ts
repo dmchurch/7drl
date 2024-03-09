@@ -85,3 +85,9 @@ declare type PropertyKeys<T> = {
 declare type Overrides<T> = T extends NonOverridable ? T : {
     [K in PropertyKeys<T>]?: K extends NonOverridableKeys ? T[K] : Overrides<T[K]>
 };
+
+declare type VoidItemBehaviorName = typeof import("./items.js").voidItemBehaviors[number];
+declare type NumericItemBehaviorName = typeof import("./items.js").numericItemBehaviors[number];
+declare type MetaItemBehaviorName = typeof import("./items.js").metaItemBehaviors[number];
+
+declare type ItemBehavior = VoidItemBehaviorName|[NumericItemBehaviorName, number]|[MetaItemBehaviorName, number, ItemBehavior, ...ItemBehavior];
