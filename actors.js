@@ -217,7 +217,7 @@ export class Creature extends Actor {
         // default behavior for equippable items is to heal 1 durability
         let behaviors = isConsumableItemDefinition(itemDef) ? itemDef.behavior : itemDef.equipBehavior ?? {health: 1};
         if (!Array.isArray(behaviors)) {
-            behaviors = behaviors ? [] : [behaviors];
+            behaviors = behaviors ? [behaviors] : [];
         }
 
         for (const behavior of behaviors) {

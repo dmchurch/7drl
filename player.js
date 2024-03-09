@@ -123,6 +123,10 @@ export class Player extends Creature {
         } else if (old === current) {
             this.messageLog.addMessage(`Your ${name} feel${s} great!`)
         }
+        if (!this.soulUncovered) {
+            this.durability = this.maxDurability;
+        }
+        this.statUIs[name].update();
     }
 
     attack(target) {
