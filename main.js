@@ -30,15 +30,13 @@ worldMap.startAnimation();
 
 messageLog.addMessage("The abyss beckons... welcome to Deiphage.");
 
-export let crab, fish;
+export let mobs;
 
 regenerate().then(() => {
-    console.log("Spawning crab gang...");
-    crab = spawnNearby(player, {pop: "crabGang"}, {minRadius: 3});
-    console.log("Spawning fish school...");
-    fish = spawnNearby(player, {pop: "fishSchool"});
+    console.log("Spawning sparse area...");
+    mobs = spawnNearby(player, {pop: "sparseArea"}, {minRadius: 3});
 
-    Object.assign(self, {crab, fish});
+    Object.assign(self, {mobs});
 });
 
 input.attach();

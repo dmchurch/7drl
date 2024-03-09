@@ -57,6 +57,13 @@ export class WorldMap {
         z: [-Infinity, Infinity],
     };
 
+    /** @type {BoundingBox} */
+    pathingBounds = {
+        x: [-Infinity, Infinity],
+        y: [-Infinity, Infinity],
+        z: [-Infinity, Infinity],
+    };
+
     #animationActive = false;
     get animationActive() {
         return this.#animationActive;
@@ -238,6 +245,9 @@ export class WorldMap {
     }
 
     isPassable(x=0, y=0, z=0) {
+        if (!inBBox(this.pathingBounds, x, y, z)) {
+            return false;
+        }
         const baseTile = this.getBaseTile(x, y, z);
         for (const sprite of this.getSpritesAt(x, y, z)) {
             if (sprite.tangible && "blocksActors" in sprite && sprite.blocksActors) {

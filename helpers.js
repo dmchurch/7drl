@@ -20,12 +20,37 @@ export function inBBox({x: [xMin, xMax] = [-Infinity, Infinity],
 
 /** @param {BoundingBox} bbox  */
 export function setBBox(bbox, x = 0, y = 0, z = 0, w = 0, h = 0, d = 0) {
+    if (!bbox) return bbox;
     bbox.x[0] = x;
     bbox.x[1] = x + w - 1;
     bbox.y[0] = y;
     bbox.y[1] = y + h - 1;
     bbox.z[0] = z;
     bbox.z[1] = z + d - 1;
+    return bbox;
+}
+
+/** @param {BoundingBox} bbox  */
+export function setBBoxCenter(bbox, cx = 0, cy = 0, cz = 0, w = 0, h = 0, d = 0) {
+    if (!bbox) return bbox;
+    bbox.x[0] = cx - (w >> 1);
+    bbox.x[1] = bbox.x[0] + w - 1;
+    bbox.y[0] = cy - (h >> 1);
+    bbox.y[1] = bbox.y[0] + h - 1;
+    bbox.z[0] = cz - (d >> 1);
+    bbox.z[1] = bbox.z[0] + d - 1;
+    return bbox;
+}
+
+/** @param {BoundingBox} bbox  */
+export function setBBoxCenterRadius(bbox, cx = 0, cy = 0, cz = 0, rx = 0, ry = 0, rz = 0) {
+    if (!bbox) return bbox;
+    bbox.x[0] = cx - rx;
+    bbox.x[1] = cx + rx;
+    bbox.y[0] = cy - ry;
+    bbox.y[1] = cy + ry;
+    bbox.z[0] = cz - rz;
+    bbox.z[1] = cz + rz;
     return bbox;
 }
 

@@ -1,6 +1,6 @@
 import { Display, RNG } from "rot-js";
 import { Actor, Creature } from "./actors.js";
-import { after, cloneTemplate, dialogElement, getElement, htmlElement, mapEntries, templateElement } from "./helpers.js";
+import { after, cloneTemplate, dialogElement, getElement, htmlElement, mapEntries, setBBoxCenter, setBBoxCenterRadius, templateElement } from "./helpers.js";
 import { EggItem, Item } from "./props.js";
 import { SoulUI, Stat, StatUI, allStats, isStatName } from "./stats.js";
 import { Tileset } from "./tileset.js";
@@ -227,7 +227,9 @@ export class Player extends Creature {
     /** @param {import("./worldmap.js").WorldMap} worldMap  */
     addedToWorldMap(worldMap) {
         super.addedToWorldMap(worldMap);
-        this.path = new Astar3D(this.x, this.y, this.z, worldMap.isPassable);
+        const {x, y, z} = this;
+        this.path = new Astar3D(x, y, z, worldMap.isPassable);
+        setBBoxCenterRadius(worldMap.pathingBounds, x, y, z, 10, 10, 5);
     }
 
     queueEat(item, count=1) {
@@ -274,6 +276,7 @@ export class Player extends Creature {
         const {x, y, z} = this;
         this.path.setTarget(x, y, z);
         this.worldMap?.mainViewport.centerOn(x, y, z, true);
+        setBBoxCenterRadius(this.worldMap?.pathingBounds, x, y, z, 10, 10, 5);
         const items = (this.worldMap?.getSpritesAt(x, y, z) ?? []).map(s => s instanceof Item && s.visible ? s : null).filter(s => s);
         const hasUnseen = items.some(i => !i.seen);
         const discoveries = items.filter(i => i.discover());
