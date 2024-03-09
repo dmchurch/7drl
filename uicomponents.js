@@ -392,6 +392,9 @@ export class MessageLogElement extends BaseComponent {
     /** @type {HTMLLIElement[]} */
     messages = []
 
+    /** @type {HTMLLIElement} */
+    unreadMessage;
+
     #limit = (this.style.setProperty("--log-limit", "25"), 25);
     get limit() {
         return this.#limit;
@@ -426,16 +429,36 @@ export class MessageLogElement extends BaseComponent {
     }
 
     /** @param {...string|Node} content  */
+    addFatal(...content) {
+        const span = Rendered.html`<span class="fatal"></span>`.firstElementChild;
+        span.append(...content);
+        this.addMessage(span);
+    }
+
+    /** @param {...string|Node} content  */
+    addWarning(...content) {
+        const span = Rendered.html`<span class="warning"></span>`.firstElementChild;
+        span.append(...content);
+        this.addMessage(span);
+    }
+
+    /** @param {...string|Node} content  */
     addMessage(...content) {
-        const li = document.createElement("li");
-        li.className = "new message";
+        if (!this.unreadMessage) {
+            const li = document.createElement("li");
+            li.classList.add("new", "unread", "message");
+            li.style.setProperty("--log-index", String(this.messages.length + this.startIndex));
+            this.style.setProperty("--log-max-index", String(this.messages.length + this.startIndex));
+            this.prepend(li);
+            after(10).then(() => li.classList.remove("new"));
+            this.messages.push(li);
+            this.trimOldMessages();
+            this.unreadMessage = li;
+        } else {
+            this.unreadMessage.append(" ");
+        }
+        const li = this.unreadMessage;
         li.append(...content);
-        li.style.setProperty("--log-index", String(this.messages.length + this.startIndex));
-        this.style.setProperty("--log-max-index", String(this.messages.length + this.startIndex));
-        this.prepend(li);
-        after(10).then(() => li.classList.remove("new"));
-        this.messages.push(li);
-        this.trimOldMessages();
     }
 
     trimOldMessages() {
@@ -446,6 +469,15 @@ export class MessageLogElement extends BaseComponent {
         }
         if (oldLength !== this.messages.length) {
             this.startIndex += oldLength - this.messages.length;
+        }
+    }
+
+    readMessages() {
+        if (this.unreadMessage) {
+            this.unreadMessage = undefined;
+        }
+        for (const element of this.querySelectorAll(":scope > .message.unread")) {
+            element.classList.remove("unread");
         }
     }
 }

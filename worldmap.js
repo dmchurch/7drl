@@ -361,12 +361,17 @@ export class WorldMap {
                 centerX - (maxWidth >> 1) - 1, centerY - (maxWidth >> 1) - 1, zOrigin,
                 maxWidth + 2, maxHeight + 2, displays.length);
         
-        walkBBox(this.displayBounds, (x, y, z) => this.fogMap[this.toIndex(x, y, z)] &= ~FOG_VISIBLE);
+        this.clearFogMap(FOG_VISIBLE);
         const {x, y, z} = this.visibilitySource ?? {};
         this.computeVisibility(x, y, z, this.visibilitySource.visibilityRadius);
         for (const [k, display] of displays.entries()) {
             this.drawLayer(display, centerX, centerY, zOrigin + k, zFocus);
         }
+    }
+
+    /** @param {number} flags  */
+    clearFogMap(flags, bbox = this.displayBounds) {
+        walkBBox(bbox, (x, y, z) => this.fogMap[this.toIndex(x, y, z)] &= ~flags);
     }
 
     /** @param {number} x @param {number} y @param {number} z @param {number} contents */

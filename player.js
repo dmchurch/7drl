@@ -1,11 +1,12 @@
 import { Display, RNG } from "rot-js";
 import { Actor, Creature } from "./actors.js";
-import { cloneTemplate, dialogElement, getElement, htmlElement, mapEntries, templateElement } from "./helpers.js";
+import { after, cloneTemplate, dialogElement, getElement, htmlElement, mapEntries, templateElement } from "./helpers.js";
 import { Item } from "./props.js";
 import { SoulUI, Stat, StatUI, allStats, isStatName } from "./stats.js";
 import { Tileset } from "./tileset.js";
 import { Astar3D } from "./rot3d.js";
 import { MessageLogElement } from "./uicomponents.js";
+import { FOG_KNOWN } from "./worldmap.js";
 
 console.debug("Starting player.js");
 
@@ -26,6 +27,9 @@ export class Player extends Creature {
         get current() {
             return this.self.durability;
         },
+        set current(v) {
+            this.self.durability = v;
+        },
         get max() {
             return this.self.maxDurability;
         },
@@ -40,7 +44,7 @@ export class Player extends Creature {
     }
 
     get soulUncovered() {
-        return Object.values(this.stats).some(s => s.current === 0);
+        return Object.values(this.stats).some(s => s.current <= 0);
     }
 
     get liveStats() {
@@ -96,15 +100,57 @@ export class Player extends Creature {
     /** @param {number} amount @param {Actor} source @param {Item} item */
     takeDamage(amount, source, item) {
         const stat = RNG.getItem(this.liveStats);
+        const old = stat.current;
         stat.current -= amount;
         if (stat.current <= 0) {
-            stat.current === 0;
+            stat.current = 0;
             this.losePart(stat, source, item);
         }
-        const {name, s} = stat;
-        this.statUIs[name].update();
+        const {name, s, current} = stat;
+        (this.statUIs[name] ?? this.soulUI).update();
         document.documentElement.classList.toggle("soul-uncovered", this.soulUncovered);
-        this.messageLog.addMessage(`The ${source.label} attacks you ${stat.current > 0 ? `and your ${name} take${s} ${amount} damage.` : `for ${amount} damage. Your ${name} break${s}!`}`);
+        if (name === null) {
+            if (current === old) {
+                this.messageLog.addMessage(`The ${source.label} attacks you and you feel your soul being nibbled away, but take no damage.`);
+            } else if (current > 0) {
+                this.messageLog.addWarning(`The ${source.label} attacks you and you feel your soul being nibbled away for ${amount} damage.`);
+            } else {
+                this.messageLog.addFatal(`The ${source.label} attacks you and swallows you whole.`);
+                this.die(source, item);
+            }
+        } else {
+            this.messageLog.addMessage(`The ${source.label} attacks you`);
+            if (current === old) {
+                this.messageLog.addMessage(`but your ${name} take${s} no damage.`);
+            } else if (current > 0) {
+                this.messageLog.addMessage(`and your ${name} take${s} ${amount} damage.`);
+            } else {
+                this.messageLog.addMessage(`for ${amount} damage.`);
+                this.messageLog.addWarning(`Your ${name} break${s}!`);
+            }
+        }
+    }
+
+    /** @param {Actor} killer @param {Item} item */
+    die(killer, item) {
+        this.visible = false;
+        this.tangible = false;
+        const {worldMap} = this;
+        document.documentElement.classList.add("dead");
+        killer.move(this.x - killer.x, this.y - killer.y, this.z - killer.z);
+        after(3000).then(() => {
+            document.documentElement.classList.add("buried");
+            this.messageLog.readMessages();
+            this.messageLog.addFatal("Your soul floats apart.");
+            killer.visibilityRadius -= 2;
+            worldMap.clearFogMap(FOG_KNOWN);
+            worldMap.mainViewport.redraw();
+        });
+        // death will stop the event loop, so force one more redraw
+        this.worldMap.mainViewport.redraw();
+        // killer gets the eyes
+        this.worldMap.visibilitySource = killer;
+        return super.die(killer, item);
     }
 
     healDamage(amount, source, item) {
@@ -123,8 +169,9 @@ export class Player extends Creature {
         } else if (old === current) {
             this.messageLog.addMessage(`Your ${name} feel${s} great!`)
         }
-        if (!this.soulUncovered) {
+        if (!this.soulUncovered && this.durability < this.maxDurability) {
             this.durability = this.maxDurability;
+            this.messageLog.addMessage(`Your soul heals over, but the wound still aches.`);
         }
         this.statUIs[name].update();
     }
@@ -133,6 +180,25 @@ export class Player extends Creature {
         const damage = super.attack(target);
         this.messageLog.addMessage(`The ${target.label} takes ${damage} damage${target.durability <= 0 ? " and dies" : ""}.`)
         return damage;
+    }
+
+    /** @param {Item} item */
+    takeItem(item) {
+        const result = super.takeItem(item);
+        if (result) {
+            this.messageLog?.addMessage(`You take ${item.getDefiniteLabel()}.`)
+        } else {
+            this.messageLog?.addMessage(`You try to take ${item.getDefiniteLabel()} but your fins can't get a grip!`)
+        }
+        return result;
+    }
+
+    takeItems() {
+        const result = super.takeItems();
+        if (result === null) {
+            this.messageLog?.addMessage("There is nothing here to take!");
+        }
+        return result;
     }
 
     /** @param {Item} item */
@@ -156,6 +222,7 @@ export class Player extends Creature {
         }
     }
 
+    /** @param {import("./worldmap.js").WorldMap} worldMap  */
     addedToWorldMap(worldMap) {
         super.addedToWorldMap(worldMap);
         this.path = new Astar3D(this.x, this.y, this.z, worldMap.isPassable);
@@ -180,10 +247,14 @@ export class Player extends Creature {
 
     /** @param {() => void} action  */
     queueAction(action) {
+        if (this.durability <= 0) {
+            return;
+        }
         if (this.actionQueue.length < 5) {
             this.actionQueue.push(action);
         }
         if (this.#resolveAction) {
+            this.messageLog.readMessages();
             this.#resolveAction(true);
             this.#resolveAction = null;
         }
@@ -200,7 +271,7 @@ export class Player extends Creature {
         }
         const {x, y, z} = this;
         this.path.setTarget(x, y, z);
-        this.worldMap.mainViewport.centerOn(x, y, z, true);
+        this.worldMap?.mainViewport.centerOn(x, y, z, true);
         return true;
     }
 
@@ -213,7 +284,7 @@ export class Player extends Creature {
     async act(time = 0) {
         while (!this.actionQueue.length) {
             // redraw whenever we go into a wait
-            this.worldMap.mainViewport.redraw();
+            this.worldMap?.mainViewport?.redraw();
             console.log("awaiting");
             await new Promise(r => this.#resolveAction = r);
             console.log("awaited");

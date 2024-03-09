@@ -150,6 +150,20 @@ export class Creature extends Actor {
         if (this.hasItem(item)) return false;
         this.inventory.push(item);
         item.container = this;
+        return true;
+    }
+
+    takeItems() {
+        let success = null;
+        for (const sprite of this.worldMap.getSpritesAt(this.x, this.y, this.z)) {
+            if (sprite instanceof Item && sprite.tangible) {
+                success ??= true;
+                if (!this.takeItem(sprite)) {
+                    success = false;
+                }
+            }
+        }
+        return success;
     }
 
     /** @param {Item} item  */

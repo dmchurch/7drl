@@ -61,6 +61,7 @@ input.bind(() => player.toggleInventory(), "Tab", "KeyI");
 
 input.bind(() => player.inventoryUI?.performAction("eat"), "Digit1");
 input.bind(() => player.inventoryUI?.performAction("drop"), "Digit2");
+input.bind(() => player.queueAction(() => player.takeItems()), "KeyG").addCharBinding(",");
 
 input.bind(new DOMListAction("Look Across", document.documentElement.classList, "look-across"), input.VKeyAlt);
 input.bind(new DOMListAction("Look Up", document.documentElement.classList, "look-up"), [input.VKeyAlt, "KeyQ"], [input.VKeyAlt, "NumpadSubtract"])
