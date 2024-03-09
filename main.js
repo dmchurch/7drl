@@ -28,7 +28,7 @@ player.bindMessageLog(messageLog);
 
 worldMap.startAnimation();
 
-messageLog.addMessage("The abyss beckons... welcome to Deiphage.");
+messageLog.addMessage("The abyss calls: Welcome, Deiphage.");
 
 export let mobs;
 
