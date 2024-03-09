@@ -21,6 +21,7 @@ export const tileSheets = {
     souls: "tiles-souls",
     eggs: "tiles-eggs",
     god: "tiles-god",
+    stairs: "stairs",
 }
 /*
  o: 1
@@ -75,10 +76,6 @@ export const tileDefinitions = {
         frameType: "animation"
     },
 
-    godFish: {
-        sheet: "god",
-        frameType: "animation",
-    },
 
     fish: {
         sheet: "tiles1",
@@ -279,6 +276,13 @@ export const tileDefinitions = {
     fizzingEgg: {
         sheet: "eggs",
     },
+    godFish: {
+        sheet: "god",
+        frameType: "animation"
+    },
+    stairs: {
+        sheet: "stairs"
+    }
 }
 
 /** @type {Record<TileName, TileInfo>} */
