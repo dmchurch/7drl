@@ -38,6 +38,7 @@ const allPopNames = /** @type {const} */([
     "sparseArea",
     "fishSchool",
     "crabGang",
+    "junkyard",
     "commonSoul",
     "rareSoul",
 ]);
@@ -63,6 +64,14 @@ export const popDefinitions = {
         pickeach: [
             { role: "crab", chance: [50, 10, 10] },
             { role: "fish", count: [2, 8] },
+        ],
+    },
+    junkyard: {
+        pickeach: [
+            { role: "pottery", count: [2, 5] },
+            { role: "litter", count: [20, 30] },
+            { role: "ground", count: [20, 30] },
+            { role: "weeds", count: [3, 7] },
         ],
     },
     commonSoul: {

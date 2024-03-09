@@ -1,5 +1,5 @@
 import { RNG } from "rot-js";
-import { indexInArray } from "./helpers.js";
+import { indexInArray, walkBBox } from "./helpers.js";
 import { fixPopDefinition, pops } from "./pops.js";
 import { MapSprite, WorldMap } from "./worldmap.js";
 import { Item } from "./props.js";
@@ -68,12 +68,14 @@ export function createSpriteFor(pop) {
 /**
  * @param {WorldMap} worldMap 
  * @param {PopDefinition} popDef
- * @param {Generator<[x:number,y:number,z:number][], void>} distribution
+ * @param {Iterable<[x:number,y:number,z:number][], void>} distribution
  * @param {MapSprite} [context]
  */
 export function spawnPops(worldMap, popDef, distribution, context) {
     const generator = generatePops(popDef);
-    let cells = distribution.next()?.value;
+    /** @type {Iterator<[x:number,y:number,z:number][], void>} */
+    const distributor = distribution[Symbol.iterator]();
+    let cells = distributor.next()?.value;
     let pop = generator.next()?.value;
     let sprite = pop ? createSpriteFor(pop) : null;
     const sprites = [];
@@ -91,7 +93,7 @@ export function spawnPops(worldMap, popDef, distribution, context) {
         }
         if (sprite) {
             // couldn't find anywhere in this cell list, let's get another
-            cells = distribution.next()?.value;
+            cells = distributor.next()?.value;
         } else {
             pop = generator.next()?.value;
             sprite = pop ? createSpriteFor(pop) : null;
@@ -103,4 +105,18 @@ export function spawnPops(worldMap, popDef, distribution, context) {
 /** @param {MapSprite} sprite @param {PopDefinition} popDef @param {Parameters<MapSprite["distributeNearby"]>[0]} [options] */
 export function spawnNearby(sprite, popDef, options) {
     return spawnPops(sprite.worldMap, popDef, sprite.distributeNearby(options), sprite);
+}
+
+/** @param {BoundingBox} bbox */
+export function distributeBBox(bbox) {
+    /** @type {[number, number, number][]} */
+    const cells = [];
+    walkBBox(bbox, (x, y, z) => cells.push([x, y, z]));
+    return [cells];
+}
+
+/** @param {MapSprite} sprite @param {PopDefinition} popDef @param {BoundingBox} bbox */
+export function spawninBBox(sprite, popDef, bbox) {
+    console.log("spawning in bbox", bbox, popDef, sprite);
+    return spawnPops(sprite.worldMap, popDef, distributeBBox(bbox), sprite);
 }

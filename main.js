@@ -7,7 +7,7 @@ import { DOMListAction, MoveAction } from "./input.js";
 import { regenerate } from "./debug.js";
 import { worldMap, input, player, viewport } from "./globals.js";
 import { scheduler } from "./engine.js";
-import { spawnNearby } from "./procgen.js";
+import { spawnNearby, spawninBBox } from "./procgen.js";
 
 console.log("Starting main.js");
 
@@ -30,9 +30,15 @@ worldMap.startAnimation();
 
 messageLog.addMessage("The abyss calls: Welcome, Deiphage.");
 
-export let mobs;
+export let mobs, junk;
 
 regenerate().then(() => {
+    console.log("Spawning junkyard...");
+    let {x, y, z} = player;
+    x -= 4
+    y -= 4;
+    z -= 4;
+    junk = spawninBBox(player, {pop: "junkyard"}, {x: [x, x + 8], y: [y, y + 8], z: [z, z + 8]});
     console.log("Spawning sparse area...");
     mobs = spawnNearby(player, {pop: "sparseArea"}, {minRadius: 3});
 
