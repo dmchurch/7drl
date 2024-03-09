@@ -14,7 +14,9 @@ export class Actor extends Prop {
     static create(roleName, options) {
         roleName = options?.roleName ?? roleName;
         const roleType = roles[roleName]?.type ?? "creature";
-        if (roleType !== "actor" && this === Actor) {
+        if (roleType === "decor" && this !== Decor) {
+            return Decor.create(roleName, options);
+        } else if (roleType !== "actor" && this === Actor) {
             return Creature.create(roleName, options);
         }
         return new this(roleName, options);
@@ -44,7 +46,15 @@ export class Actor extends Prop {
                     collision,
                     ...rest
                 } = options ?? {}) {
-        super(spriteTile, {blocksActors: true, displayLayer: 2, singular, plural, description, ...rest});
+        super(spriteTile, {
+            blocksActors: !roles[roleName].insubstantial,
+            durability: roles[roleName].durability,
+            maxDurability: roles[roleName].durability,
+            displayLayer: 2,
+            singular,
+            plural,
+            description,
+            ...rest});
         this.roleName = roleName;
         this.collision = collision ?? this.collision;
         this.baseDamage = this.role.baseDamage ?? this.baseDamage;
@@ -132,8 +142,53 @@ export class Actor extends Prop {
         scheduler.add(this, true);
     }
 
+    /** @param {WorldMap} worldMap @param {PopDefinition} popDef @param {PopDefinition} rootPopDef */
+    canSpawnAt(x=0, y=0, z=0, worldMap, popDef, rootPopDef, context) {
+        const {spawnRestrictions} = this.role;
+        if (spawnRestrictions && spawnRestrictions.length) {
+            for (const restriction of spawnRestrictions) {
+                if (this.checkRestriction(restriction, x, y, z, worldMap, context)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    /**
+     * @param {RoleDefinition["spawnRestrictions"][number]} restriction
+     * @param {number} x
+     * @param {number} y
+     * @param {number} z
+     * @param {WorldMap} worldMap
+     */
+    checkRestriction(restriction, x, y, z, worldMap, context) {
+        if (restriction === "inGround") {
+            const thisTile = worldMap.getBaseTile(x, y, z);
+            const upTile = worldMap.getBaseTile(x, y, z+1);
+            return thisTile && !thisTile.insubstantial && !upTile;
+        } else if (restriction === "onGround") {
+            const thisTile = worldMap.getBaseTile(x, y, z);
+            const downTile = worldMap.getBaseTile(x, y, z-1);
+            return !thisTile && downTile && !downTile.insubstantial && worldMap.isEmpty(x, y, z);
+        } else if (restriction === "onCeiling") {
+            const thisTile = worldMap.getBaseTile(x, y, z);
+            const upTile = worldMap.getBaseTile(x, y, z+1);
+            return !thisTile && upTile && !upTile.insubstantial && worldMap.isEmpty(x, y, z);
+        } else if (restriction === "touchingWall") {
+            return false; // not yet implemented
+        }
+    }
+
     async act(time=0) {
         return false;
+    }
+}
+
+export class Decor extends Actor {
+    /** @overload @param {RoleName} roleName @param {Overrides<Decor>} [options]  */
+    /** @param {RoleName} roleName @param {Overrides<Decor>} [options]  */
+    constructor(roleName, options) {
+        super(roleName, {displayLayer: 2.5, ...options});
     }
 }
 
