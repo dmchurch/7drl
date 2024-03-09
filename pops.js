@@ -116,13 +116,22 @@ export const popDefinitions = {
     },
     commonSoul: {
         pickone: [
-            { item: "sustenanceSoul", weight: 10 },
-            { item: "deliciousSoul", weight: 1 },
-            { item: "disgustingSoul", weight: 2 },
+            { item: "sustenanceSoul", weight: 50 },
+            { item: "deliciousSoul", weight: 3 },
+            { item: "disgustingSoul", weight: 5 },
+            { item: "mendingSoul", weight: 2},
+            { pop: "rareSoul", weight: 1}
         ],
     },
     rareSoul: {
         pickone: [
+            { item: "geodeSoul", weight: 10},
+            { item: "cavitationSoul", weight: 10},
+            { item: "slimeSoul", weight: 10},
+            { item: "venomSoul", weight: 10},
+            { item: "dreadSoul", weight: 10},
+            { item: "spineSoul", weight: 10},
+            { item: "mendingSoul", weight: 20}
         ],
     },
 };
