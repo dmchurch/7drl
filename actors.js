@@ -151,6 +151,8 @@ export class Actor extends Prop {
                     return true;
                 }
             }
+        } else {
+            return super.canSpawnAt(x, y, z, worldMap, popDef, rootPopDef, context);
         }
         return false;
     }

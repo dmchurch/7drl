@@ -8,15 +8,31 @@ import { regenerate } from "./debug.js";
 import { worldMap, input, player, viewport } from "./globals.js";
 import { scheduler } from "./engine.js";
 import { spawnNearby, spawninBBox } from "./procgen.js";
+import { Cellular3D } from "./cellular3d.js";
 
 console.log("Starting main.js");
 
-worldMap.addSprite(player, {
-    x: worldMap.width >> 1,
-    y: worldMap.height >> 1,
-    z: worldMap.depth >> 1,
-});
+const generator = new Cellular3D(worldMap.width, worldMap.height, worldMap.depth);
 
+const setBaseCallback = worldMap.makeSetBaseCallback(0, 0, 0, {0: "roughwall", 1: null})
+
+for (const _ of generator.generateMap(setBaseCallback, 5, 0.5, null, true)) {
+    console.log("Iteration");
+    await animationFrame();
+}
+
+player.z = worldMap.depth; // start near the top
+
+export const playerSpawn = spawnNearby(player, player, {maxRadius: 50}, worldMap);
+Object.assign(self, {playerSpawn});
+
+// worldMap.addSprite(player, {
+//     x: worldMap.width >> 1,
+//     y: worldMap.height >> 1,
+//     z: worldMap.depth >> 1,
+// });
+
+viewport.centerOn(player.x, player.y, player.z, true);
 viewport.trackSize(document.getElementById("viewportRegion"));
 
 player.bindStatUIs(document.querySelectorAll(".bodypart"));
@@ -30,20 +46,20 @@ worldMap.startAnimation();
 
 messageLog.addMessage("The abyss calls: Welcome, Deiphage.");
 
-export let mobs, junk;
+// export let mobs, junk;
 
-regenerate().then(() => {
-    console.log("Spawning junkyard...");
-    let {x, y, z} = player;
-    x -= 4
-    y -= 4;
-    z -= 4;
-    junk = spawninBBox(player, {pop: "junkyard"}, {x: [x, x + 8], y: [y, y + 8], z: [z, z + 8]});
-    console.log("Spawning sparse area...");
-    mobs = spawnNearby(player, {pop: "sparseArea"}, {minRadius: 3});
+// regenerate().then(() => {
+//     console.log("Spawning junkyard...");
+//     let {x, y, z} = player;
+//     x -= 4
+//     y -= 4;
+//     z -= 4;
+//     junk = spawninBBox(player, {pop: "junkyard"}, {x: [x, x + 8], y: [y, y + 8], z: [z, z + 8]});
+//     console.log("Spawning sparse area...");
+//     mobs = spawnNearby(player, {pop: "sparseArea"}, {minRadius: 3});
 
-    Object.assign(self, {mobs});
-});
+//     Object.assign(self, {mobs});
+// });
 
 input.attach();
 input.keyIndicators.push(getElement("indicator", KeyboardCueElement));
