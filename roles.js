@@ -106,7 +106,7 @@ const roleDefinitions = {
 
     godFish: {
         spriteTile: "godFish",
-        label: "The Godfish",
+        label: "Godfish",
         plural: "Godfish",
         destroyMessage: "You devour God!",
         durability: 40,

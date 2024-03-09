@@ -10,7 +10,7 @@ export class Engine extends Scheduler.Simple {
     player;
 
     async mainLoop() {
-        while (true) {
+        while (!this.player?.wonGame) {
             /** @type {Actor} */
             const actor = this.next();
             if (!actor) {
@@ -33,6 +33,7 @@ export class Engine extends Scheduler.Simple {
                 this.remove(actor);
             }
         }
+        console.log("Game won! exiting loop");
     }
 }
 

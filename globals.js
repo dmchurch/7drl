@@ -12,11 +12,11 @@ console.debug("Starting globals.js");
 export let worldMap = new WorldMap(50, 50, 20);
 
 export const player = new Player({
-    inventory: [
-        Item.create("geodeSoul"),
-        Item.create("deliciousSoul", {stackSize: 10}),
-        Item.create("disgustingSoul", {stackSize: 2}),
-    ],
+    // inventory: [
+    //     Item.create("geodeSoul"),
+    //     Item.create("deliciousSoul", {stackSize: 10}),
+    //     Item.create("disgustingSoul", {stackSize: 2}),
+    // ],
     // stats: {
     //     head: {
     //         current: 1,

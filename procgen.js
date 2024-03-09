@@ -37,7 +37,6 @@ export function *generatePops(popDef) {
                     break;
                 case "pickone":
                     const index = parseInt(RNG.getWeightedValue(Object.fromEntries(popDef.pickone.map(def => def.weight).entries())));
-                    console.log(`Picked index ${index} of pops`,popDef.pickone);
                     if (indexInArray(index, popDef.pickone)) {
                         yield *generatePops(popDef.pickone[index]);
                     }

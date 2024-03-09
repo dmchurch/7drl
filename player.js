@@ -1,13 +1,13 @@
 import { Display, RNG } from "rot-js";
 import { Actor, Creature } from "./actors.js";
 import { after, cloneTemplate, dialogElement, getElement, htmlElement, mapEntries, setBBoxCenter, setBBoxCenterRadius, templateElement, typedKeys } from "./helpers.js";
-import { EggItem, Item, SoulItem } from "./props.js";
+import { EggItem, Item, Prop, SoulItem } from "./props.js";
 import { SoulUI, Stat, StatUI, allStats, isStatName } from "./stats.js";
 import { Tileset } from "./tileset.js";
 import { Astar3D } from "./rot3d.js";
 import { MessageLogElement } from "./uicomponents.js";
 import { FOG_KNOWN } from "./worldmap.js";
-import { equipment, isEquippableItemDefinition } from "./items.js";
+import { equipment, godSummonMessage, isEquippableItemDefinition, winMessage } from "./items.js";
 
 console.debug("Starting player.js");
 
@@ -57,6 +57,9 @@ export class Player extends Creature {
         }
         return stats;
     }
+
+    godSummoned = false;
+    wonGame = false;
 
     inventoryUI = new InventoryUI(this, "inventory");
     /** @type {MessageLogElement} */
@@ -183,10 +186,17 @@ export class Player extends Creature {
         document.documentElement.classList.toggle("soul-uncovered", this.soulUncovered);
     }
 
+    /** @param {Prop} target  */
     attack(target) {
         const damage = super.attack(target);
         const destroyMessage = this.destroyMessages.get(target);
         this.messageLog.addMessage(`The ${target.label} takes ${damage} damage${target.durability <= 0 ? (destroyMessage ? `. ${destroyMessage}` : " and dies.") : "."}`)
+        if (target instanceof Creature && target.roleName === "godFish" && target.durability <= 0) {
+            this.move(target.x - this.x, target.y - this.y, target.z - this.z);
+            this.messageLog.addCallout(winMessage);
+            this.wonGame = true;
+            this.#resolveAction = null;
+        }
         return damage;
     }
 
@@ -264,7 +274,7 @@ export class Player extends Creature {
 
     /** @param {() => void} action  */
     queueAction(action) {
-        if (this.durability <= 0) {
+        if (this.durability <= 0 || this.wonGame) {
             return;
         }
         if (this.actionQueue.length < 5) {
@@ -357,6 +367,12 @@ export class Player extends Creature {
         
         stat.equipItem(soul);
         this.statUIs[equipTo].update();
+
+        if (!this.godSummoned && this.statList.every(s => s.current > 0 && s.equipDef)) {
+            this.godSummoned = true;
+            this.messageLog.addWarning(godSummonMessage);
+            this.spawnNearby({role: "godFish"}, {minRadius: 5});
+        }
     }
 
     async act(time = 0) {
