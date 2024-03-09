@@ -424,6 +424,7 @@ export const itemDefinitions = /** @type {const} */({
  * @typedef EquipmentDefinition
  * @prop {string} label
  * @prop {string} [description]
+ * @prop {string} [equipMessage]
  */
 
 /** @satisfies {Record<EquipmentName, Record<StatName, EquipmentDefinition | false>>} */
