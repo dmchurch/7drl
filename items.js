@@ -434,132 +434,162 @@ export const equipmentDefinitions = {
         head: {
             label: "Geode maw",
             description: "There's a glint of color from the dark. Two rows of seaglass knives open to devour the very caves.",
+            equipMessage: "The cold pragmatism of Sah-fet sharpens and glassifies your teeth."
         },
         dorsal: {
             label: "Geode backfin",
             description: "Crystal outcroppings glow with hissing light.",
+            equipMessage: "Your dorsal fin splits and shines with Sah-fet's cutting insight."
         },
         belly: {
             label: "Geode belly",
             description: "Oh, how you shine! Beacon in the dark, beware.",
+            equipMessage: "Brilliant plastrons segment and split across your belly."
         },
         fins: {
             label: "Geode fins",
-            description: "Glittering fans of crystal break the light into glitterdust.",
+            description: "Shining fans of crystal break the light into glitterdust.",
+            equipMessage: "Sah-fet's splendor turns your fin webs to stained glass, gleaming in the dark."
         },
         tail: {
             label: "Geode tail",
-            description: "A crystal sickle slices through the water and light alike, leaving blades of sharp color behind.", 
+            description: "A crystal sickle slices through the water and light alike, leaving blades of sharp color behind.",
+            equipMessage: "The crystalline edge of Sah-fet's will curls and hardens your tailfin."
         },
     },
     cavitationSoul: {
         head: {
             label: "Cavitation maw",
-            description: "Cartilage latches hold a spring-loaded guillotine ready to snap down with stunning force."
+            description: "Cartilage latches hold a spring-loaded guillotine ready to snap down with stunning force.",
+            equipMessage: "Your jaw fuses and strengthens, a temple to the crushing vacuum."
         },
         dorsal: {
             label: "Cavitation backfin",
-            description: "Rigid plates articulate to form a pair of supersonic cymbals that don't have to enclose prey to hurt them."
+            description: "Rigid plates articulate to form a pair of supersonic cymbals ready to crash together.",
+            equipMessage: "Your dorsal fin hardens to a split ridge, forming an empty altar between."
         },
         belly: {
             label: "Cavitation belly",
-            description: "Stretchy skin and strong lungs can apply surprising force to would-be attackers."
+            description: "Stretchy skin and strong lungs make you harder and more dangerous to hurt.",
+            equipMessage: "Your belly softens and stretches, formless as Mantis was."
         },
         fins: {
             label: "Cavitation fins",
-            description: "The stretchy membrane and flexible cartilage of your lateral fins can hold tremendous tension... and release it all at once."
+            description: "The stretchy membrane and flexible cartilage of your lateral fins can hold tremendous tension.",
+            equipMessage: "Your fins at once harden and bend, lethal tension growing in their curves."
         },
         tail: {
             label: "Cavitation tail",
-            description: "Cartilaginous tension snaps you through the water at terrible speed, and woe betide anything behind you."
+            description: "Cartilaginous tension snaps you through the water at terrible speed, and woe betide anything behind you.",
+            equipMessage: "The tendons of your tailfin tighten even as the cartilage thickens and strengthens. You are a wound spring."
         },
     },
     slimeSoul: {
         head: {
             label: "Slime maw",
-            description: "Soft, suffocating, toothless death."
+            description: "Soft, suffocating, toothless death.",
+            equipMessage: "Your lips thicken, padding your jaws until, like Cyclost, your swallow is worse than your bite."
         },
         dorsal: {
             label: "Slime backfin",
-            description: "From a surge of back muscle, a clump of mucus is poised to be propelled at deadly speeds."
+            description: "Limp and sagging, your dorsal fin hides considerable muscle.",
+            equipMessage: "Your dorsal fin droops, formless now but stronger than ever."
         },
         belly: {
             label: "Slime belly",
-            description: "A soft, squishy body provides little purchase for fang and claw."
+            description: "A soft, squishy body provides little purchase for fang and claw.",
+            equipMessage: "Your belly is slick with slime, flexible and amorphous. Cyclost's softness protects you."
         },
         fins: {
             label: "Slime fins",
-            description: "From pressurized glands, expanding slime fills your surroundings."
+            description: "From pressurized glands, condensed slime forms hydraulic propulsion strength.",
+            equipMessage: "Your fins bloat, filling with pressurized slime."
         },
         tail: {
             label: "Slime tail",
-            description: "Radial tentacles explore the water at a more ponderous pace, but more hands bring greater safety."
+            description: "Radial tentacles explore the water at a more ponderous pace, but more hands bring greater safety.",
+            equipMessage: "Your tailfin splits grotesquely into a radial array of tentacles like Cyclost's legendary halo."
         },
     },
     venomSoul: {
         head: {
             label: "Venom maw",
-            description: "Slick needlepoints deliver a final gift."
+            description: "Slick needlepoints deliver a final gift.",
+            equipMessage: "Your jaw aches as fangs descend and fill with Iruka's dizzying draught."
         },
         dorsal: {
             label: "Venom backfin",
-            description: "Mottled spines loosen in their sockets and prepare to let fly."
+            description: "Mottled syringe-like spines rattle as you move.",
+            equipMessage: "The pin bones of your dorsal fin elongate, and the webbing between recedes."
         },
         belly: {
             label: "Venom belly",
-            description: "Skin like an oil slick, impenetrable and permanent."
+            description: "Skin like an oil slick, impenetrable and permanent.",
+            equipMessage: "Your belly darkens, tightens, shines with the refracted color of Iruka's rubbery hide."
         },
         fins: {
             label: "Venom fins",
-            description: "Even a scratch from these thin needles takes its toll."
+            description: "Even a scratch from these thin needles takes its toll.",
+            equipMessage: "Your fins shrink and sharpen."
         },
         tail: {
             label: "Venom tail",
-            description: "A singular syringe of a spine packed with venom invites sneak-attackers."
+            description: "A singular syringe of a spine packed with venom invites sneak-attackers.",
+            equipMessage: "The very end of your tail extends into a hollow, sharp tube like one of Iruka's innumerable fingers."
         },
     },
     dreadSoul: {
         head: {
             label: "Dread maw",
-            description: "Spikes from drawn flesh and staring eyes form a striking final vision."
+            description: "Spikes from drawn flesh and staring eyes form a striking final vision.",
+            equipMessage: "Your eyes sink into your head, glowing with Pit's eldritch gaze, as your skin loosens and stretches."
         },
         dorsal: {
             label: "Dread backfin",
-            description: "A quiver full of barbed bolts provides little stability but makes a strong impression."
+            description: "A quiver full of barbed bolts provides little stability but makes a strong impression.",
+            equipMessage: "Your dorsal fin flares and twists into a tangled, thorny bramble."
         },
         belly: {
             label: "Dread belly",
-            description: "You are unpleasant to approach."
+            description: "You are unpleasant to approach.",
+            equipMessage: "Your belly darkens, and shadows cling unnaturally to your body."
         },
         fins: {
             label: "Dread fins",
-            description: "Curling digits clutch a numbing venom within themselves."
+            description: "Curling digits clutch a numbing venom within themselves.",
+            equipMessage: "Your fins bend painfully into dangerous homages of Pit's grasping claw."
         },
         tail: {
             label: "Dread tail",
-            description: "Lumpy channels excrete a sooty liquid from limp fins."
+            description: "Lumpy channels excrete a sooty discharge from limp fins.",
+            equipMessage: "Your tail shrivels into a twisted, branchlike appendage lashing the air."
         },
     },
     spineSoul: {
         head: {
             label: "Spine Maw",
-            description: "Each black spike on each row is a strong cone tapering to a point of microscopic sharpness."
+            description: "Each black spike on each row is a strong cone tapering to a point of microscopic sharpness.",
+            equipMessage: "Your teeth turn into sharp needles!"
         },
         dorsal: {
             label: "Spine backfin",
-            description: "You bristle with a coat of ready menace."
+            description: "You bristle with a coat of ready menace.",
+            equipMessage: "Spines burst from all over your back, like the coat that Xeka stole from the mammals long ago."
         },
         belly: {
             label: "Spine belly",
-            description: "Your prickly hide gifts your assailants with quick regret."
+            description: "Your prickly hide gifts your assailants with quick regret.",
+            equipMessage: "Puffer prickles spout folded along your belly."
         },
         fins: {
             label: "Spine fins",
-            description: "A mere shake of your fins looses a needle-sharp perimeter."
+            description: "Your lateral fins are a rattling bundle of spines.",
+            equipMessage: "It is not without pain that Xeka's sharp gifts grow in prickly wads from your fins."
         },
         tail: {
             label: "Spine tail",
-            description: "The loose burs of your tail can be expelled with a strong shake, menacing any who would dare give chase."
+            description: "Your hydrodynamic tail is lined with loose burs.",
+            equipMessage: "As your tail elongates and grows sleeker, clusters of spines sprout in its corners."
         },
     }
 }
