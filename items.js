@@ -6,6 +6,7 @@ const transformDescription = "Upon consumption, transforms a random body part.";
 const eggDescription = ""
 const eggMessage = "You eagerly bite into the egg."
 const discoveryMessage = "It is {indefinite}!";
+const winMessage = "Deiphage, you have fulfilled your quest. As your jaws wrench divine life from the God once called Yendor, you are suffused with holy power. Your descent complete, you now settle in to wait the centuries until your devourer arrives...";
 
 /**
  * @typedef ItemDefinitionCommon
