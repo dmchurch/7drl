@@ -38,16 +38,23 @@ export class Prop extends MapSprite {
         console.warn("probably shouldn't have collided with something that doesn't know how to get collided with");
     }
 
-    /** @param {number} amount @param {import("./actors.js").Actor} source */
-    takeDamage(amount, source) {
+    /** @param {number} amount @param {import("./actors.js").Actor} source @param {Item} item */
+    takeDamage(amount, source, item) {
         this.durability -= amount;
         if (this.durability <= 0) {
-            this.die(source);
+            this.die(source, item);
         }
     }
 
-    /** @param {import("./actors.js").Actor} killer  */
-    die(killer) {
+    /** @param {number} amount @param {import("./actors.js").Actor} source @param {Item} item */
+    healDamage(amount, source, item) {
+        if (this.durability <= this.maxDurability) {
+            this.durability = Math.min(this.maxDurability, this.durability + amount);
+        }
+    }
+
+    /** @param {import("./actors.js").Actor} killer @param {Item} item */
+    die(killer, item) {
         this.releaseFromOwner();
         return false;
     }
@@ -57,6 +64,10 @@ export class Item extends Prop {
     /** @type {ItemName} */
     itemName;
     stackSize = 1;
+
+    get itemDef() {
+        return items[this.itemName];
+    }
 
     /** @overload @param {ItemName} itemName @param {Overrides<Item>} [options] */
     /** @param {TileName} explicitItemName @param {Overrides<Item>} options */
@@ -76,6 +87,7 @@ export class Item extends Prop {
             singular, plural, description,
             ...rest
         });
+        this.itemName = itemName;
         this.stackSize = stackSize ?? this.stackSize;
     }
 

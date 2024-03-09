@@ -4,6 +4,8 @@ import { roles } from "./roles.js";
 import { WorldMap } from "./worldmap.js";
 import { Astar3D } from "./rot3d.js";
 import { scheduler } from "./engine.js";
+import { isConsumableItemDefinition, isEquippableItemDefinition, isMetaEffectName, isNumericEffectName, isVoidEffectName, items } from "./items.js";
+import { typedEntries, typedKeys } from "./helpers.js";
 
 console.debug("Starting actors.js");
 
@@ -12,6 +14,8 @@ export class Actor extends Prop {
     roleName;
     collision = true;
     baseDamage = 1;
+    /** @type {Partial<Record<ItemEffectName|NumericItemEffectName, number>>} */
+    roundEffects = {};
 
     get role() {
         return roles[this.roleName];
@@ -43,7 +47,7 @@ export class Actor extends Prop {
     /** @param {Prop} target */
     attack(target) {
         const roll = Math.round(RNG.getNormal(this.baseDamage, this.baseDamage / 2));
-        target.takeDamage(roll, this);
+        target.takeDamage(roll, this, null);
         return roll;
     }
 
@@ -73,6 +77,43 @@ export class Actor extends Prop {
         }
 
         return true;
+    }
+
+    /** @param {ItemEffectName} effect @returns {effect is "fear"|"poison"|"stun"} */
+    isRoundEffect(effect) {
+        return effect === "fear"
+            || effect === "poison"
+            || effect === "stun"
+    }
+
+    /** @param {VoidItemEffectName|NumericItemEffectName} effect @param {number} strength  @param {Item} item @param {Actor} source */
+    applyEffect(effect, strength, item, source) {
+        if (effect === "health") {
+            if (strength < 0) {
+                return this.takeDamage(-strength, source, item);
+            } else if (strength > 0) {
+                this.healDamage(strength, source, item);
+            }
+        } else if (effect === "satiety") {
+            // no default behavior for satiety effect
+        } else if (this.isRoundEffect(effect)) {
+            this.applyRoundEffect(effect, strength, item, source);
+        } else if (effect === "summon") {
+            // this needs to execute pop generation
+        } else if (effect === "clean") {
+            for (const [e, v] of typedEntries(this.roundEffects)) {
+                if (!v) continue;
+                this.applyRoundEffect(e, -v, item, source);
+            }
+        } else if (effect === "sight") {
+            this.visibilityRadius += strength;
+        }
+    }
+
+    /** @param {ItemEffectName|NumericItemEffectName} effect @param {number} rounds @param {Item} item @param {Actor} source */
+    applyRoundEffect(effect, rounds, item, source) {
+        this.roundEffects[effect] ??= 0;
+        this.roundEffects[effect] += rounds;
     }
 
     /** @param {WorldMap} worldMap  */
@@ -172,8 +213,53 @@ export class Creature extends Actor {
 
     /** @param {Item} stack */
     digestItemStack(stack) {
+        const {itemDef} = stack;
+        // default behavior for equippable items is to heal 1 durability
+        let behaviors = isConsumableItemDefinition(itemDef) ? itemDef.behavior : itemDef.equipBehavior ?? {health: 1};
+        if (!Array.isArray(behaviors)) {
+            behaviors = behaviors ? [] : [behaviors];
+        }
+
+        for (const behavior of behaviors) {
+            this.performItemBehavior(behavior, stack);
+        }
+        
         if (this.durability < this.maxDurability) {
             this.durability = Math.min(this.maxDurability, this.durability + stack.stackSize);
+        }
+    }
+
+    /** @param {ItemBehavior} behavior @param {Item} item  */
+    performItemBehavior(behavior, item) {
+        for (const name of typedKeys(behavior)) {
+            if (isVoidEffectName(name)) {
+                this.performVoidEffect(name, behavior[name], item);
+            } else if (isNumericEffectName(name)) {
+                this.performNumericEffect(name, behavior[name], item);
+            } else if (isMetaEffectName(name)) {
+                this.performMetaEffect(name, behavior[name].r, behavior[name], item);
+            }
+        }
+    }
+
+    /** @param {VoidItemEffectName} effect @param {boolean} sense @param {Item} item */
+    performVoidEffect(effect, sense, item) {
+        // default behavior for numeric effects is to apply to self at strength 1 or -1
+        this.applyEffect(effect, sense ? 1 : -1, item, this)
+    }
+    /** @param {NumericItemEffectName} effect @param {number} value @param {Item} item */
+    performNumericEffect(effect, value, item) {
+        // default behavior for numeric effects is to apply to self
+        this.applyEffect(effect, value, item, this);
+    }
+    /** @param {MetaItemEffectName} effect @param {number} r @param {ItemBehavior} behavior @param {Item} item */
+    performMetaEffect(effect, r, behavior, item) {
+        if (effect === "burst") {
+            // panic
+            console.error("Burst effects not implemented yet");
+        } else {
+            // even more panic
+            throw Error("Bad meta effect", effect);
         }
     }
 
@@ -185,7 +271,7 @@ export class Creature extends Actor {
     }
 
     async act(time=0) {
-        if (!this.worldMap?.hasSprite(this)) return this.die(null);
+        if (!this.worldMap?.hasSprite(this)) return this.die(null, null);
 
         const {role} = this;
         let roll = RNG.getPercentage();

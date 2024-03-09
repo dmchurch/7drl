@@ -40,6 +40,9 @@ export class Stat {
     /** @type {StatName} */
     name;
 
+    /** @type {"s" | ""} */
+    s;
+
     current = 10;
     max = 10;
 
@@ -49,6 +52,7 @@ export class Stat {
         this.name = name;
         this.current = current;
         this.max = max;
+        this.s = name === "fins" ? "" : "s";
     }
 }
 
@@ -107,6 +111,7 @@ export class SoulUI extends StatUI {
     constructor(prop, container, template = "bodypartTemplate") {
         super({
             name: null,
+            s: null,
             get current() { return prop.durability; },
             get max() { return prop.maxDurability; },
         }, container, template);

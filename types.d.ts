@@ -61,6 +61,8 @@ declare type TileSheetName = keyof (typeof import("./tiles.js"))["tileSheets"];
 declare type WallRuleName = keyof (typeof import("./tiles.js"))["wallRules"];
 declare type TileName = keyof (typeof import("./tiles.js"))["tileDefinitions"];
 declare type ItemDefinition = import("./items.js").ItemDefinition;
+declare type EquippableItemDefinition = import("./items.js").EquippableItemDefinition;
+declare type ConsumableItemDefinition = import("./items.js").ConsumableItemDefinition;
 declare type ItemName = import("./items.js").ItemName;
 type _AllItemDefinitions = typeof import("./items.js").itemDefinitions;
 declare type EquipmentName = {[K in keyof _AllItemDefinitions]: _AllItemDefinitions[K] extends {equippable: true} ? K : never}[keyof _AllItemDefinitions]
@@ -88,14 +90,16 @@ declare type Overrides<T> = T extends NonOverridable ? T : {
     [K in PropertyKeys<T>]?: K extends NonOverridableKeys ? T[K] : Overrides<T[K]>
 };
 
-declare type VoidItemBehaviorName = typeof import("./items.js").voidItemBehaviors[number];
-declare type NumericItemBehaviorName = typeof import("./items.js").numericItemBehaviors[number];
-declare type MetaItemBehaviorName = typeof import("./items.js").metaItemBehaviors[number];
+declare type VoidItemEffectName = typeof import("./items.js").voidItemEffects[number];
+declare type NumericItemEffectName = typeof import("./items.js").numericItemEffects[number];
+declare type MetaItemEffectName = typeof import("./items.js").metaItemEffects[number];
+declare type ItemEffectName = VoidItemEffectName | NumericItemEffectName | MetaItemEffectName;
+declare type ItemEffectValue<E extends ItemEffectName>
+    = E extends VoidItemEffectName ? boolean
+    : E extends NumericItemEffectName ? number
+    : E extends MetaItemEffectName ? {r: number} & ItemBehavior
+    : never;
 
 declare type ItemBehavior = {
-    [B in VoidItemBehaviorName]?: boolean
-} & {
-    [B in NumericItemBehaviorName]?: number
-} & {
-    [B in MetaItemBehaviorName]?: {r: number} & ItemBehavior
+    [E in ItemEffectName]?: ItemEffectValue<E>
 };

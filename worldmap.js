@@ -49,8 +49,6 @@ export class WorldMap {
     /** @type {MapSprite} */
     visibilitySource;
 
-    visibilityRadius = 8;
-
     fov = new Precise3DShadowcasting((x, y, z) => this.lightPasses(x, y, z), {topology: 8});
 
     /** @type {BoundingBox} */
@@ -365,7 +363,7 @@ export class WorldMap {
         
         walkBBox(this.displayBounds, (x, y, z) => this.fogMap[this.toIndex(x, y, z)] &= ~FOG_VISIBLE);
         const {x, y, z} = this.visibilitySource ?? {};
-        this.computeVisibility(x, y, z, this.visibilityRadius);
+        this.computeVisibility(x, y, z, this.visibilitySource.visibilityRadius);
         for (const [k, display] of displays.entries()) {
             this.drawLayer(display, centerX, centerY, zOrigin + k, zFocus);
         }
@@ -395,6 +393,7 @@ export class MapSprite {
     visible = true;
     tangible = true;
     displayLayer = 0;
+    visibilityRadius = 8;
 
     /** @type {WeakRef<WorldMap>} */
     #worldMap;

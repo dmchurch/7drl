@@ -21,6 +21,7 @@ export class Player extends Creature {
     soulUI = null;
     soul = {
         name: null,
+        s: null,
         self: this,
         get current() {
             return this.self.durability;
@@ -32,6 +33,11 @@ export class Player extends Creature {
 
     /** @type {Record<StatName, Stat>} */
     stats;
+
+    get statList() {
+        const {head, dorsal, belly, fins, tail} = this.stats;
+        return /** @type {const} */([head, dorsal, belly, fins, tail]);
+    }
 
     get soulUncovered() {
         return Object.values(this.stats).some(s => s.current === 0);
@@ -87,17 +93,36 @@ export class Player extends Creature {
         this.messageLog = messageLog;
     }
 
-    /** @param {number} amount @param {Actor} source  */
-    takeDamage(amount, source) {
+    /** @param {number} amount @param {Actor} source @param {Item} item */
+    takeDamage(amount, source, item) {
         const stat = RNG.getItem(this.liveStats);
         stat.current -= amount;
         if (stat.current <= 0) {
             stat.current === 0;
-            this.losePart(stat, source);
+            this.losePart(stat, source, item);
         }
-        this.statUIs[stat.name].update();
+        const {name, s} = stat;
+        this.statUIs[name].update();
         document.documentElement.classList.toggle("soul-uncovered", this.soulUncovered);
-        this.messageLog.addMessage(`The ${source.label} attacks you ${stat.current > 0 ? `and your ${stat.name} ${stat.name === "fins" ? "take" : "takes"} ${amount} damage.` : `for ${amount} damage. Your ${stat.name} breaks!`}`);
+        this.messageLog.addMessage(`The ${source.label} attacks you ${stat.current > 0 ? `and your ${name} take${s} ${amount} damage.` : `for ${amount} damage. Your ${name} break${s}!`}`);
+    }
+
+    healDamage(amount, source, item) {
+        const lowHealth = Math.min(...this.statList.map(s => s.current));
+        const lowStats = this.statList.filter(s => s.current === lowHealth);
+        const stat = RNG.getItem(lowStats);
+        const {current: old, max} = stat;
+        if (old < max) {
+            stat.current = Math.min(old + amount, max);
+        }
+        const {name, s, current} = stat;
+        if (old <= 0 && current > 0) {
+            this.messageLog.addMessage(`Your ${name} recover${s} with ${current} health!`)
+        } else if (old < current) {
+            this.messageLog.addMessage(`Your ${name} recover${s} ${current - old} health.`)
+        } else if (old === current) {
+            this.messageLog.addMessage(`Your ${name} feel${s} great!`)
+        }
     }
 
     attack(target) {
@@ -120,10 +145,10 @@ export class Player extends Creature {
         return result;
     }
 
-    /** @param {Stat} stat @param {Actor} source  */
-    losePart(stat, source) {
+    /** @param {Stat} stat @param {Actor} source @param {Item} item */
+    losePart(stat, source, item) {
         if (!this.liveStats.length) {
-            this.die(source);
+            this.die(source, item);
         }
     }
 
@@ -173,6 +198,12 @@ export class Player extends Creature {
         this.path.setTarget(x, y, z);
         this.worldMap.mainViewport.centerOn(x, y, z, true);
         return true;
+    }
+
+    /** @param {Item} item  */
+    digestItemStack(item) {
+        this.messageLog.addMessage(item.itemDef.message);
+        super.digestItemStack(item);
     }
 
     async act(time = 0) {

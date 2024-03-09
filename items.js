@@ -21,10 +21,22 @@ const transmEggrify = "You feel your body changing."
  * @prop {false} [equippable]
  * @prop {ItemBehavior|ItemBehavior[]} behavior
  * 
- * @typedef {ItemDefinitionCommon & (ItemDefinitionEquipment | ItemDefinitionConsumable)} ItemDefinition
+ * @typedef {ItemDefinitionCommon & ItemDefinitionEquipment} EquippableItemDefinition
+ * @typedef {ItemDefinitionCommon & ItemDefinitionConsumable} ConsumableItemDefinition
+ * 
+ * @typedef {EquippableItemDefinition | ConsumableItemDefinition} ItemDefinition
  */
 
-export const voidItemBehaviors = /** @type {const} */([
+/** @param {ItemDefinition} itemDef @returns {itemDef is EquippableItemDefinition} */
+export function isEquippableItemDefinition(itemDef) {
+    return itemDef.equippable;
+}
+/** @param {ItemDefinition} itemDef @returns {itemDef is ConsumableItemDefinition} */
+export function isConsumableItemDefinition(itemDef) {
+    return !itemDef.equippable;
+}
+
+export const voidItemEffects = /** @type {const} */([
     "identify",
     "poison",
     "stun",
@@ -32,28 +44,27 @@ export const voidItemBehaviors = /** @type {const} */([
     "clean",
     "shuffle",
 ]);
-export const numericItemBehaviors = /** @type {const} */([
+export const numericItemEffects = /** @type {const} */([
     "sight",
     "health",
     "satiety",
     "summon",
 ]);
-export const metaItemBehaviors = /** @type {const} */([
+export const metaItemEffects = /** @type {const} */([
     "burst",
-    "ray",
 ]);
 
-/** @returns {name is VoidItemBehaviorName} */
-export function isVoidBehavior(name) {
-    return voidItemBehaviors.includes(name);
+/** @returns {name is VoidItemEffectName} */
+export function isVoidEffectName(name) {
+    return voidItemEffects.includes(name);
 }
-/** @returns {name is NumericItemBehaviorName} */
-export function isNumericBehavior(name) {
-    return numericItemBehaviors.includes(name);
+/** @returns {name is NumericItemEffectName} */
+export function isNumericEffectName(name) {
+    return numericItemEffects.includes(name);
 }
-/** @returns {name is MetaItemBehaviorName} */
-export function isMetaItemBehavior(name) {
-    return metaItemBehaviors.includes(name);
+/** @returns {name is MetaItemEffectName} */
+export function isMetaEffectName(name) {
+    return metaItemEffects.includes(name);
 }
 
 // default values for the void behaviors
