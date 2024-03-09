@@ -33,8 +33,34 @@ const roleDefinitions = {
         distraction: 5,
         drops: {
             pickeach: [
+                {pop: "commonSoul", chance: 95},
+                {pop: "rareSoul", chance: 5},
+            ],
+        }
+    },
+    bigFish: {
+        spriteTile: "bigFish",
+        label: "A big fish",
+        plural: "big fish",
+        aggression: 30,
+        distraction: 15,
+        drops: {
+            pickeach: [
                 {pop: "commonSoul", chance: 75},
                 {pop: "rareSoul", chance: 25},
+            ],
+        }
+    },
+    toothFish: {
+        spriteTile: "toothFish",
+        label: "A toothy fish",
+        plural: "toothy fish",
+        aggression: 75,
+        distraction: 5,
+        drops: {
+            pickeach: [
+                {pop: "commonSoul", chance: 50},
+                {pop: "rareSoul", chance: 50},
             ],
         }
     },
