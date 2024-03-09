@@ -4,12 +4,17 @@
  * @prop {number} [spriteFrame]
  * @prop {string} label
  * @prop {string} plural
- * @prop {"creature"|"actor"|"player"} [type]
+ * @prop {number} [durability]
+ * @prop {"creature"|"actor"|"player"|"decor"} [type]
+ * @prop {string} [destroyMessage] 
+ * @prop {boolean} [insubstantial]
  * @prop {string} [description]
  * @prop {number} [aggression] Percentage chance that this mob will approach the player if it moves
+ * @prop {number} [bloodlust]  How much does aggression increase by every time the player attacks this mob? default 10
  * @prop {number} [distraction] Percentage chance that this mob will move randomly
  * @prop {number} [baseDamage] Base amount of damage this mob will do (default 1)
  * @prop {PopDefinition} [drops] What drops when this dies?
+ * @prop {("onGround" | "inGround" | "touchingWall" | "onCeiling")[]} [spawnRestrictions]
  */
 
 /** @satisfies {Record<string, RoleDefinition>} */
@@ -70,6 +75,42 @@ const roleDefinitions = {
         label: "You",
         plural: "instances of you",
         type: "player",
+    },
+
+    weeds: {
+        spriteTile: "weeds1",
+        label: "Weeds",
+        plural: "clumps of weeds",
+        type: "decor",
+        insubstantial: true,
+        spawnRestrictions: ["onGround"],
+    },
+
+    ground: {
+        spriteTile: "ground",
+        label: "",
+        plural: "",
+        type: "decor",
+        insubstantial: true,
+        spawnRestrictions: ["onGround"],
+    },
+
+    pottery: {
+        spriteTile: "pottery",
+        label: "Some pottery",
+        plural: "piles of pottery",
+        type: "decor",
+        durability: 1,
+        spawnRestrictions: ["onGround"],
+    },
+
+    litter: {
+        spriteTile: "litter",
+        label: "Some litter",
+        plural: "heaps of trash",
+        type: "decor",
+        insubstantial: true,
+        spawnRestrictions: ["onGround"],
     }
 };
 
