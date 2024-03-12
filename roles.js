@@ -89,9 +89,9 @@ const roleDefinitions = {
         }
     },
     eel: {
-        spriteTile: "fish",
+        spriteTile: "eel",
         label: "An eel",
-        plural: "eel",
+        plural: "eels",
         destroyMessage: "The eel dies!",
         durability: 5,
         aggression: 10,
