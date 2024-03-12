@@ -161,7 +161,6 @@ export class EggItem extends Item {
     static create(itemName, options) {
         const {stackSize} = options;
         return SoulItem.create(SoulItem.eggsToSouls[itemName], {stackSize, eggItem: options}).eggItem;
-
     }
     /** @type {SoulItem} */
     soulItem;
@@ -201,6 +200,7 @@ export class EggItem extends Item {
     identify(worldMap) {
         if (!SoulItem.identifiedSouls[this.soulItem.itemName] && worldMap) {
             SoulItem.identifiedSouls[this.soulItem.itemName] = true;
+            this.soulItem.discover(); // don't repeat the discovery message next time you see one
             const seen = new Set();
             const toIdentify = worldMap.sprites.slice(0);
             while (toIdentify.length) {

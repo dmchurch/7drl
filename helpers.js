@@ -8,6 +8,13 @@ export function inSemiOpenRange(value, min, max) {
     return value >= min && value < max;
 }
 
+/** @template T @param {T} value @param {T} min @param {T} max */
+export function clamp(value, min, max) {
+    return min != null && value < min ? min
+         : max != null && value > max ? max
+         : value;
+}
+
 /** @param {Partial<BoundingBox>} bbox */
 export function inBBox({x: [xMin, xMax] = [-Infinity, Infinity],
                         y: [yMin, yMax] = [-Infinity, Infinity],
@@ -22,8 +29,17 @@ export function inBBox({x: [xMin, xMax] = [-Infinity, Infinity],
 export function newBBox(x = 0, y = 0, z = 0, w = 0, h = 0, d = 0) {
     return {
         x: [x, x + w - 1],
-        y: [y, y + w - 1],
-        z: [z, z + w - 1],
+        y: [y, y + h - 1],
+        z: [z, z + d - 1],
+    }
+}
+
+/** @returns {BoundingBox} */
+export function infiniteBBox() {
+    return {
+        x: [-Infinity, Infinity],
+        y: [-Infinity, Infinity],
+        z: [-Infinity, Infinity],
     }
 }
 
@@ -61,6 +77,34 @@ export function setBBoxCenterRadius(bbox, cx = 0, cy = 0, cz = 0, rx = 0, ry = 0
     bbox.z[0] = cz - rz;
     bbox.z[1] = cz + rz;
     return bbox;
+}
+
+/** @param {BoundingBox} resultBbox @param {BoundingBox} intersectWith */
+export function intersectBBox(resultBbox, intersectWith) {
+    if (!resultBbox || !intersectWith) return resultBbox;
+    const {x, y, z} = resultBbox;
+    const {x: ix, y: iy, z: iz} = intersectWith;
+    x[0] = Math.max(x[0], ix[0]);
+    y[0] = Math.max(y[0], iy[0]);
+    z[0] = Math.max(z[0], iz[0]);
+    x[1] = Math.min(x[1], ix[1]);
+    y[1] = Math.min(y[1], iy[1]);
+    z[1] = Math.min(z[1], iz[1]);
+    return resultBbox;
+}
+
+/** @param {BoundingBox} resultBbox @param {BoundingBox} expandToInclude */
+export function encapsulateBBox(resultBbox, expandToInclude) {
+    if (!resultBbox || !expandToInclude) return resultBbox;
+    const {x, y, z} = resultBbox;
+    const {x: ix, y: iy, z: iz} = expandToInclude;
+    x[0] = Math.min(x[0], ix[0]);
+    y[0] = Math.min(y[0], iy[0]);
+    z[0] = Math.min(z[0], iz[0]);
+    x[1] = Math.max(x[1], ix[1]);
+    y[1] = Math.max(y[1], iy[1]);
+    z[1] = Math.max(z[1], iz[1]);
+    return resultBbox;
 }
 
 /** @param {BoundingBox} bbox @param {(x: number, y: number, z: number) => any} callback  */

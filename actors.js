@@ -5,11 +5,13 @@ import { WorldMap } from "./worldmap.js";
 import { Astar3D } from "./rot3d.js";
 import { scheduler } from "./engine.js";
 import { isConsumableItemDefinition, isEquippableItemDefinition, isMetaEffectName, isNumericEffectName, isVoidEffectName, items } from "./items.js";
-import { typedEntries, typedKeys } from "./helpers.js";
+import { inBBox, typedEntries, typedKeys } from "./helpers.js";
 
 console.debug("Starting actors.js");
 
 export class Actor extends Prop {
+    static nextActorId = 1;
+
     /** @param {RoleName} roleName @param {Overrides<Actor>} options @returns {Actor} */
     static create(roleName, options) {
         roleName = options?.roleName ?? roleName;
@@ -21,6 +23,9 @@ export class Actor extends Prop {
         }
         return new this(roleName, options);
     }
+
+    #id = Actor.nextActorId++;
+    get id() { return this.#id; }
 
     /** @type {RoleName} */
     roleName;
@@ -61,7 +66,7 @@ export class Actor extends Prop {
     }
 
     toString() {
-        return `${this.constructor.name} "${this.roleName}" @ ${this.x},${this.y},${this.z}`;
+        return `${this.constructor.name}#${this.id} "${this.roleName}" @ ${this.x},${this.y},${this.z}`;
     }
 
     /** @param {Prop} target */
@@ -179,6 +184,10 @@ export class Actor extends Prop {
         } else if (restriction === "touchingWall") {
             return false; // not yet implemented
         }
+    }
+
+    canAct() {
+        return false;
     }
 
     async act(time=0) {
@@ -396,6 +405,10 @@ export class Creature extends Actor {
         }
     }
 
+    canAct() {
+        return this.worldMap && inBBox(this.worldMap.pathingBounds, this.x, this.y, this.z);
+    }
+
     async act(time=0) {
         if (!this.worldMap?.hasSprite(this)) return this.die(null, null);
 
@@ -408,7 +421,7 @@ export class Creature extends Actor {
         } = role;
 
         if ((roll -= distraction) <= 0) {
-            const [x, y, z] = RNG.getItem([
+            const [dx, dy, dz] = RNG.getItem([
                 [1, 0, 0],
                 [-1, 0, 0],
                 [0, 1, 0],
@@ -420,7 +433,7 @@ export class Creature extends Actor {
                 [0, 0, 1],
                 [0, 0, -1],
             ]);
-            this.move(x, y, z);
+            this.move(dx, dy, dz);
             return true;
         }
 

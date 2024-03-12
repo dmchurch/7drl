@@ -9,6 +9,34 @@ export class Engine extends Scheduler.Simple {
     /** @type {Player} */
     player;
 
+    time = 0;
+
+    constructor() {
+        super();
+        this.add(this, true); // self-entry for round-timing!
+    }
+
+    /** @returns {Actor} */
+    next() {
+        let next = super.next();
+        if (next === this) {
+            this.time++;
+            next = super.next();
+            if (next === this) {
+                return null;
+            }
+        }
+        return next;
+    }
+
+    getTime() {
+        return this.time;
+    }
+
+    getTimeOf(actor) {
+        return super.getTimeOf(actor) == null ? null : this.getTime();
+    }
+
     async mainLoop() {
         while (!this.player?.wonGame) {
             /** @type {Actor} */
@@ -21,9 +49,13 @@ export class Engine extends Scheduler.Simple {
                 console.warn("Player not scheduled, exiting main loop");
                 break;
             }
+            if (actor !== this.player && !actor.canAct()) {
+                continue;
+            }
             let result;
-            console.debug(`Scheduling ${actor.roleName} at ${actor.x},${actor.y},${actor.z} at time ${this.getTime()}`);
+            console.debug(`Scheduling ${actor.toString()} at time ${this.getTime()}`);
             try {
+                this.currentAction = [actor.toString(), actor];
                 result = await actor.act(this.getTime());
             } catch (e) {
                 console.error("Actor threw exception during act, removing from scheduler", actor, e);

@@ -1,4 +1,4 @@
-import { inBBox, inInclusiveRange, inSemiOpenRange, setBBox, tuple, typedEntries, walkBBox } from "./helpers.js";
+import { clamp, inBBox, inInclusiveRange, inSemiOpenRange, infiniteBBox, intersectBBox, newBBox, setBBox, setBBoxCenter, tuple, typedEntries, walkBBox } from "./helpers.js";
 import { tiles, wallRules } from "./tiles.js";
 import { Tileset } from "./tileset.js";
 import { Viewport } from "./viewport.js";
@@ -47,24 +47,28 @@ export class WorldMap {
     /** @type {number[]} */
     surroundingIndices = [];
 
+    /** @type {[number, number][]} */
+    surroundingDirections = [];
+
     /** @type {MapSprite} */
     visibilitySource;
 
     fov = new Precise3DShadowcasting((x, y, z) => this.lightPasses(x, y, z), {topology: 8});
 
-    /** @type {BoundingBox} */
-    displayBounds = {
-        x: [-Infinity, Infinity],
-        y: [-Infinity, Infinity],
-        z: [-Infinity, Infinity],
-    };
+    /** @type {BoundingBox} The bounds of the actual data storage, what can be stored as tiles */
+    bounds;
+
+    /** @type {BoundingBox} The bounds shrunk by 1 tile along x and y (for wall display calculations) */
+    interiorBounds;
+
+    /** @type {BoundingBox} The bounds expanded by 1 tile in all dimensions, aka all positions that can be bumped into */
+    exteriorBounds;
 
     /** @type {BoundingBox} */
-    pathingBounds = {
-        x: [-Infinity, Infinity],
-        y: [-Infinity, Infinity],
-        z: [-Infinity, Infinity],
-    };
+    displayBounds = infiniteBBox();
+
+    /** @type {BoundingBox} */
+    pathingBounds = infiniteBBox();
 
     #animationActive = false;
     get animationActive() {
@@ -75,13 +79,17 @@ export class WorldMap {
         this.width = width;
         this.height = height;
         this.depth = depth;
+        this.bounds = newBBox(0, 0, 0, width, height, depth);
+        this.interiorBounds = newBBox(1, 1, 0, width - 2, height - 2, depth);
+        this.exteriorBounds = newBBox(-1, -1, -1, width + 2, height + 2, depth + 2);
         this.widthBits = Math.ceil(Math.log2(width));
         this.heightBits = Math.ceil(Math.log2(height));
         this.depthBits = Math.ceil(Math.log2(depth));
         this.baseMap = new Uint8Array(1 << (this.widthBits + this.heightBits + this.depthBits));
         this.baseFrames = new Int8Array(this.baseMap.length).fill(-1);
         this.fogMap = new Uint8Array(this.baseMap.length);
-        this.surroundingIndices = WallRule.bitDirections.slice(0, 8).map(([dx, dy]) => this.toIndex(dx, dy));
+        this.surroundingDirections = WallRule.bitDirections.slice(0, 8);
+        this.surroundingIndices = this.surroundingDirections.map(([dx, dy]) => this.toIndex(dx, dy));
         this.isPassable = this.isPassable.bind(this);
         this.lightPasses = this.lightPasses.bind(this);
         this.isEmpty = this.isEmpty.bind(this);
@@ -137,6 +145,22 @@ export class WorldMap {
     toIndex(x = 0, y = 0, z = 0) {
         return (z << (this.heightBits + this.widthBits)) + (y << this.widthBits) + x;
     }
+    closestIndex(x = 0, y = 0, z = 0) {
+        x = clamp(x, 0, this.width - 1);
+        y = clamp(y, 0, this.height - 1);
+        z = clamp(z, 0, this.depth - 1);
+        return this.toIndex(x, y, z);
+    }
+    nearIndex(x = 0, y = 0, z = 0) {
+        if (x === -1) x = 0;
+        if (y === -1) y = 0;
+        if (z === -1) z = 0;
+        if (x === this.width) x--;
+        if (y === this.height) y--;
+        if (z === this.depth) z--;
+        if (!this.inMap(x, y, z)) return -1;
+        return this.toIndex(x, y, z);
+    }
     /** @param {number} i */
     toX(i) {
         return i & ((1 << (this.widthBits)) - 1);
@@ -156,9 +180,25 @@ export class WorldMap {
     }
 
     inMap(x = 0, y = 0, z = 0) {
-        return inSemiOpenRange(x, 0, this.width)
-            && inSemiOpenRange(y, 0, this.height)
-            && inSemiOpenRange(z, 0, this.depth);
+        return inBBox(this.bounds, x, y, z);
+    }
+
+    /** @param {BoundingBox} bbox  */
+    setDisplayBounds(bbox) {
+        return this.displayBounds = intersectBBox(bbox, this.bounds);
+    }
+
+    /** @param {BoundingBox} bbox  */
+    setPathingBounds(bbox) {
+        return this.pathingBounds = intersectBBox(bbox, this.pathingBounds);
+    }
+
+    setCenteredDisplayBoundsTo(x=0, y=0, z=0, w=0, h=0, d=0) {
+        return this.setDisplayBounds(setBBoxCenter(this.displayBounds, x, y, z, w, h, d));
+    }
+
+    setCenteredPathingBoundsTo(x=0, y=0, z=0, w=0, h=0, d=0) {
+        return this.setPathingBounds(setBBoxCenter(this.pathingBounds, x, y, z, w, h, d));
     }
 
     clearAll() {
@@ -174,8 +214,7 @@ export class WorldMap {
 
     /** @param {number} x @param {number} y @param {number} z */
     getBaseTile(x, y, z) {
-        if (!this.inMap(x, y, z)) return null;
-        return this.getTileFrameFor(this.toIndex(x, y, z));
+        return this.getTileFrameFor(x, y, z);
     }
 
     /** @param {number} x @param {number} y @param {number} z */
@@ -206,40 +245,59 @@ export class WorldMap {
         return (this.baseMap[index] ?? this.defaultTileIndex) === base;
     }
 
-    /** @param {number} baseIndex  */
-    getTileFrameFor(baseIndex, base = this.baseMap[baseIndex] ?? this.defaultTileIndex) {
+    /** @param {number} x @param {number} y @param {number} z */
+    getTileFrameFor(x, y, z,
+                    inMap = this.inMap(x, y, z),
+                    baseIndex = this.toIndex(x, y, z),
+                    base = inMap ? this.baseMap[baseIndex] : this.defaultTileIndex) {
         if (!base) return undefined;
         const tileInfo = Tileset.light.layerFrames[this.toTileName(base)]?.[0];
-        let baseFrame = this.baseFrames[baseIndex];
+        let baseFrame = inMap ? this.baseFrames[baseIndex] : -1;
         if (baseFrame < 0) {
             if (tileInfo.frameType === "walls") {
-                baseFrame = this.baseFrames[baseIndex] = wallRules[tileInfo.wallRules].framesMap[this.getWallInfoFor(baseIndex, base)];
+                const wallInfo = this.getWallInfoFor(x, y, z, inMap, baseIndex, base);
+                baseFrame = wallRules[tileInfo.wallRules].framesMap[wallInfo];
             } else {
                 baseFrame = ~baseFrame;
             }
-            this.baseFrames[baseIndex] = baseFrame;
-        }
-        return tileInfo.frames[baseFrame % tileInfo.frames.length];
-    }
-
-    /** @param {number} baseIndex */
-    getWallInfoFor(baseIndex, base = this.baseMap[baseIndex] ?? this.defaultTileIndex) {
-        let total = 0;
-        const {surroundingIndices} = this;
-        for (let bit = 0; bit < 8; bit++) {
-            const otherIndex = baseIndex + surroundingIndices[bit];
-            if (this.isIndexSameBaseAs(otherIndex, base)) {
-                total |= 1 << bit;
+            if (inMap) {
+                this.baseFrames[baseIndex] = baseFrame;
             }
         }
+        return tileInfo.frames[baseFrame % tileInfo.frames.length] ?? tileInfo;
+    }
+
+    /** @param {number} x @param {number} y @param {number} z */
+    getWallInfoFor(x, y, z,
+                   inMap = this.inMap(x, y, z),
+                   baseIndex = this.toIndex(x, y, z),
+                   base = inMap ? this.baseMap[baseIndex] : this.defaultTileIndex) {
+        let total = 0;
+        const {surroundingIndices, surroundingDirections} = this;
+
+        if (inBBox(this.interiorBounds, x, y, z)) {
+            // common case, wall is in interior and doesn't need bounds tests
+            for (let bit = 0; bit < 8; bit++) {
+                const otherIndex = baseIndex + surroundingIndices[bit];
+                if (this.isIndexSameBaseAs(otherIndex, base)) {
+                    total |= 1 << bit;
+                }
+            }
+        } else {
+            // wall is on an exterior border (or is possibly out-of-bounds itself), so anything out-of-bounds counts as "occupied"
+            for (let bit = 0; bit < 8; bit++) {
+                const [dx, dy] = surroundingDirections[bit];
+                if (!this.inMap(x + dx, y + dy, z)
+                    || this.isIndexSameBaseAs((baseIndex + surroundingIndices[bit]), base)) {
+                    total |= 1 << bit;
+                }
+            }
+        }
+    
         return total;
     }
 
     lightPasses(x=0, y=0, z=0) {
-        if (!inBBox(this.displayBounds, x, y, z)) {
-            return false;
-        }
-        
         const baseTile = this.getBaseTile(x, y, z);
         if (baseTile && !baseTile.transparent) {
             return false;
@@ -253,9 +311,8 @@ export class WorldMap {
     }
 
     isPassable(x=0, y=0, z=0) {
-        if (!inBBox(this.pathingBounds, x, y, z)) {
-            return false;
-        }
+        this.blockingSprite = null;
+
         const baseTile = this.getBaseTile(x, y, z);
         for (const sprite of this.getSpritesAt(x, y, z)) {
             if (sprite.tangible && "blocksActors" in sprite && sprite.blocksActors) {
@@ -263,7 +320,6 @@ export class WorldMap {
                 return false;
             }
         }
-        this.blockingSprite = null;
         if (baseTile && !baseTile.insubstantial) {
             return false;
         }
@@ -363,13 +419,14 @@ export class WorldMap {
 
         if (!inSemiOpenRange(row, 0, height) || !inSemiOpenRange(col, 0, width)) return;
 
-        const baseIndex = this.toIndex(x, y, z);
+        const baseIndex = this.nearIndex(x, y, z);
         /** @type {any} */
         let fg = null;
         if (focusOffset && this.baseMap[baseIndex + focusOffset] === 0) {
             fg = focusOpacity;
         }
-        const fog = this.inMap(x, y, z) ? this.fogMap[baseIndex] : FOG_KNOWN;
+        // nearIndex will either return a valid in-map index or -1
+        const fog = this.fogMap[baseIndex] ?? 0;
         if (!(fog & FOG_VISIBLE)) {
             if (fog & FOG_KNOWN) {
                 fg ??= 1;
@@ -390,7 +447,7 @@ export class WorldMap {
             tiles.push(this.getSpriteChar(sprite));
         }
         display.draw(col, row, tiles, fg, null);
-}
+    }
 
     /** @param {import("rot-js").Display} display  */
     drawLayer(display, centerX = 0, centerY = 0, z = 0, focusLayer = Infinity) {

@@ -1,6 +1,6 @@
 import { Display, RNG } from "rot-js";
 import { Actor, Creature } from "./actors.js";
-import { after, cloneTemplate, dialogElement, getElement, htmlElement, mapEntries, setBBoxCenter, setBBoxCenterRadius, templateElement, typedKeys } from "./helpers.js";
+import { after, cloneTemplate, dialogElement, getElement, htmlElement, intersectBBox, mapEntries, setBBoxCenter, setBBoxCenterRadius, templateElement, typedKeys } from "./helpers.js";
 import { EggItem, Item, Prop, SoulItem } from "./props.js";
 import { SoulUI, Stat, StatUI, allStats, isStatName } from "./stats.js";
 import { Tileset } from "./tileset.js";
@@ -252,7 +252,7 @@ export class Player extends Creature {
         super.addedToWorldMap(worldMap);
         const {x, y, z} = this;
         this.path = new Astar3D(x, y, z, worldMap.isPassable);
-        setBBoxCenterRadius(worldMap.pathingBounds, x, y, z, 10, 10, 5);
+        worldMap.setCenteredPathingBoundsTo(x, y, z, 21, 21, 11);
     }
 
     queueEat(item, count=1) {
@@ -274,7 +274,7 @@ export class Player extends Creature {
 
     /** @param {() => void} action  */
     queueAction(action) {
-        if (this.durability <= 0 || this.wonGame) {
+        if (!this.canAct()) {
             return;
         }
         if (this.actionQueue.length < 5) {
@@ -299,7 +299,7 @@ export class Player extends Creature {
         const {x, y, z} = this;
         this.path.setTarget(x, y, z);
         this.worldMap?.mainViewport.centerOn(x, y, z, true);
-        setBBoxCenterRadius(this.worldMap?.pathingBounds, x, y, z, 10, 10, 5);
+        this.worldMap?.setCenteredPathingBoundsTo(x, y, z, 21, 21, 11);
         const items = (this.worldMap?.getSpritesAt(x, y, z) ?? []).map(s => s instanceof Item && s.visible ? s : null).filter(s => s);
         const hasUnseen = items.some(i => !i.seen);
         const discoveries = items.filter(i => i.discover());
@@ -373,6 +373,10 @@ export class Player extends Creature {
             this.messageLog.addWarning(godSummonMessage);
             this.spawnNearby({role: "godFish"}, {minRadius: 5});
         }
+    }
+
+    canAct() {
+        return this.durability > 0 && !this.wonGame;
     }
 
     async act(time = 0) {
