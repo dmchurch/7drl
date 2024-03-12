@@ -45,6 +45,9 @@ export class Stat {
     /** @type {"s" | ""} */
     s;
 
+    /** @type {"its" | "their"} */
+    its;
+
     #current = 10;
     #max = 10;
 
@@ -78,6 +81,7 @@ export class Stat {
         this.current = current;
         this.max = max;
         this.s = name === "fins" ? "" : "s";
+        this.its = name === "fins" ? "their" : "its";
     }
 
     /** @param {Item} item  */

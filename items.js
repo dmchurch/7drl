@@ -5,7 +5,7 @@ const transmEggrify = "You feel your body changing."
 const transformDescription = "Upon consumption, transforms a random body part.";
 const eggDescription = ""
 const eggMessage = "You eagerly bite into the egg."
-const discoveryMessage = "It is {indefinite}!";
+const discoveryMessage = "You have discovered {indefinite}!";
 export const godSummonMessage = "The Abyssal God appears, drawn by your metamorphosis!";
 export const winMessage = "Deiphage, you have fulfilled your quest. As your jaws wrench divine life from the God once called Yendor, you are suffused with holy power. Your descent complete, you now settle in to wait the centuries until your devourer arrives...";
 
@@ -183,7 +183,7 @@ export const itemDefinitions = /** @type {const} */({
         description: `${justYolks} Their name, like the meager satiety they provide, was too easily forgotten.`,
         effect: "Upon consumption, reduces your satiety somewhat.",
         message: "The meal was adequate.",
-        discoveryMessage: "",
+        discoveryMessage: "You have discovered {indefinite}.",
         behavior: {satiety: 200},
     },
     deliciousSoul: {
@@ -193,7 +193,7 @@ export const itemDefinitions = /** @type {const} */({
         description: `${justYolks} Their name is forgotten, but the sweet virtuous fruit of their life remains.`,
         effect: "Upon consumption, reduces your satiety a lot and heals you.",
         message: "Delicious!",
-        discoveryMessage: "It is delicious.",
+        discoveryMessage: `${discoveryMessage} It is delicious.`,
         behavior: {satiety: 500, health: 2},
     },
     disgustingSoul: {
@@ -203,7 +203,7 @@ export const itemDefinitions = /** @type {const} */({
         description: `${justYolks} Rank betrayal plagued this soul's life, souring it terribly.`,
         effect: "Upon consumption, reduces your satiety somewhat but poisons you.",
         message: "You feel less hungry, but the accompanying nausea brings some regret.",
-        discoveryMessage: "You immediately wish you hadn't.",
+        discoveryMessage: "You immediately wish you hadn't; you have discovered {indefinite}.",
         behavior: {satiety: 50, poison},
     },
     terrorSoul: {

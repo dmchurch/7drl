@@ -439,7 +439,7 @@ export class Creature extends Actor {
 
         const player = Creature.activePlayer;
 
-        if ((roll -= aggression) <= 0) {
+        if ((roll -= aggression) <= 0 && player) {
             let foundMove = false;
             let nx = this.x, ny = this.y, nz = this.z;
             this.tangible = false;

@@ -60,6 +60,7 @@ export class Player extends Creature {
 
     godSummoned = false;
     wonGame = false;
+    isDead = false;
 
     inventoryUI = new InventoryUI(this, "inventory");
     /** @type {MessageLogElement} */
@@ -107,16 +108,11 @@ export class Player extends Creature {
 
     /** @param {number} amount @param {Actor} source @param {Item} item */
     takeDamage(amount, source, item) {
-        const stat = RNG.getItem(this.liveStats);
+        const {liveStats, soulUncovered} = this;
+        const stat = RNG.getItem(liveStats);
         const old = stat.current;
         stat.current -= amount;
-        if (stat.current <= 0) {
-            stat.current = 0;
-            this.losePart(stat, source, item);
-        }
         const {name, s, current} = stat;
-        (this.statUIs[name] ?? this.soulUI).update();
-        document.documentElement.classList.toggle("soul-uncovered", this.soulUncovered);
         if (name === null) {
             if (current === old) {
                 this.messageLog.addMessage(`The ${source.label} attacks you and you feel your soul being nibbled away, but take no damage.`);
@@ -134,32 +130,50 @@ export class Player extends Creature {
                 this.messageLog.addMessage(`and your ${name} take${s} ${amount} damage.`);
             } else {
                 this.messageLog.addMessage(`for ${amount} damage.`);
-                this.messageLog.addWarning(`Your ${name} break${s}!`);
             }
+        }
+        if (current <= 0) {
+            stat.current = 0;
+            if (stat instanceof Stat) {
+                this.losePart(stat, source, item);
+            }
+        }
+        (this.statUIs[name] ?? this.soulUI).update();
+        document.documentElement.classList.toggle("soul-uncovered", this.soulUncovered);
+        if (!soulUncovered && this.soulUncovered) {
+            this.messageLog.addWarning("The pain leaves your soul vulnerable.")
         }
     }
 
     /** @param {Actor} killer @param {Item} item */
     die(killer, item) {
-        this.visible = false;
-        this.tangible = false;
-        const {worldMap} = this;
-        document.documentElement.classList.add("dead");
-        killer.move(this.x - killer.x, this.y - killer.y, this.z - killer.z);
-        after(3000).then(() => {
-            document.documentElement.classList.add("buried");
-            this.messageLog.readMessages();
-            this.messageLog.addFatal("Your soul floats apart.");
-            killer.visibilityRadius -= 2;
-            worldMap.clearFogMap(FOG_KNOWN);
-            worldMap.mainViewport.redraw();
-            worldMap.stopAnimation();
-        });
-        // death will stop the event loop, so force one more redraw
-        this.worldMap.mainViewport.redraw();
-        // killer gets the eyes
-        this.worldMap.visibilitySource = killer;
-        return super.die(killer, item);
+        if (!this.isDead) {
+            this.visible = false;
+            this.tangible = false;
+            this.isDead = true;
+            const {worldMap} = this;
+            document.documentElement.classList.add("dead");
+            after(3000).then(() => {
+                document.documentElement.classList.add("buried");
+                this.messageLog.readMessages();
+                this.messageLog.addFatal("Your soul floats apart.");
+                worldMap.visibilitySource.visibilityRadius -= 2;
+                worldMap.clearFogMap(FOG_KNOWN);
+                worldMap.mainViewport.redraw();
+                worldMap.stopAnimation();
+            });
+        }
+        if (killer && killer !== this) {
+            killer.move(this.x - killer.x, this.y - killer.y, this.z - killer.z);
+            // death will stop the event loop, so force one more redraw
+            this.worldMap.mainViewport.redraw();
+            // killer gets the eyes
+            this.worldMap.visibilitySource = killer;
+        }
+        if (Creature.activePlayer === this) {
+            Creature.activePlayer = null;
+        }
+        return false;
     }
 
     healDamage(amount, source, item) {
@@ -233,13 +247,14 @@ export class Player extends Creature {
         return result;
     }
 
-    /** @param {StatLike} stat @param {Actor} source @param {Item} item */
+    /** @param {Stat} stat @param {Actor} source @param {Item} item */
     losePart(stat, source, item) {
-        if (this.durability <= 0) {
-            this.die(source, item);
-        } else if (stat instanceof Stat && stat.equippedItem) {
-            this.messageLog.addMessage(`Your ${equipment[stat.equippedItem.itemName]?.[stat.name]?.label?.toLowerCase() ?? `transformed ${stat.name}`} revert${stat.s} to your original form.`);
+        const {name, equippedItem, equipDef, s, its} = stat;
+        if (equippedItem) {
+            this.messageLog.addWarning(`Your ${equipDef?.label?.toLowerCase() ?? `transformed ${stat.name}`} revert${s} to ${its} original form.`);
             stat.equippedItem = null;
+        } else {
+            this.messageLog.addWarning(`Your ${name} break${s}!`);
         }
     }
 
@@ -252,7 +267,9 @@ export class Player extends Creature {
         super.addedToWorldMap(worldMap);
         const {x, y, z} = this;
         this.path = new Astar3D(x, y, z, worldMap.isPassable);
+        worldMap.visibilitySource ??= this;
         worldMap.setCenteredPathingBoundsTo(x, y, z, 21, 21, 11);
+        Creature.activePlayer ??= this;
     }
 
     queueEat(item, count=1) {
@@ -338,7 +355,7 @@ export class Player extends Creature {
         this.messageLog.addMessage(item.itemDef.message);
         if (item instanceof EggItem) {
             const soulItem = item.identify(this.worldMap);
-            const {description, discoveryMessage = `It is {indefinite}!`} = soulItem.itemDef;
+            const {description, discoveryMessage = `You have discovered {indefinite}!`} = soulItem.itemDef;
             if (discoveryMessage) {
                 this.messageLog.addMessage(discoveryMessage.replace("{indefinite}", soulItem.getIndefiniteLabel(false)));
             }
@@ -366,6 +383,10 @@ export class Player extends Creature {
         const stat = this.stats[equipTo];
         
         stat.equipItem(soul);
+        const {equipMessage} = stat.equipDef;
+        if (equipMessage) {
+            this.messageLog.addMessage(equipMessage);
+        }
         this.statUIs[equipTo].update();
 
         if (!this.godSummoned && this.statList.every(s => s.current > 0 && s.equipDef)) {
@@ -376,10 +397,14 @@ export class Player extends Creature {
     }
 
     canAct() {
-        return this.durability > 0 && !this.wonGame;
+        return true;
     }
 
     async act(time = 0) {
+        if (this.isDead || this.wonGame) {
+            // this will terminate the event loop
+            return false;
+        }
         while (!this.actionQueue.length) {
             // redraw whenever we go into a wait
             this.worldMap?.mainViewport?.redraw();

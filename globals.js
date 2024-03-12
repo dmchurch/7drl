@@ -24,8 +24,6 @@ export const player = new Player({
     // }
 });
 
-worldMap.visibilitySource = player;
-Creature.activePlayer = player;
 scheduler.player = player;
 
 export const tileset = Tileset.light;
