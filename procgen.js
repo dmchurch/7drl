@@ -127,26 +127,65 @@ export function spawninBBox(sprite, popDef, bbox) {
     return spawnPops(sprite.worldMap, popDef, distributeBBox(bbox), sprite);
 }
 
+/** @param {Cellular3D} generator */
+export function *iterateMap(generator, iters = 5, randomizeProb = 0.5) {
+    const {width, height, depth} = generator;
+    console.groupCollapsed(`Generating cellular map of size ${width}×${height}×${depth} using ${iters} iterations`);
+    performance.mark("generate-start");
+    generator.randomize(randomizeProb);
+    performance.mark("randomized")
+    console.log(`Randomized starting conditions, pop ${generator.population()}`);
+    performance.measure("randomize-map", "generate-start", "randomized");
+    for (let i = 1; i <= iters; i++) {
+        yield i;
+        console.log(`Running iteration ${i}, pop ${generator.population()}`);
+        performance.mark("create-start");
+        generator.create();
+        performance.mark("create-end");
+        performance.measure("iterate-map", "create-start", "create-end");
+    }
+    performance.mark("generate-end");
+    const measure = performance.measure("generate-map", "generate-start", "generate-end");
+    console.log(`Generation complete, pop ${generator.population()}, total time ${measure.duration} ms`);
+    console.groupEnd();
+}
+
+/** @param {Cellular3D} generator @param {(iteration: number, generator: Cellular3D) => void} [initFunction] */
+export async function generateMap(generator, iters = 5, randomizeProb = 0.5, initFunction) {
+    for (const i of iterateMap(generator, iters, randomizeProb)) {
+        if (i > 1) await after(10); // the first yield comes before the first create
+        initFunction?.(i, generator);
+    }
+}
+
+/** @param {WorldMap} worldMap */
+export function analyzeMap(worldMap) {
+
+}
+
 /** @param {WorldMap} worldMap @param {Player} player */
 export async function generateWorld(worldMap, player) {
     worldMap.clearAll();
     const {width, height, depth} = worldMap;
 
-    player.z = depth - depth / 10;
-    player.x = width / 10;
-    player.y = height / 10;
+    player.z = depth - Math.round(depth / 10);
+    player.x = Math.round(width / 10);
+    player.y = Math.round(height / 10);
+
+    console.group(`Generating ${width}×${height}×${depth} world with ${player}`);
 
     const generator = new Cellular3D(worldMap.width, worldMap.height, worldMap.depth);
     const setBaseCallback = worldMap.makeSetBaseCallback(0, 0, 0, {0: "roughwall", 1: null});
 
-    for (const _ of generator.generateMap(setBaseCallback, 5, 0.5, null, true)) {
-        await after(10);
-    }
+    await generateMap(generator);
+    generator.export(setBaseCallback);
+
+    analyzeMap(worldMap);
 
     const playerSpawn = spawnNearby(player, player, {maxRadius: 50}, worldMap);
 
     const totalDistance = Math.max(width, height) + depth;
-    console.log("player spawned, popping pops",playerSpawn)
+    console.log("player spawned, popping pops", playerSpawn);
 
     const bbox = newBBox();
     for (let xOrg = 0; xOrg < width; xOrg += 10) {
@@ -171,5 +210,22 @@ export async function generateWorld(worldMap, player) {
         }
     }
 
+    console.log("World generation complete");
+    console.groupEnd();
+
     viewport.centerOn(player.x, player.y, player.z, true);
 }
+
+// make all these accessible from the console
+Object.assign(self, {
+    generatePops,
+    createSpriteFor,
+    spawnPops,
+    spawnNearby,
+    distributeBBox,
+    spawninBBox,
+    iterateMap,
+    generateMap,
+    analyzeMap,
+    generateWorld,
+})

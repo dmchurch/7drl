@@ -21,7 +21,8 @@ export const tileSheets = {
     souls: "tiles-souls",
     eggs: "tiles-eggs",
     god: "tiles-god",
-    stairs: "stairs",
+    // commenting the stairs out for now because they're not loading properly and we're not using them
+    // stairs: "stairs",
 }
 /*
  o: 1
@@ -280,9 +281,9 @@ export const tileDefinitions = {
         sheet: "god",
         frameType: "animation"
     },
-    stairs: {
-        sheet: "stairs"
-    }
+    // stairs: {
+    //     sheet: "stairs"
+    // },
 }
 
 /** @type {Record<TileName, TileInfo>} */

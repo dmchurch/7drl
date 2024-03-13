@@ -37,14 +37,14 @@ export class Viewport {
     /** @return {{x: number, y: number, z: number}} */
     get displayOffset() {
         return {
-            x: this.centerX,
-            y: this.centerY,
+            x: this.worldMap.width >> 1,
+            y: this.worldMap.height >> 1,
             z: this.centerZ - this.focusLayer,
         }
     }
 
     /** @param {Options} options @param {Element|string} viewportContainer  */
-    constructor(worldMap, viewportContainer, options) {
+    constructor(worldMap, viewportContainer, options, expandLayers = 4) {
         this.worldMap = worldMap;
         this.container = htmlElement(viewportContainer);
         this.layers = options.layers ?? 8;
@@ -55,7 +55,7 @@ export class Viewport {
         this.height = height;
 
         for (let i = 0; i < this.layers; i++) {
-            const expandViewport = 4 * Math.abs(this.focusLayer - i);
+            const expandViewport = expandLayers * Math.abs(this.focusLayer - i);
             this.displays[i] = new FixedDisplay({...options, width: width + expandViewport, height: height + expandViewport});
             const layerContainer = this.displays[i].getContainer();
             this.container.appendChild(layerContainer);
@@ -66,6 +66,8 @@ export class Viewport {
         this.container.style.setProperty("--layer-count", String(this.layers));
         this.container.style.setProperty("--focus-cols", String(width));
         this.container.style.setProperty("--focus-rows", String(height));
+        this.container.style.setProperty("--center-col", String(width >> 1));
+        this.container.style.setProperty("--center-row", String(height >> 1));
         this.container.style.setProperty("--viewport-px-width", `${width * options.tileWidth}`);
         this.container.style.setProperty("--viewport-px-height", `${height * options.tileHeight}`);
 
@@ -117,9 +119,9 @@ export class Viewport {
     }
 
     redraw() {
-        this.container.style.setProperty("--center-x", String(this.centerX));
-        this.container.style.setProperty("--center-y", String(this.centerY));
-        this.container.style.setProperty("--center-z", String(this.centerZ));
+        this.container.style.setProperty("--focus-x", String(this.centerX));
+        this.container.style.setProperty("--focus-y", String(this.centerY));
+        this.container.style.setProperty("--focus-z", String(this.centerZ));
         const {x, y, z} = this.displayOffset;
         for (const [k, display] of this.displays.entries()) {
             const container = display.getContainer();

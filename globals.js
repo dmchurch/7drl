@@ -9,7 +9,7 @@ import { WorldMap } from "./worldmap.js";
 
 console.debug("Starting globals.js");
 
-export let worldMap = new WorldMap(50, 50, 20);
+export let worldMap = new WorldMap(31, 31, 50);
 
 export const player = new Player({
     // inventory: [
@@ -31,8 +31,8 @@ export const tileset = Tileset.light;
 /** @type {ConstructorParameters<typeof Viewport>[2]} */
 let o = {
     ...await tileset.getDisplayOptions(),
-    width: 31,
-    height: 31,
+    width: 33,
+    height: 33,
     layers: 7,
     focusLayer: 3,
 };

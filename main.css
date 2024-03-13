@@ -4,6 +4,7 @@
     --text-color: #5ea6d6;
     --warning-color: #d72;
     --fatal-color: #FF3322;
+    --parallax-ratio: 0.05;
     
     background: var(--background-color);
     color: var(--text-color);
@@ -38,6 +39,7 @@ body {
     overflow: hidden;
     contain: size;
     position: relative;
+    --container-aspect: calc(var(--container-px-width) / var(--container-px-height));
 }
 
 #sideConsole {
@@ -71,8 +73,21 @@ body {
     overflow: clip;
     align-items: center;
     justify-items: center;
-    scale: calc(max((var(--container-px-height)) / var(--viewport-px-height),
-                    (var(--container-px-width)) / var(--viewport-px-width)));
+    scale: var(--display-scale);
+    translate:
+        calc(var(--clipped-x) * var(--focus-x-ratio))
+        calc(var(--clipped-y) * var(--focus-y-ratio));
+    --display-scale: max((var(--container-px-height)) / var(--viewport-px-height), (var(--container-px-width)) / var(--viewport-px-width));
+    --focus-radius-x: calc((var(--focus-cols) - 1) / 2);
+    --focus-radius-y: calc((var(--focus-cols) - 1) / 2);
+    --clipped-x: calc(max(0, (var(--viewport-px-width) * var(--display-scale) - var(--container-px-width) - 0.1)) * 0.5px);
+    --clipped-y: calc(max(0, (var(--viewport-px-height) * var(--display-scale) - var(--container-px-height) - 0.1)) * 0.5px);
+    --focus-x-ratio: calc((var(--center-col) - var(--focus-x)) / var(--focus-radius-x));
+    --focus-y-ratio: calc((var(--center-row) - var(--focus-y)) / var(--focus-radius-y));
+    --focus-x-px: calc((var(--center-col) - var(--focus-x)) * var(--tile-width));
+    --focus-y-px: calc((var(--center-row) - var(--focus-y)) * var(--tile-height));
+    --tile-width: calc(var(--viewport-px-width) / var(--focus-cols));
+    --tile-height: calc(var(--viewport-px-height) / var(--focus-rows));
 }
 #gameDisplay > * {
     grid-area: display;
@@ -81,8 +96,13 @@ body {
 canvas.viewport-layer {
     background: #08001480;
     filter: blur(0) brightness(1);
-    scale: calc(1 + var(--layer-offset) * .1);
-/*     mix-blend-mode: lighten; */
+    transform: 
+        translate(calc(var(--focus-x-px) * -1px), calc(var(--focus-y-px) * -1px))
+        scale(var(--canvas-scale))
+        translate(calc(var(--focus-x-px) * 1px), calc(var(--focus-y-px) * 1px))
+        ;
+    --canvas-scale: calc(1 + var(--layer-offset) * var(--parallax-ratio));
+    
 }
 
 canvas.layer-above {

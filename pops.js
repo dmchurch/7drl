@@ -4,6 +4,8 @@
  *                                          Pair = inclusive range [min, max]
  * @prop {number|number[]}     [chance=100] What is the chance this gets generated?
  *                                          Multiple numbers = chance for multiple instances, times count
+ * @prop {number|[number,number]}  [size=1] How large should this group be, in tiles?
+ *                                          Pair = inclusive range [min, max]
  * 
  * @typedef PickOnePopDefinition
  * @prop {"pickone"} [type]

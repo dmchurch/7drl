@@ -38,6 +38,8 @@ export class Cellular3D extends Map.Cellular {
         return /** @type {Options} */(this._options);
     }
 
+    livePopulation = 0;
+
     /**
      * @param {number} width
      * @param {number} height
@@ -53,7 +55,7 @@ export class Cellular3D extends Map.Cellular {
         this._dirs = [...this._dirs, [1 << layerStrideBits, 0], [-1 << layerStrideBits, 0]];
     }
 
-    // @ts-ignore the return value is close enough to number[][]
+    /** @returns {number[][]} */
     _fillMap(value) {
         const {thisMap, otherMap} = this;
         if (otherMap) {
@@ -61,6 +63,7 @@ export class Cellular3D extends Map.Cellular {
             this.otherMap = thisMap;
             otherMap.data.fill(value);
             otherMap.nullColumn.fill(value);
+            // @ts-ignore
             return otherMap.map;
         }
         if (thisMap) {
@@ -81,6 +84,7 @@ export class Cellular3D extends Map.Cellular {
             }
         }
         this.thisMap = {data, nullColumn, map};
+        // @ts-ignore this return value is close enough to number[][]
         return map;
     }
 
@@ -103,25 +107,51 @@ export class Cellular3D extends Map.Cellular {
 
     /** @param {Create3DCallback} [callback] */
     create(callback) {
-        super.create();
+        let newMap = this._fillMap(0);
+        let nextPopulation = 0;
+        let born = this._options.born;
+        let survive = this._options.survive;
+        for (let j = 0; j < this._height; j++) {
+            let widthStep = 1;
+            let widthStart = 0;
+            if (this._options.topology == 6) {
+                widthStep = 2;
+                widthStart = j % 2;
+            }
+            for (let i = widthStart; i < this._width; i += widthStep) {
+                let cur = this._map[i][j];
+                let ncount = this._getNeighbors(i, j);
+                if (cur && survive.indexOf(ncount) != -1) { /* survive */
+                    newMap[i][j] = 1;
+                    nextPopulation++;
+                }
+                else if (!cur && born.indexOf(ncount) != -1) { /* born */
+                    newMap[i][j] = 1;
+                    nextPopulation++;
+                }
+            }
+        }
+        this._map = newMap;
+        this.livePopulation = nextPopulation;
         this.thisMap.nullColumn.fill(0);
         this._service3DCallback(callback);
     }
 
+    /** @param {Create3DCallback} callback */
+    export(callback) {
+        this._service3DCallback(callback);
+    }
+
     randomize(probability) {
+        this.livePopulation = 0;
         for (let i = 0; i < this.data.length; i++) {
-            this.data[i] = (RNG.getUniform() < probability ? 1 : 0);
+            this.livePopulation += (this.data[i] = (RNG.getUniform() < probability ? 1 : 0));
         }
         return this;
     }
 
     population() {
-        return "disabled"
-        // let count = 0;
-        // for (let i = 0; i < this.data.length; i++) {
-        //     count += this.data[i];
-        // }
-        // return count;
+        return this.livePopulation;
     }
 
     _service3DCallback(callback) {
@@ -146,35 +176,6 @@ export class Cellular3D extends Map.Cellular {
     /** @param {number} x @param {number} y @param {number} z @param {number} value */
     set3D(x, y, z, value) {
         super.set(x + (z << this.layerStrideBits), y, value);
-    }
-
-    /** @param {Create3DCallback} callback @param {() => void} [initCallback] */
-    *generateMap(callback, iters = 5, randomizeProb = 0.5, initCallback, yieldIterations = false) {
-        console.groupCollapsed(`Generating cellular map of size ${this.width}×${this.height}×${this.depth} using ${iters} iterations`);
-        performance.mark("generate-start");
-        this.randomize(randomizeProb);
-        performance.mark("randomized")
-        console.log(`Randomized starting conditions, pop ${this.population()}`);
-        performance.measure("randomize-map", "generate-start", "randomized");
-        for (let i = 1; i <= iters; i++) {
-            initCallback?.();
-            console.log(`Running iteration ${i}, pop ${this.population()}`);
-            performance.mark("create-start");
-            this.create();
-            performance.mark("create-end");
-            performance.measure("iterate-map", "create-start", "create-end");
-            if (yieldIterations && i < iters) {
-                this._service3DCallback(callback);
-                yield;
-            }
-        }
-        performance.mark("generate-end");
-        performance.measure("generate-map", "generate-start", "generate-end");
-        console.log(`Reporting to callback, pop ${this.population()}`)
-        this._service3DCallback(callback);
-        performance.mark("callback-end");
-        performance.measure("report-map", "generate-end", "callback-end");
-        console.groupEnd();
     }
 }
 
