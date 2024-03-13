@@ -15,6 +15,8 @@ console.log("Starting main.js");
 await generateWorld(worldMap, player);
 
 viewport.trackSize(document.getElementById("viewportRegion"));
+viewport.trackSize(document.getElementById("depthRegion"));
+viewport.createDepthView("depthGauge");
 
 player.bindStatUIs(document.querySelectorAll(".bodypart"));
 

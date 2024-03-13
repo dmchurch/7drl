@@ -20,6 +20,13 @@ export class Viewport {
     container;
     /** @type {Display[]} */
     displays;
+    /** @type {Display} */
+    focusDisplay;
+
+    /** @type {HTMLElement} */
+    depthContainer;
+    /** @type {Display} */
+    depthDisplay;
 
     width;
     height;
@@ -63,6 +70,9 @@ export class Viewport {
             layerContainer.dataset.index = String(i);
             layerContainer.style.setProperty("--layer-index", String(i));
         }
+
+        this.focusDisplay = this.displays[this.focusLayer];
+
         this.container.style.setProperty("--layer-count", String(this.layers));
         this.container.style.setProperty("--focus-cols", String(width));
         this.container.style.setProperty("--focus-rows", String(height));
@@ -76,6 +86,18 @@ export class Viewport {
         this.centerZ = this.worldMap.depth >> 1;
 
         this.resizeObserver = new ResizeObserver(this.resizeCallback.bind(this));
+    }
+
+    /** @param {Element|string} depthContainer @param {Omit<Options,'width'|'height'>} options */
+    createDepthView(depthContainer, options = {}) {
+        const viewportOptions = this.focusDisplay.getOptions();
+        this.depthContainer = htmlElement(depthContainer);
+        const gaugeRows = this.worldMap.depth + 2;
+        this.depthDisplay = new FixedDisplay({...viewportOptions, ...options, width: 1, height: gaugeRows});
+        this.depthContainer.appendChild(this.depthDisplay.getContainer());
+        this.depthContainer.style.setProperty("--gauge-rows", String(gaugeRows));
+        this.depthContainer.style.setProperty("--gauge-px-height", String(gaugeRows * viewportOptions.tileHeight));
+        this.trackSize(this.depthContainer, null, "--gauge-area-height");
     }
 
     getDisplayForLayer(z = this.centerZ) {
@@ -139,6 +161,9 @@ export class Viewport {
             }
         }
         this.worldMap.drawLayers(this.displays, x, y, z, this.centerZ);
+        if (this.depthDisplay) {
+            this.worldMap.drawDepthColumn(this.depthDisplay, this.centerX, this.centerY);
+        }
     }
 }
 
@@ -151,7 +176,7 @@ class FixedTile extends Tile {
     }
 
     draw(data, clearBefore) {
-        const {globalCompositeOperation, globalAlpha} = this._ctx;
+        const {globalAlpha} = this._ctx;
         let [x, y, ch, fg, bg] = data;
         let tileWidth = this._options.tileWidth;
         let tileHeight = this._options.tileHeight;
@@ -160,10 +185,14 @@ class FixedTile extends Tile {
                 this._ctx.clearRect(x * tileWidth, y * tileHeight, tileWidth, tileHeight);
             }
             else {
+                this._ctx.save();
                 this._ctx.globalCompositeOperation = "copy";
                 this._ctx.fillStyle = bg;
-                this._ctx.fillRect(x * tileWidth, y * tileHeight, tileWidth, tileHeight);
-                this._ctx.globalCompositeOperation = globalCompositeOperation;
+                this._ctx.beginPath();
+                this._ctx.rect(x * tileWidth, y * tileHeight, tileWidth, tileHeight);
+                this._ctx.clip();
+                this._ctx.fill();
+                this._ctx.restore();
             }
         }
         if (!ch) {

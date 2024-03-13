@@ -415,7 +415,10 @@ export class WorldMap {
              xOrigin = centerX - (width >> 1),
              yOrigin = centerY - (height >> 1),
              row = y - yOrigin, col = x - xOrigin,
-             sprites = this.sprites) {
+             sprites = this.sprites,
+             bg = null,
+             bgUnseen = null,
+             bgUnknown = null) {
 
         if (!inSemiOpenRange(row, 0, height) || !inSemiOpenRange(col, 0, width)) return;
 
@@ -431,7 +434,11 @@ export class WorldMap {
             if (fog & FOG_KNOWN) {
                 fg ??= 1;
                 fg *= 0.5;
+                bg = bgUnseen;
             } else {
+                if (bgUnknown) {
+                    display.draw(col, row, [], null, bgUnknown);
+                }
                 return;
             }
         }
@@ -446,7 +453,7 @@ export class WorldMap {
             if (!sprite.visible) continue;
             tiles.push(this.getSpriteChar(sprite));
         }
-        display.draw(col, row, tiles, fg, null);
+        display.draw(col, row, tiles, fg, bg);
     }
 
     /** @param {import("rot-js").Display} display  */
@@ -476,6 +483,28 @@ export class WorldMap {
                               j, i,
                               sprites.filter(s => s.x === x && s.y === y));
             }
+        }
+    }
+
+    /** @param {import("rot-js").Display} display */
+    drawDepthColumn(display, x = 0, y = 0, zOrigin = -1) {
+        const {width, height} = display.getOptions();
+        const sprites = this.sprites.filter(s => s.x === x && s.y === y);
+        display.clear();
+        for (let j = 0; j < height; j++) {
+            const z = zOrigin + height - j - 1;
+            this.drawTile(x, y, z,
+                          null, null, null, // focus*
+                          display,
+                          null, null, // center*
+                          width, height,
+                          null, null, // *Origin
+                          j, 0,
+                          sprites,
+                          "#141335",   // bg
+                          "#14133580", // bgUnseen
+                          "#14133540", // bgUnknown
+                        );
         }
     }
 
