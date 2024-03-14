@@ -1,5 +1,5 @@
 import { WorldMap } from "./worldmap.js";
-import { animationFrame, dialogElement, getElement, htmlElement } from "./helpers.js";
+import { after, animationFrame, dialogElement, getElement, htmlElement } from "./helpers.js";
 import { StatUI, isStatName } from "./stats.js";
 import { Creature } from "./actors.js";
 import { KeyboardCueElement, MessageLogElement } from "./uicomponents.js";
@@ -85,11 +85,15 @@ input.bind(() => player.queueAction(() => player.takeItems()), "KeyG").setName("
 input.bind(new class extends DOMListAction {
     activate(event, input) {
         super.activate(event, input);
-        worldMap.enableCutaway = false;
+        after(100).then(() => {
+            worldMap.enableCutaway = false;
+            viewport.redraw();
+        });
     }
     deactivate(event, input) {
         super.deactivate(event, input);
         worldMap.enableCutaway = true;
+        viewport.redraw();
     }
 }("Look Across", document.documentElement.classList, "look-across"), input.VKeyAlt);
 input.bind(new DOMListAction("Look Up", document.documentElement.classList, "look-up"), [input.VKeyAlt, "KeyQ"], [input.VKeyAlt, "NumpadSubtract"])
