@@ -82,7 +82,16 @@ input.bind(() => player.inventoryUI?.performAction("eat"), "Digit1").setName("Ea
 input.bind(() => player.inventoryUI?.performAction("drop"), "Digit2").setName("Drop");
 input.bind(() => player.queueAction(() => player.takeItems()), "KeyG").setName("Pick up").addCharBinding(",");
 
-input.bind(new DOMListAction("Look Across", document.documentElement.classList, "look-across"), input.VKeyAlt);
+input.bind(new class extends DOMListAction {
+    activate(event, input) {
+        super.activate(event, input);
+        worldMap.enableCutaway = false;
+    }
+    deactivate(event, input) {
+        super.deactivate(event, input);
+        worldMap.enableCutaway = true;
+    }
+}("Look Across", document.documentElement.classList, "look-across"), input.VKeyAlt);
 input.bind(new DOMListAction("Look Up", document.documentElement.classList, "look-up"), [input.VKeyAlt, "KeyQ"], [input.VKeyAlt, "NumpadSubtract"])
 input.bind(new DOMListAction("Look Down", document.documentElement.classList, "look-down"), [input.VKeyAlt, "KeyZ"], [input.VKeyAlt, "NumpadAdd"])
 

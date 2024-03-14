@@ -55,6 +55,9 @@ export class WorldMap {
 
     fov = new Precise3DShadowcasting((x, y, z) => this.lightPasses(x, y, z), {topology: 8});
 
+    // dim the opacity of things above our layer
+    enableCutaway = true;
+
     /** @type {BoundingBox} The bounds of the actual data storage, what can be stored as tiles */
     bounds;
 
@@ -425,8 +428,16 @@ export class WorldMap {
         const baseIndex = this.nearIndex(x, y, z);
         /** @type {any} */
         let fg = null;
-        if (focusOffset && this.baseMap[baseIndex + focusOffset] === 0) {
+        if (this.enableCutaway && focusOffset && this.baseMap[baseIndex + focusOffset] === 0) {
             fg = focusOpacity;
+            if (this.visibilitySource) {
+                const {x: vx, y: vy} = this.visibilitySource;
+                if (x === vx && y === vy) {
+                    fg *= 0.5;
+                } else if (Math.max(Math.abs(x - vx), Math.abs(y - vy)) === 1) {
+                    fg *= 0.75;
+                }
+            }
         }
         // nearIndex will either return a valid in-map index or -1
         const fog = this.fogMap[baseIndex] ?? 0;
