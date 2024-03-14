@@ -55,9 +55,9 @@ body {
 @media (orientation: portrait) {
     body {
         grid:
-            "viewport" minmax(min-content, 100dvw)
-            "console" minmax(min-content, 1fr)
-            / 100dvw;
+            "viewport depth" minmax(min-content, calc(100dvw - 2em))
+            "console console" minmax(min-content, 1fr)
+            / 1fr min-content;
     }
     #sideConsole {
         flex-direction: row;
@@ -176,11 +176,15 @@ canvas.layer-focus {
 }
 
 #depthGauge {
-    display: contents;
+    position: relative;
+    width: 100%;
 }
 
 #depthGauge > canvas {
+    inset: 0;
+    position: absolute;
     height: 100%;
+    margin: 0 auto;
 }
 
 /* Side-console stuff */
