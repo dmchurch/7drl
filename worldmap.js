@@ -517,6 +517,9 @@ export class WorldMap {
         
         this.clearFogMap(FOG_VISIBLE);
         const {x, y, z} = this.visibilitySource ?? {};
+        if (this.visibilitySource) {
+            this.clearFogMap(FOG_VISIBLE, newBBox(x, y, 0, 1, 1, this.depth));
+        }
         this.computeVisibility(x, y, z, this.visibilitySource.visibilityRadius);
         for (const [k, display] of displays.entries()) {
             this.drawLayer(display, centerX, centerY, zOrigin + k, zFocus);
