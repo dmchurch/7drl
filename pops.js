@@ -4,8 +4,9 @@
  *                                          Pair = inclusive range [min, max]
  * @prop {number|number[]}     [chance=100] What is the chance this gets generated?
  *                                          Multiple numbers = chance for multiple instances, times count
- * @prop {number|[number,number]}  [size=1] How large should this group be, in tiles?
+ * @prop {number|[number,number]}    [size] How large should this group be, in tiles?
  *                                          Pair = inclusive range [min, max]
+ * @prop {PopDefinition}        [inventory] What items should get distributed throughout this pop?
  * 
  * @typedef PickOnePopDefinition
  * @prop {"pickone"} [type]
@@ -37,6 +38,7 @@ const popTypes = /** @type {const} */([
 
 const allPopNames = /** @type {const} */([
     "world",
+    "decor",
     "easyPlace",
     "mediumPlace",
     "hardPlace",
@@ -51,45 +53,63 @@ const allPopNames = /** @type {const} */([
 
 /** @satisfies {Record<PopName, PopDefinition>} */
 export const popDefinitions = {
+    // Each of the easy, medium, and hard places is currently occupies 30×30×17 = 16,337 coordinates,
+    // and current map generator is yielding around 5,000 ~ 6,500 open spaces, of which
+    // around 900 ~ 1,500 are the tile directly above a ground tile. The tweaks I'll be making to the generator
+    // will almost certainly increase the number of ground tiles, though, so we can probably assume around 1,200 ~ 1,500
     world: {
-        pickone: [
-            { pop: "sparseArea", weight: 10 },
-            { pop: "fishSchool", weight: 4 },
-            { pop: "crabGang", weight: 3 },
-            { pop: "horribleZone", weight: 1}
+        pickeach: [
+            { pop: "easyPlace" },
+            { pop: "mediumPlace" },
+            { pop: "hardPlace" },
         ]
     },
+
+    decor: {
+        pickeach: [
+            { pop: "junkyard", count: [2, 4]},
+            // junkyards generally allocate 100 ground tiles apiece, so there may be anywhere from 800 ~ 1,300 ground tiles left over
+            // junkyards have an average fill of around 30-60%, so we should stay under, idk, around 250 or so on average?
+
+            // the below popdefs aren't associated with a size, so they each only "reserve" their own tile.
+            { role: "pottery", count: [5, 10]},
+            { role: "litter", count: [10, 20]},
+            { role: "ground", count: [30, 50]},
+            { role: "weeds", count: [20, 40]},
+        ]
+    },
+
     easyPlace: {
-        chance: [50, 10, 10, 5, 5, 5],
-        pickone: [
-            { pop: "sparseArea", count: [1, 2], weight: 10},
-            { pop: "fishSchool", count: [1, 2], weight: 6},
-            { pop: "crabGang", weight: 5},
-            { pop: "horribleZone", chance: 1, weight: 1},
+        pickeach: [
+            { pop: "decor" },
+            { pop: "sparseArea", count: [3, 10]},
+            { pop: "fishSchool", count: [3, 6]},
+            { pop: "crabGang", chance: [50, 10, 10, 5, 5, 5]},
+            { pop: "horribleZone", chance: [1]}
         ]
     },
     mediumPlace: {
-        chance: [100, 10, 10, 5, 5, 5],
-        pickone: [
-            { pop: "sparseArea", count: [1, 2], weight: 10},
-            { pop: "fishSchool", count: [1, 2], weight: 6},
-            { pop: "crabGang", weight: 10},
-            { pop: "horribleZone", weight: 1},
+        pickeach: [
+            { pop: "decor" },
+            { pop: "sparseArea", count: [3, 10]},
+            { pop: "fishSchool", count: [5, 15]},
+            { pop: "crabGang", count: [3, 10]},
+            { pop: "horribleZone", chance: [50, 5, 1, 1]}
         ]
     },
     hardPlace: {
-        chance: [100, 75, 50, 5, 5, 5],
-        pickone: [
-            { pop: "sparseArea", weight: 5},
-            { pop: "fishSchool", weight: 1},
-            { pop: "crabGang", count: [1, 3], weight: 10},
-            { pop: "horribleZone", count: [1, 2], weight: 5},
+        pickeach: [
+            { pop: "decor" },
+            { pop: "sparseArea", count: [3, 10]},
+            { pop: "fishSchool", count: [1, 5]},
+            { pop: "crabGang", count: [3, 10]},
+            { pop: "horribleZone", count: [1, 5]}
         ]
     },
     horribleZone: {
         pickeach: [
-        { role: "toothFish", chance: [100, 25, 5] },
-        { role: "eel", count: [4, 12]}
+            { role: "toothFish", chance: [100, 25, 5] },
+            { role: "eel", count: [4, 12]}
         ]
     },
     crabGang: {
@@ -98,7 +118,7 @@ export const popDefinitions = {
     },
     fishSchool: {
         pickeach: [
-            { role: "fish", count: [2, 5]},
+            { role: "fish", count: [10, 25]},
             { role: "bigFish", chance: [5, 1]}
         ]
     },
@@ -112,12 +132,15 @@ export const popDefinitions = {
     
     },
     junkyard: {
+        size: 100, // since everything in this popdef is grounded, this means 100 ground tiles
         pickeach: [
             { role: "pottery", count: [2, 5] },
             { role: "litter", count: [10, 20] },
             { role: "ground", count: [20, 30] },
             { role: "weeds", count: [3, 7] },
         ],
+        // junkyards will pop anywhere from 35 ~ 62 props, which corresponds directly to % fill.
+        // remembering that 50% is a checkerboard, these should look nicely crowded!
     },
     commonSoul: {
         pickone: [
@@ -160,3 +183,5 @@ export function fixPopDefinition(popDef) {
 import { mapEntries } from "./helpers.js";
 /** @type {Record<PopName, Required<PopDefinition>>} */
 export const pops = mapEntries(popDefinitions, fixPopDefinition);
+
+Object.assign(self, {pops, fixPopDefinition});

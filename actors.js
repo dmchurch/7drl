@@ -4,15 +4,15 @@ import { roles } from "./roles.js";
 import { WorldMap } from "./worldmap.js";
 import { Astar3D } from "./rot3d.js";
 import { scheduler } from "./engine.js";
-import { isConsumableItemDefinition, isEquippableItemDefinition, isMetaEffectName, isNumericEffectName, isVoidEffectName, items } from "./items.js";
-import { inBBox, typedEntries, typedKeys } from "./helpers.js";
+import { isConsumableItemDefinition, isMetaEffectName, isNumericEffectName, isVoidEffectName } from "./items.js";
+import { typedEntries, typedKeys } from "./helpers.js";
 
 console.debug("Starting actors.js");
 
 export class Actor extends Prop {
     static nextActorId = 1;
 
-    /** @param {RoleName} roleName @param {Overrides<Actor>} options @returns {Actor} */
+    /** @param {RoleName} roleName @param {Overrides<Actor>} [options] @returns {Actor} */
     static create(roleName, options) {
         roleName = options?.roleName ?? roleName;
         const roleType = roles[roleName]?.type ?? "creature";
@@ -148,16 +148,16 @@ export class Actor extends Prop {
     }
 
     /** @param {WorldMap} worldMap @param {PopDefinition} popDef @param {PopDefinition} rootPopDef */
-    canSpawnAt(x=0, y=0, z=0, worldMap, popDef, rootPopDef, context) {
+    canSpawnAt(x=0, y=0, z=0, worldMap, popDef, rootPopDef) {
         const {spawnRestrictions} = this.role;
         if (spawnRestrictions && spawnRestrictions.length) {
             for (const restriction of spawnRestrictions) {
-                if (this.checkRestriction(restriction, x, y, z, worldMap, context)) {
+                if (this.checkRestriction(restriction, x, y, z, worldMap)) {
                     return true;
                 }
             }
         } else {
-            return super.canSpawnAt(x, y, z, worldMap, popDef, rootPopDef, context);
+            return super.canSpawnAt(x, y, z, worldMap, popDef, rootPopDef);
         }
         return false;
     }
@@ -168,7 +168,7 @@ export class Actor extends Prop {
      * @param {number} z
      * @param {WorldMap} worldMap
      */
-    checkRestriction(restriction, x, y, z, worldMap, context) {
+    checkRestriction(restriction, x, y, z, worldMap) {
         if (restriction === "inGround") {
             const thisTile = worldMap.getBaseTile(x, y, z);
             const upTile = worldMap.getBaseTile(x, y, z+1);
@@ -406,7 +406,7 @@ export class Creature extends Actor {
     }
 
     canAct() {
-        return this.worldMap && inBBox(this.worldMap.pathingBounds, this.x, this.y, this.z);
+        return this.worldMap?.pathingBounds.contains(this.x, this.y, this.z);
     }
 
     async act(time=0) {

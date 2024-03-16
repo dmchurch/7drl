@@ -50,10 +50,10 @@ declare interface TileFrame extends TileInfo {
     sourceFrame?: AsepriteFrame;
 }
 
-declare type BoundingBox = {
-    x: [xMin: number, xMax: number],
-    y: [yMin: number, yMax: number],
-    z: [zMin: number, zMax: number],
+declare interface BoundingBoxLike {
+    xLimits: [number, number];
+    yLimits: [number, number];
+    zLimits: [number, number];
 }
 
 declare type TileSheetDef = import("./tiles.js").TileSheetDef;
@@ -113,4 +113,51 @@ declare interface StatLike {
     name?: StatName;
     s?: string;
     readonly equipDef: EquipmentDefinition;
+}
+
+declare interface ReadonlyBoundingBox {
+    readonly xLimits: [number, number];
+    readonly yLimits: [number, number];
+    readonly zLimits: [number, number];
+    get xMin(): number; get yMin(): number; get zMin(): number;
+    get xMax(): number; get yMax(): number; get zMax(): number;
+
+    get x(): number; get y(): number; get z(): number;
+    get w(): number; get h(): number; get d(): number;
+
+    get centerX(): number; get centerY(): number; get centerZ(): number;
+    get radiusX(): number; get radiusY(): number; get radiusZ(): number;
+    get diameterX(): number; get diameterY(): number; get diameterZ(): number;
+
+    countCoords(): number;
+
+    copy(): import("./geometry.js").BoundingBox;
+    makeWritable(): import("./geometry.js").BoundingBox;
+    contains(x?: number, y?: number, z?: number): boolean;
+    walk(callback: (x: number, y: number, z: number) => any): void;
+}
+
+type Coord = import("./geometry.js").Coord;
+type CoordAbortSymbol = typeof import("./geometry.js").Coord.ABORT
+
+declare interface CoordSet extends IterableIterator<Coord> {
+    get potentiallyUnbounded(): boolean;
+    includes(coord: Coord): boolean;
+    nextCoord(): Coord | null;
+    rewindCoords(): void;
+    resetCoords(rewind?: boolewn = true): void;
+    randomizeCoords(rewind?: boolewn = true): void;
+    countCoords(exact?: boolean): number;
+    getCoords(limit?: number): readonly Coord[] & CoordSet;
+    getCenterCoord(): Coord; // might not be in the set
+    walkCoords(callback: (c: Coord) => unknown | CoordAbortSymbol): void;
+    mapCoords<T>(callback: (c: Coord) => T | CoordAbortSymbol): T[];
+    filterCoords(predicate: (c: Coord) => boolean | CoordAbortSymbol): CoordSet;
+    limitCoords(limit: number): CoordSet;
+}
+
+declare interface CoordLike {
+    readonly x: number;
+    readonly y: number;
+    readonly z: number;
 }

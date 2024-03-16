@@ -1,9 +1,10 @@
-import { clamp, inBBox, inInclusiveRange, inSemiOpenRange, infiniteBBox, intersectBBox, newBBox, setBBox, setBBoxCenter, tuple, typedEntries, walkBBox } from "./helpers.js";
-import { tiles, wallRules } from "./tiles.js";
+import { clamp, inSemiOpenRange, tuple } from "./helpers.js";
+import { wallRules } from "./tiles.js";
 import { Tileset } from "./tileset.js";
 import { Viewport } from "./viewport.js";
 import { WallRule } from "./walls.js";
 import { Precise3DShadowcasting } from "./rot3d.js";
+import { BoundingBox, Coord } from "./geometry.js";
 
 console.debug("Starting worldmap.js");
 
@@ -58,20 +59,20 @@ export class WorldMap {
     // dim the opacity of things above our layer
     enableCutaway = true;
 
-    /** @type {BoundingBox} The bounds of the actual data storage, what can be stored as tiles */
+    /** @type {ReadonlyBoundingBox} The bounds of the actual data storage, what can be stored as tiles */
     bounds;
 
-    /** @type {BoundingBox} The bounds shrunk by 1 tile along x and y (for wall display calculations) */
+    /** @type {ReadonlyBoundingBox} The bounds shrunk by 1 tile along x and y (for wall display calculations) */
     interiorBounds;
 
-    /** @type {BoundingBox} The bounds expanded by 1 tile in all dimensions, aka all positions that can be bumped into */
+    /** @type {ReadonlyBoundingBox} The bounds expanded by 1 tile in all dimensions, aka all positions that can be bumped into */
     exteriorBounds;
 
-    /** @type {BoundingBox} */
-    displayBounds = infiniteBBox();
+    /** @type {ReadonlyBoundingBox} */
+    displayBounds = BoundingBox.Infinity
 
-    /** @type {BoundingBox} */
-    pathingBounds = infiniteBBox();
+    /** @type {ReadonlyBoundingBox} */
+    pathingBounds = BoundingBox.Infinity
 
     #animationActive = false;
     get animationActive() {
@@ -82,9 +83,9 @@ export class WorldMap {
         this.width = width;
         this.height = height;
         this.depth = depth;
-        this.bounds = newBBox(0, 0, 0, width, height, depth);
-        this.interiorBounds = newBBox(1, 1, 0, width - 2, height - 2, depth);
-        this.exteriorBounds = newBBox(-1, -1, -1, width + 2, height + 2, depth + 2);
+        this.bounds = BoundingBox.fromMinMax(0, 0, 0, width - 1, height - 1, depth - 1);
+        this.interiorBounds = BoundingBox.fromMinMax(1, 1, 0, width - 2, height - 2, depth - 1);
+        this.exteriorBounds = BoundingBox.fromMinMax(-1, -1, -1, width, height, depth);
         this.widthBits = Math.ceil(Math.log2(width));
         this.heightBits = Math.ceil(Math.log2(height));
         this.depthBits = Math.ceil(Math.log2(depth));
@@ -174,6 +175,9 @@ export class WorldMap {
     toZ(i) {
         return i >>> (this.widthBits + this.heightBits);
     }
+    toCoord(i) {
+        return Coord.XYZ(this.toX(i), this.toY(i), this.toZ(i));
+    }
     /** @param {number} i @returns {[x: number, y: number, z: number]} */
     fromIndex(i) {
         const x = this.toX(i);
@@ -183,25 +187,29 @@ export class WorldMap {
     }
 
     inMap(x = 0, y = 0, z = 0) {
-        return inBBox(this.bounds, x, y, z);
+        return this.bounds.contains(x, y, z);
     }
 
-    /** @param {BoundingBox} bbox  */
-    setDisplayBounds(bbox) {
-        return this.displayBounds = intersectBBox(bbox, this.bounds);
+    /** @param {(bbox: BoundingBox) => any} setBBoxFunc  */
+    setDisplayBounds(setBBoxFunc) {
+        const bbox = this.displayBounds.makeWritable();
+        setBBoxFunc(bbox);
+        return bbox.intersect(this.exteriorBounds).round();
     }
 
-    /** @param {BoundingBox} bbox  */
-    setPathingBounds(bbox) {
-        return this.pathingBounds = intersectBBox(bbox, this.pathingBounds);
+    /** @param {(bbox: BoundingBox) => any} setBBoxFunc  */
+    setPathingBounds(setBBoxFunc) {
+        const bbox = this.pathingBounds.makeWritable();
+        setBBoxFunc(bbox);
+        return bbox.intersect(this.bounds).round();
     }
 
     setCenteredDisplayBoundsTo(x=0, y=0, z=0, w=0, h=0, d=0) {
-        return this.setDisplayBounds(setBBoxCenter(this.displayBounds, x, y, z, w, h, d));
+        return this.setDisplayBounds(bb => bb.setCenterSize(x, y, z, w, h, d));
     }
 
     setCenteredPathingBoundsTo(x=0, y=0, z=0, w=0, h=0, d=0) {
-        return this.setPathingBounds(setBBoxCenter(this.pathingBounds, x, y, z, w, h, d));
+        return this.setPathingBounds(bb => bb.setCenterSize(x, y, z, w, h, d));
     }
 
     clearAll() {
@@ -278,7 +286,7 @@ export class WorldMap {
         let total = 0;
         const {surroundingIndices, surroundingDirections} = this;
 
-        if (inBBox(this.interiorBounds, x, y, z)) {
+        if (this.interiorBounds.contains(x, y, z)) {
             // common case, wall is in interior and doesn't need bounds tests
             for (let bit = 0; bit < 8; bit++) {
                 const otherIndex = baseIndex + surroundingIndices[bit];
@@ -522,14 +530,14 @@ export class WorldMap {
     /** @param {import("rot-js").Display[]} displays */
     drawLayers(displays, centerX = 0, centerY = 0, zOrigin = 0, zFocus = Infinity) {
         const [maxWidth, maxHeight] = displays.map(d => [d.getOptions().width, d.getOptions().height]).reduce((a, b) => a[0] > b[0] ? a : b);
-        setBBox(this.displayBounds,
-                centerX - (maxWidth >> 1) - 1, centerY - (maxWidth >> 1) - 1, zOrigin,
-                maxWidth + 2, maxHeight + 2, displays.length);
+        this.setDisplayBounds(bb => bb
+            .setCenterSize(centerX, centerY, null, maxWidth, maxHeight, null)
+            .setXYZWHD(null, null, zOrigin, null, null, displays.length));
         
         this.clearFogMap(FOG_VISIBLE);
         const {x, y, z} = this.visibilitySource ?? {};
         if (this.visibilitySource) {
-            this.clearFogMap(FOG_VISIBLE, newBBox(x, y, 0, 1, 1, this.depth));
+            this.clearFogMap(FOG_VISIBLE, BoundingBox.fromXYZWHD(x, y, 0, 1, 1, this.depth));
         }
         this.computeVisibility(x, y, z, this.visibilitySource.visibilityRadius);
         for (const [k, display] of displays.entries()) {
@@ -539,7 +547,7 @@ export class WorldMap {
 
     /** @param {number} flags  */
     clearFogMap(flags, bbox = this.displayBounds) {
-        walkBBox(bbox, (x, y, z) => this.fogMap[this.toIndex(x, y, z)] &= ~flags);
+        bbox.walk((x, y, z) => this.fogMap[this.toIndex(x, y, z)] &= ~flags);
     }
 
     /** @param {number} x @param {number} y @param {number} z @param {number} contents */
@@ -575,6 +583,11 @@ export class MapSprite {
     displayLayer = 0;
     visibilityRadius = 8;
     animationFrameStart = 0;
+
+    get coord() {
+        const {x, y, z} = this;
+        return Coord.XYZ(x, y, z);
+    }
 
     get tileFrame() {
         return Tileset.light.layerFrames[this.spriteTile]?.at(this.spriteFrame)
@@ -631,8 +644,8 @@ export class MapSprite {
         this.container = container ?? this.container;
     }
 
-    /** @param {WorldMap} worldMap @param {PopDefinition} popDef @param {PopDefinition} rootPopDef @param {MapSprite} context */
-    canSpawnAt(x = 0, y = 0, z = 0, worldMap, popDef, rootPopDef, context) {
+    /** @param {WorldMap} worldMap @param {PopDefinition} popDef @param {PopDefinition} rootPopDef */
+    canSpawnAt(x = 0, y = 0, z = 0, worldMap, popDef, rootPopDef) {
         return worldMap.isEmpty(x, y, z);
     }
 

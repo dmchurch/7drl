@@ -1,3 +1,5 @@
+import { RNG } from "rot-js";
+
 /** @template T @param {T} value @param {T} min @param {T} max */
 export function inInclusiveRange(value, min, max) {
     return value >= min && value <= max;
@@ -15,112 +17,22 @@ export function clamp(value, min, max) {
          : value;
 }
 
-/** @param {Partial<BoundingBox>} bbox */
-export function inBBox({x: [xMin, xMax] = [-Infinity, Infinity],
-                        y: [yMin, yMax] = [-Infinity, Infinity],
-                        z: [zMin, zMax] = [-Infinity, Infinity]},
-                        x = 0, y = 0, z = 0) {
-    return inInclusiveRange(x, xMin, xMax) 
-        && inInclusiveRange(y, yMin, yMax)
-        && inInclusiveRange(z, zMin, zMax);
-}
-
-/** @returns {BoundingBox} */
-export function newBBox(x = 0, y = 0, z = 0, w = 0, h = 0, d = 0) {
-    return {
-        x: [x, x + w - 1],
-        y: [y, y + h - 1],
-        z: [z, z + d - 1],
-    }
-}
-
-/** @returns {BoundingBox} */
-export function infiniteBBox() {
-    return {
-        x: [-Infinity, Infinity],
-        y: [-Infinity, Infinity],
-        z: [-Infinity, Infinity],
-    }
-}
-
-/** @param {BoundingBox} bbox  */
-export function setBBox(bbox, x = 0, y = 0, z = 0, w = 0, h = 0, d = 0) {
-    if (!bbox) return bbox;
-    bbox.x[0] = x;
-    bbox.x[1] = x + w - 1;
-    bbox.y[0] = y;
-    bbox.y[1] = y + h - 1;
-    bbox.z[0] = z;
-    bbox.z[1] = z + d - 1;
-    return bbox;
-}
-
-/** @param {BoundingBox} bbox  */
-export function setBBoxCenter(bbox, cx = 0, cy = 0, cz = 0, w = 0, h = 0, d = 0) {
-    if (!bbox) return bbox;
-    bbox.x[0] = cx - (w >> 1);
-    bbox.x[1] = bbox.x[0] + w - 1;
-    bbox.y[0] = cy - (h >> 1);
-    bbox.y[1] = bbox.y[0] + h - 1;
-    bbox.z[0] = cz - (d >> 1);
-    bbox.z[1] = bbox.z[0] + d - 1;
-    return bbox;
-}
-
-/** @param {BoundingBox} bbox  */
-export function setBBoxCenterRadius(bbox, cx = 0, cy = 0, cz = 0, rx = 0, ry = 0, rz = 0) {
-    if (!bbox) return bbox;
-    bbox.x[0] = cx - rx;
-    bbox.x[1] = cx + rx;
-    bbox.y[0] = cy - ry;
-    bbox.y[1] = cy + ry;
-    bbox.z[0] = cz - rz;
-    bbox.z[1] = cz + rz;
-    return bbox;
-}
-
-/** @param {BoundingBox} resultBbox @param {BoundingBox} intersectWith */
-export function intersectBBox(resultBbox, intersectWith) {
-    if (!resultBbox || !intersectWith) return resultBbox;
-    const {x, y, z} = resultBbox;
-    const {x: ix, y: iy, z: iz} = intersectWith;
-    x[0] = Math.max(x[0], ix[0]);
-    y[0] = Math.max(y[0], iy[0]);
-    z[0] = Math.max(z[0], iz[0]);
-    x[1] = Math.min(x[1], ix[1]);
-    y[1] = Math.min(y[1], iy[1]);
-    z[1] = Math.min(z[1], iz[1]);
-    return resultBbox;
-}
-
-/** @param {BoundingBox} resultBbox @param {BoundingBox} expandToInclude */
-export function encapsulateBBox(resultBbox, expandToInclude) {
-    if (!resultBbox || !expandToInclude) return resultBbox;
-    const {x, y, z} = resultBbox;
-    const {x: ix, y: iy, z: iz} = expandToInclude;
-    x[0] = Math.min(x[0], ix[0]);
-    y[0] = Math.min(y[0], iy[0]);
-    z[0] = Math.min(z[0], iz[0]);
-    x[1] = Math.max(x[1], ix[1]);
-    y[1] = Math.max(y[1], iy[1]);
-    z[1] = Math.max(z[1], iz[1]);
-    return resultBbox;
-}
-
-/** @param {BoundingBox} bbox @param {(x: number, y: number, z: number) => any} callback  */
-export function walkBBox(bbox, callback) {
-    const {x: [xMin, xMax], y: [yMin, yMax], z: [zMin, zMax]} = bbox;
-    for (let z = zMin; z <= zMax; z++) {
-        for (let y = yMin; y <= yMax; y++) {
-            for (let x = xMin; x <= xMax; x++) {
-                callback(x, y, z);
-            }
-        }
-    }
-}
-
 export function indexInArray(index = 0, {length = 0}) {
     return inSemiOpenRange(index, 0, length);
+}
+
+/** @template {{[i: number]: any, length: number}} T @param {T} arrayLike */
+export function scramble(arrayLike) {
+    const {length} = arrayLike;
+    for (let i = 0; i < length - 1; i++) {
+        const index = RNG.getUniformInt(i, length - 1);
+        if (index != i) {
+            const x = arrayLike[i];
+            arrayLike[i] = arrayLike[index];
+            arrayLike[index] = x;
+        }
+    }
+    return arrayLike;
 }
 
 /** @returns {Promise<void>} */
@@ -146,6 +58,19 @@ export function animationFrame() {
 export function memoize(object, property, value, writable = false, enumerable = false) {
     Object.defineProperty(object, property, {value, configurable: true, writable, enumerable});
     return value;
+}
+
+/**
+ * @template T
+ * @template S
+ * @template {keyof T & keyof S} K
+ * @param {{prototype: T}} targetClass
+ * @param {{prototype: S}} sourceClass
+ * @param {K} member 
+ * @returns {S[K]}
+ */
+export function copyImplementation(targetClass, sourceClass, member, writable = false, enumerable = false) {
+    return memoize(targetClass.prototype, member, sourceClass.prototype[member], writable, enumerable);
 }
 
 /** @type {<O>(object: O) => {[K in keyof O]: [K, O[K]]}[keyof O][]} */
@@ -314,3 +239,103 @@ export function cloneTemplate(templateOrId, alwaysReturnFragment=false) {
         return fragment;
     }
 }
+
+/**
+ * An array wrapper optimized for FIFO enqueue/dequeue with minimal allocations
+ * @template T
+ * @implements {IterableIterator<T>}
+ */
+export class Queue {
+    /** @type {T[]} */
+    array;
+
+    ringLength = 0;
+    ringItemCount = 0;
+    readPosition = 0;
+    writePosition = 0;
+    count = 0;
+
+    /** @type {T} */
+    value; // for IteratorResult
+    iterateLimit = Infinity;
+
+    get capacity() { return this.array.length; }
+    get empty() { return this.readPosition === this.writePosition; }
+    get done() { return (this.iterateLimit <= 0 || this.empty) && this.value == null }
+
+    constructor(initialCapacity = 0) {
+        this.array = new Array(initialCapacity);
+    }
+
+    [Symbol.iterator]() {
+        this.value = null;
+        return this;
+    }
+
+    next() {
+        this.value = this.iterateLimit <= 0 ? null : this.dequeue();
+        return this;
+    }
+
+    /** @param {T} item  */
+    enqueue(item) {
+        this.count++; // enqueue will always succeed
+        const {array, readPosition, writePosition, count, ringLength, ringItemCount} = this;
+        const {length} = array; // length before possibly pushing
+        array[writePosition] = item; // we will always write to the current write position
+
+        // where does the write position go next?
+        if (writePosition === length) { // currently writing to end of array, keep doing so
+            this.writePosition = array.length; // this has increased because of the write
+        } else if (writePosition + 1 === readPosition || (writePosition === length - 1 && readPosition === 0)) {
+            // about to crash into the read head, so maybe don't
+            this.writePosition = length;
+            this.ringLength = length;
+            this.ringItemCount = length;
+        } else {
+            this.writePosition = (writePosition + 1) % length; // otherwise just advance the write head
+        }
+        return count;
+    }
+
+    enqueueAll(items) {
+        if (items === this && !isFinite(this.iterateLimit)) return;
+        for (const item of items) {
+            this.enqueue(item);
+        }
+    }
+
+    /** @returns {T} */
+    dequeue() {
+        const {array, readPosition, writePosition, ringLength, ringItemCount} = this;
+        if (readPosition === writePosition) { // empty queue
+            this.count = 0;
+            return null;
+        }
+        this.count--;
+        if (ringItemCount === 1) { // just read the last item from the old ring
+            this.readPosition = ringLength;
+            this.writePosition = 0;
+            this.ringLength = this.ringItemCount = 0;
+        } else if (ringItemCount > 1) {
+            this.ringItemCount = ringItemCount - 1;
+            this.readPosition = (readPosition + 1) % ringLength;
+        } else { // standard ring
+            this.readPosition = (readPosition + 1) % array.length;
+        }
+        return array[readPosition];
+    }
+
+    /** @returns {IterableIterator<T>} */
+    dequeueMany(limit = Infinity) {
+        this.value = null;
+        this.iterateLimit = limit;
+        return this;
+    }
+
+    clear() {
+        this.ringLength = this.ringItemCount = this.readPosition = this.writePosition = this.count = 0;
+    }
+}
+
+Object.assign(self, {Queue});
