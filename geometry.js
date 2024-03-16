@@ -575,7 +575,7 @@ export class Shape extends BaseCoordSet {
     nextCoord() {
         const {currentLines, currentWeights} = this;
         while (currentLines && currentWeights) {
-            const lineIndex = parseInt(RNG.getWeightedValue(currentWeights));
+            const lineIndex = RNG.getUniformInt(0, currentLines.length);
             const line = currentLines[lineIndex];
             if (!line || currentWeights[lineIndex] <= 0) {
                 return null;
