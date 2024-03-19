@@ -1,6 +1,7 @@
 import { mapEntries, memoize, typedEntries } from "./helpers.js";
 import { tileSheets, tiles, wallRules } from "~data/tiles.js";
 import { WallRule } from "./walls.js";
+import type { Display } from "rot-js";
 
 console.debug("Starting tileset.js");
 
@@ -14,8 +15,7 @@ export class Tileset {
         return memoize(this, "dark", CompositeTileSheet.makeComposite(sheetmap, tiles, true));
     }
 
-    /** @param {string|[string,string]|TileSheetDef} entry  @returns {TileSheetDef} */
-    static makeSheetDef(entry) {
+    static makeSheetDef(entry: string | [string, string] | TileSheetDef): TileSheetDef {
         if (typeof entry === "string") {
             entry = [entry, undefined];
         }
@@ -31,12 +31,9 @@ export class Tileset {
     }
 }
 
-/** @template {string} [LayerName = string] */
-export class BaseTileSheet {
-    /** @type {string} */
-    name;
-    /** @type {HTMLImageElement | ImageBitmap} */
-    img;
+export class BaseTileSheet<LayerName extends string> {
+    name: string;
+    img: HTMLImageElement | ImageBitmap;
 
     sheetWidth = 0;
     sheetHeight = 0;
@@ -44,40 +41,32 @@ export class BaseTileSheet {
     tileWidth = 0;
     tileHeight = 0;
 
-    /** @type {Partial<Record<LayerName, TileFrame[]>>} */
-    layerFrames = {};
+    layerFrames: Partial<Record<LayerName, TileFrame[]>> = {};
 
-    /** @type {TileFrame[]} */
-    allFrames = [];
+    allFrames: TileFrame[] = [];
 
-    /** @type {Record<string, [x: number, y: number]>} */
-    charMap;
+    charMap: Record<string, [x: number, y: number]>;
 
-    /** @type {Promise<unknown>} */
-    get ready() {
+    get ready(): Promise<unknown> {
         return memoize(this, "ready", Promise.all([this.imageReady, this.metadataReady]));
     }
     set ready(v) {
         memoize(this, "ready", v);
     }
 
-    /** @type {Promise<unknown>} */
-    imageReady;
-    /** @type {Promise<unknown>} */
-    metadataReady;
+    imageReady: Promise<unknown>;
+    metadataReady: Promise<unknown>;
 
     toString() {
         return this.name;
     }
 
-    /** @param {string} name */
-    constructor(name) {
+    constructor(name: string) {
         this.name = name;
     }
 
     createCharMap() {
-        /** @type {Record<string, [number, number]>} */
-        const map = {};
+        const map: Record<string, [number, number]> = {};
         for (const frame of this.allFrames) {
             map[frame.char] = [frame.x, frame.y];
         }
@@ -85,15 +74,14 @@ export class BaseTileSheet {
         return map;
     }
 
-    /** @type {ConstructorParameters<typeof import("rot-js").Display>[0]} */
-    get displayOptions() {
+    get displayOptions(): ConstructorParameters<typeof Display>[0] {
         const {tileHeight, tileWidth, img} = this;
         return {
             layout: "tile",
             bg: "transparent",
             tileWidth,
             tileHeight,
-            tileSet: /** @type {HTMLImageElement} */(img),
+            tileSet: img,
             tileMap: this.charMap ?? this.createCharMap(),
         };
     }
@@ -104,34 +92,27 @@ export class BaseTileSheet {
     }
 }
 
-/** @extends {BaseTileSheet<TileName>} */
-export class CompositeTileSheet extends BaseTileSheet {
-    /** @param {Record<string, TileSheetDef>} sheetrefs @param {Partial<Record<TileName, TileInfo>>} tileDefs */
-    static makeComposite(sheetrefs, tileDefs, darkMode = false) {
+export class CompositeTileSheet extends BaseTileSheet<TileName> {
+    static makeComposite(sheetrefs: Record<string, TileSheetDef>, tileDefs: Partial<Record<TileName, TileInfo>>, darkMode = false) {
         return new this(mapEntries(sheetrefs, d => AsepriteTileSheet.getByName(darkMode ? d.filenameDark ?? d.filename : d.filename, d)), tileDefs);
     }
 
-    /** @type {Partial<Record<TileSheetName, BaseTileSheet>>} */
-    componentSheets = {};
+    componentSheets: Partial<Record<TileSheetName, BaseTileSheet<TileName>>> = {};
 
-    /** @type {Partial<Record<TileSheetName, number>>} */
-    componentSheetOffsets = {};
+    componentSheetOffsets: Partial<Record<TileSheetName, number>> = {};
 
-    /** @param {Record<string, BaseTileSheet>} sheetMap @param {Partial<Record<TileName, TileInfo>>} tileDefs */
-    constructor(sheetMap, tileDefs) {
+    constructor(sheetMap: Record<string, BaseTileSheet<string>>, tileDefs: Partial<Record<TileName, TileInfo>>) {
         super(`(${Object.values(sheetMap).map(s => s.name).join()})`);
         this.componentSheets = sheetMap;
         this.metadataReady = this.compileMetadata(tileDefs);
         this.imageReady = this.constructImage();
     }
 
-    /** @param {Partial<Record<TileName, TileInfo>>} tileDefs */
-    async compileMetadata(tileDefs) {
+    async compileMetadata(tileDefs: Partial<Record<TileName, TileInfo>>) {
         // console.log(`compiling metadata for ${this}`);
         let sheetOffset = 0;
         let firstSheet = true;
-        /** @type {Partial<Record<TileSheetName, Record<string, TileFrame[]>>>} */
-        const sheetLayers = {};
+        const sheetLayers: Partial<Record<TileSheetName, Record<string, TileFrame[]>>> = {};
         for (const [sheetRef, sheet] of typedEntries(this.componentSheets)) {
             await sheet.metadataReady;
             if (firstSheet) {
@@ -202,12 +183,9 @@ export class CompositeTileSheet extends BaseTileSheet {
     }
 }
 
-export class AsepriteTileSheet extends BaseTileSheet {
-
-    /** @type {Record<string, AsepriteTileSheet>} */
-    static #knownTileSheets = {__proto__: null};
-    /** @param {string} name @param {TileSheetDef} sheetDef @returns {AsepriteTileSheet} */
-    static getByName(name, sheetDef) {
+export class AsepriteTileSheet extends BaseTileSheet<string> {
+    static #knownTileSheets: Record<string, AsepriteTileSheet> = {__proto__: null};
+    static getByName(name: string, sheetDef: TileSheetDef): AsepriteTileSheet {
         if (name in this.#knownTileSheets) return this.#knownTileSheets[name];
 
         if (sheetDef.mode === "walls") {
@@ -217,8 +195,7 @@ export class AsepriteTileSheet extends BaseTileSheet {
         return this.#knownTileSheets[name] = new AsepriteTileSheet(name);
     }
 
-    /** @param {string} name */
-    constructor(name) {
+    constructor(name: string) {
         super(name);
         const img = this.img = document.createElement("img");
         img.src = `img/${name}.png`;
@@ -228,14 +205,12 @@ export class AsepriteTileSheet extends BaseTileSheet {
 
     async fetchMetadata() {
         const response = await fetch(`img/${this.name}.json`);
-        /** @type {AsepriteExport} */
-        const data = await response.json();
+        const data: AsepriteExport = await response.json();
 
         this.sheetWidth = data.meta.size.w;
         this.sheetHeight = data.meta.size.h;
 
-        /** @type {Record<string, TileFrame[]>} */
-        const layerFrames = {};
+        const layerFrames: Record<string, TileFrame[]> = {};
         const allFrames = [];
         const frameNameRe = /^(.+?) \((.+)\)\s*(\d*)\.aseprite/;
 
@@ -249,8 +224,7 @@ export class AsepriteTileSheet extends BaseTileSheet {
             const [, _imgName, layerName, rawFrameIndex] = match;
             const frames = layerFrames[layerName] ??= [];
             const frameIndex = parseInt(rawFrameIndex) || frames.length;
-            /** @type {TileFrame} */
-            const tileFrame = {
+            const tileFrame: TileFrame = {
                 tileName: null,
                 sheet: null,
                 layerName,
@@ -277,10 +251,9 @@ export class AsepriteTileSheet extends BaseTileSheet {
 }
 
 export class WallTemplateTileSheet extends AsepriteTileSheet {
-    wallRule;
+    wallRule: WallRule;
 
-    /** @param {string} name @param {WallRule} wallRule  */
-    constructor(name, wallRule) {
+    constructor(name: string, wallRule: WallRule) {
         super(name);
         this.wallRule = wallRule;
     }
@@ -300,8 +273,7 @@ export class WallTemplateTileSheet extends AsepriteTileSheet {
         this.tileWidth = tileWidth;
         // now, go through each layer and tile them out
         for (const [name, frames] of typedEntries(this.layerFrames)) {
-            /** @type {TileFrame[]} */
-            const newFrames = [];
+            const newFrames: TileFrame[] = [];
             for (const frame of frames) {
                 for (const {x, y} of this.wallRule.frameLocations) {
                     newFrames.push({

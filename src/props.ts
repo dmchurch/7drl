@@ -2,7 +2,8 @@ import { RNG } from "rot-js";
 import { filterEntries, mapEntries, typedEntries } from "./helpers.js";
 import { items } from "~data/items.js";
 import { eggTiles, soulTiles } from "~data/tiles.js";
-import { MapSprite, WorldMap, isSpriteContainer } from "./worldmap.js";
+import { MapSprite, SpriteContainer, WorldMap, isSpriteContainer } from "./worldmap.js";
+import type { Actor } from "./actors.js";
 
 console.debug("Starting props.js");
 
@@ -16,10 +17,9 @@ export class Prop extends MapSprite {
     durability = 5;
     maxDurability = 5;
 
-    /** @overload @param {TileName} spriteTile @param {Overrides<Prop>} [options] */
-    /** @param {TileName} spriteTile @param {Overrides<Prop>} options */
-    constructor(spriteTile,
-                options,
+    protected constructor(spriteTile: TileName, options?: Overrides<Prop>);
+    protected constructor(spriteTile: TileName,
+                options?: Overrides<Prop>,
                 {
                     blocksActors,
                     singular,
@@ -40,39 +40,33 @@ export class Prop extends MapSprite {
         this.maxDurability = maxDurability ?? this.maxDurability;
     }
 
-    /** @param {import("./actors.js").Actor} collider */
-    getCollidedWith(collider) {
+    getCollidedWith(collider: Actor) {
         console.warn("probably shouldn't have collided with something that doesn't know how to get collided with");
     }
 
-    /** @param {number} amount @param {import("./actors.js").Actor} source @param {Item} item */
-    takeDamage(amount, source, item) {
+    takeDamage(amount: number, source: Actor, item: Item) {
         this.durability -= amount;
         if (this.durability <= 0) {
             this.die(source, item);
         }
     }
 
-    /** @param {number} amount @param {import("./actors.js").Actor} source @param {Item} item */
-    healDamage(amount, source, item) {
+    healDamage(amount: number, source: Actor, item: Item) {
         if (this.durability <= this.maxDurability) {
             this.durability = Math.min(this.maxDurability, this.durability + amount);
         }
     }
 
-    /** @param {import("./actors.js").Actor} killer @param {Item} item */
-    die(killer, item) {
+    die(killer: Actor, item: Item) {
         this.releaseFromOwner();
         return false;
     }
 }
 
 export class Item extends Prop {
-    /** @type {Partial<Record<ItemName, boolean>>} */
-    static known = {};
+    static known: Partial<Record<ItemName, boolean>> = {};
 
-    /** @param {ItemName} itemName @param {Overrides<Item>} [options] @returns {Item} */
-    static create(itemName, options) {
+    static create(itemName: ItemName, options?: Overrides<Item>): Item {
         itemName = options?.itemName ?? itemName;
         const spriteTile = options?.spriteTile ?? items[itemName].spriteTile;
         if (soulTiles.includes(spriteTile) && !(this.prototype instanceof SoulItem)) {
@@ -84,8 +78,7 @@ export class Item extends Prop {
         }
     }
 
-    /** @type {ItemName} */
-    itemName;
+    itemName: ItemName;
     #stackSize = 1;
     get stackSize() {
         return this.#stackSize;
@@ -104,10 +97,9 @@ export class Item extends Prop {
 
     seen = false;
 
-    /** @overload @param {ItemName} itemName @param {Overrides<Item>} [options] */
-    /** @param {ItemName} explicitItemName @param {Overrides<Item>} options */
-    constructor(explicitItemName,
-                options,
+    protected constructor(explicitItemName: ItemName, options?: Overrides<Item>);
+    protected constructor(explicitItemName: ItemName,
+                options?: Overrides<Item>,
                 {
                     itemName = explicitItemName,
                     spriteTile = items[itemName].spriteTile,
@@ -157,13 +149,11 @@ export class Item extends Prop {
 }
 
 export class EggItem extends Item {
-    /** @param {ItemName} itemName @param {Overrides<EggItem>} [options] */
-    static create(itemName, options) {
+    static create(itemName: ItemName, options?: Overrides<EggItem>) {
         const {stackSize} = options;
         return SoulItem.create(SoulItem.eggsToSouls[itemName], {stackSize, eggItem: options}).eggItem;
     }
-    /** @type {SoulItem} */
-    soulItem;
+    soulItem: SoulItem;
 
     get eggItem() {return this;}
 
@@ -176,28 +166,24 @@ export class EggItem extends Item {
         }
     }
 
-    /** @param {SoulItem} soulItem @param {ItemName} itemName @param {Overrides<EggItem>} [options] */
-    constructor(soulItem, itemName, options) {
+    constructor(soulItem: SoulItem, itemName: ItemName, options?: Overrides<EggItem>) {
         super(itemName, {animated: true, ...options});
         this.soulItem = soulItem;
     }
 
-    /** @param {WorldMap} worldMap */
-    addedToWorldMap(worldMap) {
+    addedToWorldMap(worldMap: WorldMap) {
         if (SoulItem.identifiedSouls[this.soulItem.itemName]) {
             worldMap.swapSprite(this, this.soulItem);
         }
     }
 
-    /** @param {import("./worldmap.js").SpriteContainer} container */
-    addedToContainer(container) {
+    addedToContainer(container: SpriteContainer) {
         if (SoulItem.identifiedSouls[this.soulItem.itemName]) {
             container.replaceItem(this, this.soulItem);
         }
     }
 
-    /** @param {WorldMap} worldMap  */
-    identify(worldMap) {
+    identify(worldMap: WorldMap) {
         if (!SoulItem.identifiedSouls[this.soulItem.itemName] && worldMap) {
             SoulItem.identifiedSouls[this.soulItem.itemName] = true;
             this.soulItem.discover(); // don't repeat the discovery message next time you see one
@@ -224,13 +210,10 @@ export class EggItem extends Item {
 }
 
 export class SoulItem extends Item {
-    /** @type {Partial<Record<ItemName, ItemName>>} */
-    static soulsToEggs = {};
-    /** @type {Partial<Record<ItemName, ItemName>>} */
-    static eggsToSouls = {};
+    static soulsToEggs: Partial<Record<ItemName, ItemName>> = {};
+    static eggsToSouls: Partial<Record<ItemName, ItemName>> = {};
     
-    /** @type {Partial<Record<ItemName, boolean>>} */
-    static identifiedSouls = {};
+    static identifiedSouls: Partial<Record<ItemName, boolean>> = {};
 
     static get eggsRemaining() {
         const value =
@@ -242,8 +225,7 @@ export class SoulItem extends Item {
         return value;
     }
 
-    /** @param {ItemName} itemName @param {Overrides<SoulItem>} [options] */
-    static create(itemName, options) {
+    static create(itemName: ItemName, options?: Overrides<SoulItem>) {
         const item = new this(itemName, options);
         if (!this.identifiedSouls[itemName]) {
             return item.eggItem;
@@ -251,13 +233,10 @@ export class SoulItem extends Item {
         return item;
     }
 
-    /** @type {EggItem} */
-    eggItem;
+    eggItem: EggItem;
     get soulItem() {return this;}
 
-    /** @overload @param {ItemName} itemName @param {Overrides<SoulItem>} [options] */
-    /** @param {ItemName} itemName @param {Overrides<SoulItem>} options */
-    constructor(itemName, {eggItem, ...rest} = {}) {
+    protected constructor(itemName: ItemName, {eggItem, ...rest}: Overrides<SoulItem> = {}) {
         super(itemName, {displayLayer: 3.5, ...rest});
         itemName = this.itemName ?? itemName;
 
@@ -270,15 +249,13 @@ export class SoulItem extends Item {
         this.eggItem = new EggItem(this, new.target.soulsToEggs[itemName]);
     }
 
-    /** @param {WorldMap} worldMap */
-    addedToWorldMap(worldMap) {
+    addedToWorldMap(worldMap: WorldMap) {
         if (!SoulItem.identifiedSouls[this.itemName]) {
             worldMap.swapSprite(this, this.eggItem);
         }
     }
 
-    /** @param {import("./worldmap.js").SpriteContainer} container */
-    addedToContainer(container) {
+    addedToContainer(container: SpriteContainer) {
         if (!SoulItem.identifiedSouls[this.itemName]) {
             container.replaceItem(this, this.eggItem);
         }

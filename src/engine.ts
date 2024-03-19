@@ -1,23 +1,22 @@
 import { Scheduler } from "rot-js";
+import type { Actor } from "./actors.js";
+import type { Player } from "./player.js";
 
 console.debug("Starting engine.js");
-/** @extends Scheduler.Simple<Actor>  */
-export class Engine extends Scheduler.Simple {
-    /** @typedef {import("./actors.js").Actor} Actor */
-    /** @typedef {import("./player.js").Player} Player */
+export class Engine extends Scheduler.Simple<Actor> {
 
-    /** @type {Player} */
-    player;
+    player: Player;
 
     time = 0;
+
+    currentActor: [string, Actor];
 
     constructor() {
         super();
         this.add(this, true); // self-entry for round-timing!
     }
 
-    /** @returns {Actor} */
-    next() {
+    next(): Actor {
         let next = super.next();
         if (next === this) {
             this.time++;
@@ -39,8 +38,7 @@ export class Engine extends Scheduler.Simple {
 
     async mainLoop() {
         while (!this.player?.wonGame) {
-            /** @type {Actor} */
-            const actor = this.next();
+            const actor: Actor = this.next();
             if (!actor) {
                 console.error("No actors remaining! Exiting main loop");
                 break;
@@ -55,7 +53,7 @@ export class Engine extends Scheduler.Simple {
             let result;
             console.debug(`Scheduling ${actor.toString()} at time ${this.getTime()}`);
             try {
-                this.currentAction = [actor.toString(), actor];
+                this.currentActor = [actor.toString(), actor]; // for debug purposes
                 result = await actor.act(this.getTime());
             } catch (e) {
                 console.error("Actor threw exception during act, removing from scheduler", actor, e);

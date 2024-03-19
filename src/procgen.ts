@@ -9,56 +9,7 @@ import { Cellular3D } from "./cellular3d.js";
 import { viewport } from "./globals.js";
 import { ArrayCoordSet, BoundingBox, Coord, NearbyCoords, SpreadCoords } from "./geometry.js";
 
-/** @param {PopDefinition} popDef @returns {Generator<ItemPopDefinition | RolePopDefinition, void>} */
-export function *generatePops(popDef) {
-    popDef = fixPopDefinition(popDef);
-    let {
-        chance = 100,
-        count = 1,
-    } = popDef;
-
-    if (!Array.isArray(chance)) {
-        chance = [chance];
-    }
-
-    if (Array.isArray(count)) {
-        count = RNG.getUniformInt(count[0], count[1]);
-    }
-
-    while (count-- > 0) {
-        for (const p of chance) {
-            if (p < 100 && RNG.getPercentage() > p) {
-                continue;
-            }
-            switch(popDef.type) {
-                case "pickeach":
-                    for (const subDef of popDef.pickeach) {
-                        yield *generatePops(subDef);
-                    }
-                    break;
-                case "pickone":
-                    const index = parseInt(RNG.getWeightedValue(Object.fromEntries(popDef.pickone.map(def => def.weight).entries())));
-                    if (indexInArray(index, popDef.pickone)) {
-                        yield *generatePops(popDef.pickone[index]);
-                    }
-                    break;
-                case "role":
-                    yield popDef;
-                    break;
-                case "item":
-                    yield popDef;
-                    break;
-                case "pop":
-                    const subDef = pops[popDef.pop];
-                    yield *generatePops(subDef);
-                    break;
-            }
-        }
-    }
-}
-
-/** @param {PopDefinition} popDef @param {{item?: Set<ItemName>, role?: Set<RoleName>}} result */
-export function getSpawnablePops(popDef, includeInventories = false, result = {}) {
+export function getSpawnablePops(popDef: PopDefinition, includeInventories = false, result: { item?: Set<ItemName>; role?: Set<RoleName>; } = {}) {
     popDef = fixPopDefinition(popDef);
     const {type} = popDef;
     switch (type) {
@@ -85,8 +36,7 @@ export function getSpawnablePops(popDef, includeInventories = false, result = {}
     return result;
 }
 
-/** @param {ItemPopDefinition|RolePopDefinition} pop  */
-export function createSpriteFor(pop) {
+export function createSpriteFor(pop: ItemPopDefinition | RolePopDefinition) {
     if (pop.type === "item") {
         return Item.create(pop.item, pop.overrides);
     } else if (pop.type === "role") {
@@ -96,34 +46,26 @@ export function createSpriteFor(pop) {
     }
 }
 
-/**
- * @typedef SpawnRecord
- * @prop {PopDefinition} popDef
- * @prop {SpawnContext} spawnContext
- * @prop {number} startSprite
- * @prop {CoordSet} [sizeRegion]
- * @prop {number} [spriteCount] When the popdef only generates single sprites
- * @prop {number[]} [spriteCounts]
- * @prop {SpawnRecord} [subDef] When there is only one
- * @prop {SpawnRecord[][]} [subDefs] When there are multiple and/or multiple instances
- * @prop {SpawnRecord[]} [inventories]
- */
+export interface SpawnRecord {
+    popDef: PopDefinition;
+    spawnContext: SpawnContext;
+    startSprite: number;
+    sizeRegion?: CoordSet;
+    spriteCount?: number;       // When the popdef only generates single sprites
+    spriteCounts?: number[];
+    subDef?: SpawnRecord;       // When there is only one
+    subDefs?: SpawnRecord[][];  // When there are multiple and/or multiple instances
+    inventories?: SpawnRecord[];
+}
 
-/**
- * @typedef SpawnContext
- * @prop {Set<Coord>} reservedCoords
- * @prop {MapSprite[]} spawnedSprites
- * @prop {PopDefinition} rootPopDef
- * @prop {WorldMap} worldMap
- */
+export interface SpawnContext {
+    reservedCoords: Set<Coord>;
+    spawnedSprites: MapSprite[];
+    rootPopDef: PopDefinition;
+    worldMap: WorldMap;
+}
 
-/**
- * @param {WorldMap} worldMap 
- * @param {MapSprite} sprite
- * @param {CoordSet} spawnRegion
- * @param {SpawnContext} [spawnContext]
- */
-export function spawnSprite(worldMap, sprite, spawnRegion, spawnContext, randomizeCoords = true) {
+export function spawnSprite(worldMap: WorldMap, sprite: MapSprite, spawnRegion: CoordSet, spawnContext?: SpawnContext, randomizeCoords = true) {
     const {reservedCoords, spawnedSprites, rootPopDef} = spawnContext ?? {};
 
     if (spawnRegion.potentiallyUnbounded) {
@@ -151,13 +93,7 @@ export function spawnSprite(worldMap, sprite, spawnRegion, spawnContext, randomi
     return spawned ? sprite : null;
 }
 
-/**
- * 
- * @param {PopDefinition} popDef
- * @param {CoordSet} spawnRegion
- * @param {SpawnContext} [spawnContext]
- */
-function findSpawnRegion(popDef, spawnRegion, spawnContext) {
+function findSpawnRegion(popDef: PopDefinition, spawnRegion: CoordSet, spawnContext?: SpawnContext) {
     const {size} = popDef;
 
     if (!size) return spawnRegion;
@@ -174,8 +110,7 @@ function findSpawnRegion(popDef, spawnRegion, spawnContext) {
         return new ArrayCoordSet();
     }
 
-    /** @type {MapSprite[]} */
-    const sprites = [];
+    const sprites: MapSprite[] = [];
     for (const itemName of spawns.item ?? []) {
         sprites.push(Item.create(itemName));
     }
@@ -189,8 +124,7 @@ function findSpawnRegion(popDef, spawnRegion, spawnContext) {
         spawnRegion = spawnRegion.limitCoords(50000);
     }
 
-    /** @param {Coord} coord */
-    const isValidSpawn = (coord, {x, y, z} = coord) =>
+    const isValidSpawn = (coord: Coord, {x, y, z} = coord) =>
         reservedCoords.has(coord) ? false :
         sprites.some(s => s.canSpawnAt(x, y, z, worldMap, popDef, rootPopDef)) ? true :
         worldMap.isEmpty(x, y, z) ? null
@@ -216,12 +150,8 @@ function findSpawnRegion(popDef, spawnRegion, spawnContext) {
 
 /**
  * Spawn a single instance (unmodified by chance or count) of a given popdef
- * @param {PopDefinition} popDef
- * @param {CoordSet} spawnRegion
- * @param {SpawnContext} spawnContext
- * @param {SpawnRecord} spawnRecord
  */
-export function spawnPopDefInstance(popDef, spawnRegion, spawnContext, spawnRecord) {
+export function spawnPopDefInstance(popDef: PopDefinition, spawnRegion: CoordSet, spawnContext: SpawnContext, spawnRecord: SpawnRecord) {
     const {type, size, inventory} = popDef;
     const {reservedCoords, spawnedSprites, worldMap} = spawnContext;
 
@@ -243,8 +173,7 @@ export function spawnPopDefInstance(popDef, spawnRegion, spawnContext, spawnReco
             subDefs = popDef.pickeach;
             break;
         case "pickone":
-            /** @type {Record<number, number>} */
-            const weights = popDef.pickone.map(def => def.weight);
+            const weights: Record<number, number> = popDef.pickone.map(def => def.weight);
             const index = parseInt(RNG.getWeightedValue(weights));
             if (indexInArray(index, popDef.pickone)) {
                 subDefs = [popDef.pickone[index]]
@@ -285,13 +214,8 @@ export function spawnPopDefInstance(popDef, spawnRegion, spawnContext, spawnReco
 
 /**
  * Spawn all instances of a given popdef
- * @param {WorldMap} worldMap 
- * @param {PopDefinition} popDef
- * @param {CoordSet} spawnRegion
- * @param {SpawnContext} [spawnContext]
- * @returns {SpawnRecord}
  */
-export function spawnPops(worldMap, popDef, spawnRegion, spawnContext, randomizeCoords = true) {
+export function spawnPops(worldMap: WorldMap, popDef: PopDefinition, spawnRegion: CoordSet, spawnContext?: SpawnContext, randomizeCoords = true): SpawnRecord {
     spawnContext ??= {
         reservedCoords: new Set(),
         rootPopDef: popDef instanceof MapSprite ? null : popDef,
@@ -299,8 +223,7 @@ export function spawnPops(worldMap, popDef, spawnRegion, spawnContext, randomize
         worldMap,
     };
 
-    /** @type {SpawnRecord} */
-    const spawnRecord = {
+    const spawnRecord: SpawnRecord = {
         popDef,
         spawnContext,
         startSprite: spawnContext.spawnedSprites.length,
@@ -340,8 +263,7 @@ export function spawnPops(worldMap, popDef, spawnRegion, spawnContext, randomize
     return spawnRecord;
 }
 
-/** @param {MapSprite} sprite @param {PopDefinition|MapSprite} popDef @param {Parameters<MapSprite["distributeNearby"]>[0]} [options] */
-export function spawnNearby(sprite, popDef, options, worldMap = sprite.worldMap, randomizeCoords = false) {
+export function spawnNearby(sprite: MapSprite, popDef: PopDefinition | MapSprite, options?: Parameters<MapSprite["distributeNearby"]>[0], worldMap = sprite.worldMap, randomizeCoords = false) {
     // console.log("spawning nearby", sprite, popDef, worldMap);
     const nearby = new NearbyCoords(sprite.coord, options?.minRadius ?? 1, options?.maxRadius);
     if (popDef instanceof MapSprite) {
@@ -353,14 +275,12 @@ export function spawnNearby(sprite, popDef, options, worldMap = sprite.worldMap,
 
 MapSprite.spawnNearbyFunction = spawnNearby;
 
-/** @param {MapSprite} sprite @param {PopDefinition} popDef @param {BoundingBox} bbox */
-export function spawninBBox(sprite, popDef, bbox) {
+export function spawninBBox(sprite: MapSprite, popDef: PopDefinition, bbox: BoundingBox) {
     // console.log("spawning in bbox", bbox, popDef, sprite);
     return spawnPops(sprite.worldMap, popDef, bbox);
 }
 
-/** @param {Cellular3D} generator */
-export function *iterateMap(generator, iters = 5, randomizeProb = 0.5) {
+export function *iterateMap(generator: Cellular3D, iters = 5, randomizeProb = 0.5) {
     const {width, height, depth} = generator;
     console.groupCollapsed(`Generating cellular map of size ${width}×${height}×${depth} using ${iters} iterations`);
     performance.mark("generate-start");
@@ -382,16 +302,14 @@ export function *iterateMap(generator, iters = 5, randomizeProb = 0.5) {
     console.groupEnd();
 }
 
-/** @param {Cellular3D} generator @param {(iteration: number, generator: Cellular3D) => void} [initFunction] */
-export async function generateMap(generator, iters = 5, randomizeProb = 0.5, initFunction) {
+export async function generateMap(generator: Cellular3D, iters = 5, randomizeProb = 0.5, initFunction?: (iteration: number, generator: Cellular3D) => void) {
     for (const i of iterateMap(generator, iters, randomizeProb)) {
         if (i > 1) await after(10); // the first yield comes before the first create
         initFunction?.(i, generator);
     }
 }
 
-/** @param {WorldMap} worldMap @param {SpawnRecord} [spawnRecord] */
-export function analyzeMap(worldMap, bbox = worldMap.bounds, spawnRecord) {
+export function analyzeMap(worldMap: WorldMap, bbox = worldMap.bounds, spawnRecord?: SpawnRecord) {
     let openTiles = 0;
     let groundTiles = 0;
     bbox.walk((x, y, z, base = worldMap.getBase(x, y, z)) => 
@@ -408,8 +326,7 @@ export function analyzeMap(worldMap, bbox = worldMap.bounds, spawnRecord) {
     }
 }
 
-/** @param {WorldMap} worldMap @param {Player} player */
-export async function generateWorld(worldMap, player) {
+export async function generateWorld(worldMap: WorldMap, player: Player) {
     performance.mark("generate-world-start");
     worldMap.clearAll();
     const {width, height, depth, bounds} = worldMap;
@@ -454,7 +371,6 @@ export async function generateWorld(worldMap, player) {
 
 // make all these accessible from the console
 Object.assign(self, {
-    generatePops,
     getSpawnablePops,
     createSpriteFor,
     spawnPops,

@@ -6,73 +6,64 @@ import { WallRule } from "./walls.js";
 import { Precise3DShadowcasting } from "./rot3d.js";
 import { BoundingBox, Coord } from "./geometry.js";
 
+import type { Display } from "rot-js";
+
 console.debug("Starting worldmap.js");
 
 export const FOG_KNOWN = 1 << 0;
 export const FOG_VISIBLE = 1 << 1;
 
 export class WorldMap {
-    width;
-    height;
-    depth;
+    width: number;
+    height: number;
+    depth: number;
 
-    widthBits;
-    heightBits;
-    depthBits;
+    widthBits: number;
+    heightBits: number;
+    depthBits: number;
 
-    /** @type {Uint8Array} */
-    baseMap;
-    /** @type {Int8Array} */
-    baseFrames;
+    baseMap: Uint8Array;
+    baseFrames: Int8Array;
 
-    /** @type {TileName[]} */
-    baseTiles = [
+    baseTiles: TileName[] = [
         null,
         "roughwall",
     ]
 
     defaultTileIndex = 1;
 
-    /** @type {Uint8Array} */
-    fogMap;
+    fogMap: Uint8Array;
 
-    /** @type {MapSprite[]} */
-    sprites = [];
+    sprites: MapSprite[] = [];
 
-    /** @type {MapSprite} Which sprite, if any, blocked the last isPassable() check? */
-    blockingSprite;
+    /** Which sprite, if any, blocked the last isPassable() check? */
+    blockingSprite: MapSprite;
 
-    /** @type {Viewport} */
-    mainViewport;
+    mainViewport: Viewport;
 
-    /** @type {number[]} */
-    surroundingIndices = [];
+    surroundingIndices: number[] = [];
 
-    /** @type {[number, number][]} */
-    surroundingDirections = [];
+    surroundingDirections: [number, number][] = [];
 
-    /** @type {MapSprite} */
-    visibilitySource;
+    visibilitySource: MapSprite;
 
     fov = new Precise3DShadowcasting((x, y, z) => this.lightPasses(x, y, z), {topology: 8});
 
     // dim the opacity of things above our layer
     enableCutaway = true;
 
-    /** @type {ReadonlyBoundingBox} The bounds of the actual data storage, what can be stored as tiles */
-    bounds;
+    /** The bounds of the actual data storage, what can be stored as tiles */
+    bounds: ReadonlyBoundingBox;
 
-    /** @type {ReadonlyBoundingBox} The bounds shrunk by 1 tile along x and y (for wall display calculations) */
-    interiorBounds;
+    /** The bounds shrunk by 1 tile along x and y (for wall display calculations) */
+    interiorBounds: ReadonlyBoundingBox;
 
-    /** @type {ReadonlyBoundingBox} The bounds expanded by 1 tile in all dimensions, aka all positions that can be bumped into */
-    exteriorBounds;
+    /** The bounds expanded by 1 tile in all dimensions, aka all positions that can be bumped into */
+    exteriorBounds: ReadonlyBoundingBox;
 
-    /** @type {ReadonlyBoundingBox} */
-    displayBounds = BoundingBox.Infinity
+    displayBounds: ReadonlyBoundingBox = BoundingBox.Infinity
 
-    /** @type {ReadonlyBoundingBox} */
-    pathingBounds = BoundingBox.Infinity
+    pathingBounds: ReadonlyBoundingBox = BoundingBox.Infinity
 
     #animationActive = false;
     get animationActive() {
@@ -113,8 +104,7 @@ export class WorldMap {
         cancelAnimationFrame(this.#animationFrameRequest);
     }
 
-    /** @param {DOMHighResTimeStamp} timestamp  */
-    animationHandler(timestamp) {
+    animationHandler(timestamp: DOMHighResTimeStamp) {
         if (!this.#animationActive) return;
         let hadUpdate = false;
         for (const sprite of this.sprites) {
@@ -136,16 +126,13 @@ export class WorldMap {
         this.#animationFrameRequest = requestAnimationFrame(this.animationHandler);
     }
 
-    /** @param {TileName} tileName  */
-    toBaseValue(tileName) {
+    toBaseValue(tileName: TileName) {
         return this.baseTiles.indexOf(tileName);
     }
-    /** @param {number} v */
-    toTileName(v) {
+    toTileName(v: number) {
         return this.baseTiles[v];
     }
 
-    /** @param {number} x @param {number} y @param {number} z */
     toIndex(x = 0, y = 0, z = 0) {
         return (z << (this.heightBits + this.widthBits)) + (y << this.widthBits) + x;
     }
@@ -165,21 +152,19 @@ export class WorldMap {
         if (!this.inMap(x, y, z)) return -1;
         return this.toIndex(x, y, z);
     }
-    /** @param {number} i */
-    toX(i) {
+    toX(i: number) {
         return i & ((1 << (this.widthBits)) - 1);
     }
-    toY(i) {
+    toY(i: number) {
         return (i >>> this.widthBits) & ((1 << this.heightBits) - 1);
     }
-    toZ(i) {
+    toZ(i: number) {
         return i >>> (this.widthBits + this.heightBits);
     }
-    toCoord(i) {
+    toCoord(i: number) {
         return Coord.XYZ(this.toX(i), this.toY(i), this.toZ(i));
     }
-    /** @param {number} i @returns {[x: number, y: number, z: number]} */
-    fromIndex(i) {
+    fromIndex(i: number): [x: number, y: number, z: number] {
         const x = this.toX(i);
         const y = this.toY(i);
         const z = this.toZ(i);
@@ -190,15 +175,13 @@ export class WorldMap {
         return this.bounds.contains(x, y, z);
     }
 
-    /** @param {(bbox: BoundingBox) => any} setBBoxFunc  */
-    setDisplayBounds(setBBoxFunc) {
+    setDisplayBounds(setBBoxFunc: (bbox: BoundingBox) => void) {
         const bbox = this.displayBounds.makeWritable();
         setBBoxFunc(bbox);
         return bbox.intersect(this.exteriorBounds).round();
     }
 
-    /** @param {(bbox: BoundingBox) => any} setBBoxFunc  */
-    setPathingBounds(setBBoxFunc) {
+    setPathingBounds(setBBoxFunc: (bbox: BoundingBox) => void) {
         const bbox = this.pathingBounds.makeWritable();
         setBBoxFunc(bbox);
         return bbox.intersect(this.bounds).round();
@@ -218,18 +201,15 @@ export class WorldMap {
         this.sprites.length = 0;
     }
 
-    /** @param {number} x @param {number} y @param {number} z */
-    getBase(x, y, z) {
+    getBase(x: number, y: number, z: number) {
         return this.inMap(x, y, z) ? this.baseMap[this.toIndex(x, y, z)] : this.defaultTileIndex;
     }
 
-    /** @param {number} x @param {number} y @param {number} z */
-    getBaseTile(x, y, z) {
+    getBaseTile(x: number, y: number, z: number) {
         return this.getTileFrameFor(x, y, z);
     }
 
-    /** @param {number} x @param {number} y @param {number} z */
-    setBase(x, y, z, w = 0) {
+    setBase(x: number, y: number, z: number, w: number) {
         if (!this.inMap(x, y, z)) return;
         const index = this.toIndex(x, y, z);
         const {baseMap, surroundingIndices, baseFrames} = this;
@@ -245,19 +225,16 @@ export class WorldMap {
         }
     }
 
-    /** @param {number} x @param {number} y @param {number} z @param {number} base  */
-    isSameBaseAs(x, y, z, base) {
+    isSameBaseAs(x: number, y: number, z: number, base: number) {
         return this.isIndexSameBaseAs(this.toIndex(x, y, z), base);
     }
-    /** @param {number} index @param {number} base */
-    isIndexSameBaseAs(index, base) {
+    isIndexSameBaseAs(index: number, base: number) {
         // this is simple right now but it could eventually incorporate "similar-enough" logic for
         // different wall sprites that should nonetheless count each other for tiling purposes
         return (this.baseMap[index] ?? this.defaultTileIndex) === base;
     }
 
-    /** @param {number} x @param {number} y @param {number} z */
-    getTileFrameFor(x, y, z,
+    getTileFrameFor(x: number, y: number, z: number,
                     inMap = this.inMap(x, y, z),
                     baseIndex = this.toIndex(x, y, z),
                     base = inMap ? this.baseMap[baseIndex] : this.defaultTileIndex) {
@@ -278,8 +255,7 @@ export class WorldMap {
         return tileInfo.frames[baseFrame % tileInfo.frames.length] ?? tileInfo;
     }
 
-    /** @param {number} x @param {number} y @param {number} z */
-    getWallInfoFor(x, y, z,
+    getWallInfoFor(x: number, y: number, z: number,
                    inMap = this.inMap(x, y, z),
                    baseIndex = this.toIndex(x, y, z),
                    base = inMap ? this.baseMap[baseIndex] : this.defaultTileIndex) {
@@ -354,13 +330,11 @@ export class WorldMap {
         this.fov.compute3D(cx, cy, cz, R, (x, y, z) => this.fogMap[this.toIndex(x, y, z)] |= FOG_KNOWN | FOG_VISIBLE);
     }
 
-    /** @param {MapSprite} sprite */
-    hasSprite(sprite) {
+    hasSprite(sprite: MapSprite) {
         return this.sprites.includes(sprite);
     }
 
-    /** @param {MapSprite} sprite @param {Partial<MapSprite>} [overrides] */
-    addSprite(sprite, overrides) {
+    addSprite(sprite: MapSprite, overrides?: Partial<MapSprite>) {
         if (this.sprites.includes(sprite)) return false;
         if (overrides) {
             Object.assign(sprite, overrides);
@@ -372,8 +346,7 @@ export class WorldMap {
         return true;
     }
 
-    /** @param {MapSprite} sprite */
-    removeSprite(sprite) {
+    removeSprite(sprite: MapSprite) {
         const index = this.sprites.indexOf(sprite);
         if (index >= 0) {
             this.sprites.splice(index, 1);
@@ -384,8 +357,7 @@ export class WorldMap {
         return false;
     }
 
-    /** @template {MapSprite} T @param {MapSprite} fromSprite @param {T} toSprite @param {Overrides<T>} [overrides] */
-    swapSprite(fromSprite, toSprite, overrides) {
+    swapSprite<T extends MapSprite>(fromSprite: MapSprite, toSprite: T, overrides?: Overrides<T>) {
         if (this.removeSprite(fromSprite)) {
             const {x, y, z, visible, tangible} = fromSprite;
             return this.addSprite(toSprite, {x, y, z, visible, tangible, ...overrides});
@@ -393,16 +365,12 @@ export class WorldMap {
         return false;
     }
 
-    /** @param {Record<number, TileName>} [tileMapping] */
-    makeSetBaseCallback(xOrigin = 0, yOrigin = 0, zOrigin = 0, tileMapping = this.baseTiles) {
-        /** @param {number} x @param {number} y @param {number} z @param {number} w */
-        return (x, y, z, w) => this.setBase(xOrigin + x, yOrigin + y, zOrigin + z, this.toBaseValue(tileMapping[w]));
+    makeSetBaseCallback(xOrigin = 0, yOrigin = 0, zOrigin = 0, tileMapping: Record<number, TileName> = this.baseTiles) {
+        return (x: number, y: number, z: number, w: number) => this.setBase(xOrigin + x, yOrigin + y, zOrigin + z, this.toBaseValue(tileMapping[w]));
     }
 
-    /** @param {MapSprite} sprite  */
-    getSpriteChar(sprite) {
-        /** @type {TileFrame} */
-        const frame = Tileset.light.layerFrames[sprite.spriteTile]?.[sprite.spriteFrame];
+    getSpriteChar(sprite: MapSprite) {
+        const frame: TileFrame | undefined = Tileset.light.layerFrames[sprite.spriteTile]?.[sprite.spriteFrame];
         if (!frame) {
             console.error("Could not get frame for sprite!", sprite);
             return;
@@ -434,8 +402,7 @@ export class WorldMap {
         if (!inSemiOpenRange(row, 0, height) || !inSemiOpenRange(col, 0, width)) return;
 
         const baseIndex = this.nearIndex(x, y, z);
-        /** @type {any} */
-        let fg = null;
+        let fg: any = null;
         if (this.enableCutaway && focusOffset && this.baseMap[baseIndex + focusOffset] === 0) {
             fg = focusOpacity;
             if (this.visibilitySource) {
@@ -463,8 +430,7 @@ export class WorldMap {
         }
 
         const baseTile = this.getBaseTile(x, y, z);
-        /** @type {string[]} */
-        const tiles = [];
+        const tiles: string[] = [];
         if (baseTile) {
             tiles.push(baseTile.char);
         }
@@ -475,8 +441,7 @@ export class WorldMap {
         display.draw(col, row, tiles, fg, bg);
     }
 
-    /** @param {import("rot-js").Display} display  */
-    drawLayer(display, centerX = 0, centerY = 0, z = 0, focusLayer = Infinity) {
+    drawLayer(display: Display, centerX = 0, centerY = 0, z = 0, focusLayer = Infinity) {
         const {width, height} = display.getOptions();
         const xOrigin = centerX - (width >> 1);
         const yOrigin = centerY - (height >> 1);
@@ -505,8 +470,7 @@ export class WorldMap {
         }
     }
 
-    /** @param {import("rot-js").Display} display */
-    drawDepthColumn(display, x = 0, y = 0, zOrigin = -1) {
+    drawDepthColumn(display: Display, x = 0, y = 0, zOrigin = -1) {
         const {width, height} = display.getOptions();
         const sprites = this.sprites.filter(s => s.x === x && s.y === y);
         display.clear();
@@ -527,8 +491,7 @@ export class WorldMap {
         }
     }
 
-    /** @param {import("rot-js").Display[]} displays */
-    drawLayers(displays, centerX = 0, centerY = 0, zOrigin = 0, zFocus = Infinity) {
+    drawLayers(displays: Display[], centerX = 0, centerY = 0, zOrigin = 0, zFocus = Infinity) {
         const [maxWidth, maxHeight] = displays.map(d => [d.getOptions().width, d.getOptions().height]).reduce((a, b) => a[0] > b[0] ? a : b);
         this.setDisplayBounds(bb => bb
             .setCenterSize(centerX, centerY, null, maxWidth, maxHeight, null)
@@ -545,28 +508,24 @@ export class WorldMap {
         }
     }
 
-    /** @param {number} flags  */
-    clearFogMap(flags, bbox = this.displayBounds) {
+    clearFogMap(flags: number, bbox = this.displayBounds) {
         bbox.walk((x, y, z) => this.fogMap[this.toIndex(x, y, z)] &= ~flags);
     }
 
-    /** @param {number} x @param {number} y @param {number} z @param {number} contents */
-    static callback(x, y, z, contents) {}
+    static callback(x: number, y: number, z: number, contents: number) {}
 }
 
-/**
- * @typedef SpriteContainer
- * @prop {WorldMap} worldMap
- * @prop {SpriteContainer} container
- * @prop {MapSprite} rootSprite
- * @prop {MapSprite[]} inventory
- * @prop {(sprite: MapSprite) => boolean} hasItem
- * @prop {(sprite: MapSprite) => boolean} relinquishItem
- * @prop {(sprite: MapSprite, withSprite: MapSprite) => boolean} replaceItem
- */
+export interface SpriteContainer {
+     worldMap: WorldMap;
+     container: SpriteContainer;
+     rootSprite: MapSprite;
+     inventory: MapSprite[];
+     hasItem(sprite: MapSprite): boolean;
+     relinquishItem(sprite: MapSprite): boolean;
+     replaceItem(sprite: MapSprite, withSprite: MapSprite): boolean;
+}
 
-/** @param {MapSprite} sprite @returns {sprite is SpriteContainer} */
-export function isSpriteContainer(sprite) {
+export function isSpriteContainer(sprite: MapSprite): sprite is MapSprite & SpriteContainer {
     return "hasItem" in sprite && "relinquishItem" in sprite;
 }
 
@@ -574,8 +533,7 @@ export class MapSprite {
     x = 0;
     y = 0;
     z = 0;
-    /** @type {TileName} */
-    spriteTile;
+    spriteTile: TileName;
     spriteFrame = 0;
     animated = false;
     visible = true;
@@ -593,8 +551,7 @@ export class MapSprite {
         return Tileset.light.layerFrames[this.spriteTile]?.at(this.spriteFrame)
     }
 
-    /** @type {WeakRef<WorldMap>} */
-    #worldMap;
+    #worldMap: WeakRef<WorldMap>;
     get worldMap() {
         return this.container?.worldMap ?? this.#worldMap?.deref();
     }
@@ -607,13 +564,11 @@ export class MapSprite {
         }
     }
 
-    /** @type {MapSprite} */
     get rootSprite() {
         return this.container?.rootSprite ?? this;
     }
 
-    /** @type {WeakRef<SpriteContainer>} */
-    #container;
+    #container: WeakRef<SpriteContainer>;
     get container() {
         return this.#container?.deref();
     }
@@ -628,8 +583,7 @@ export class MapSprite {
         }
     }
 
-    /** @param {TileName} spriteTile @param {Overrides<MapSprite>} [options] */
-    constructor(spriteTile, options = {}) {
+    constructor(spriteTile: TileName, options: Overrides<MapSprite> = {}) {
         this.spriteTile = options?.spriteTile ?? spriteTile;
         const {x, y, z, spriteFrame, animated, visible, displayLayer, worldMap, container} = options
         this.x = x ?? this.x;
@@ -644,16 +598,13 @@ export class MapSprite {
         this.container = container ?? this.container;
     }
 
-    /** @param {WorldMap} worldMap @param {PopDefinition} popDef @param {PopDefinition} rootPopDef */
-    canSpawnAt(x = 0, y = 0, z = 0, worldMap, popDef, rootPopDef) {
+    canSpawnAt(x: number, y: number, z: number, worldMap: WorldMap, popDef: PopDefinition, rootPopDef: PopDefinition) {
         return worldMap.isEmpty(x, y, z);
     }
 
-    /** @type {import("./procgen.js")["spawnNearby"]} */
-    static spawnNearbyFunction;
+    static spawnNearbyFunction: typeof import("./procgen.js")["spawnNearby"];
 
-    /** @param {PopDefinition} popDef @param {{minRadius?: number, maxRadius?: number}} options */
-    spawnNearby(popDef, options, worldMap = this.rootSprite?.worldMap ?? this.worldMap) {
+    spawnNearby(popDef: PopDefinition, options?: { minRadius?: number; maxRadius?: number; }, worldMap = this.rootSprite?.worldMap ?? this.worldMap) {
         MapSprite.spawnNearbyFunction?.(this, popDef, options, worldMap);
     }
 
@@ -698,12 +649,10 @@ export class MapSprite {
         return this.worldMap == null && this.container == null;
     }
 
-    /** @param {WorldMap} worldMap */
-    addedToWorldMap(worldMap) {
+    addedToWorldMap(worldMap: WorldMap) {
     }
 
-    /** @param {SpriteContainer} container */
-    addedToContainer(container) {
+    addedToContainer(container: SpriteContainer) {
     }
 }
 

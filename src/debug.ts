@@ -8,6 +8,7 @@ import { viewport } from "./globals.js";
 import { player } from "./globals.js";
 import { Cellular3D } from "./cellular3d.js";
 import { worldMap } from "./globals.js";
+import { generateMap } from "./procgen.js";
 
 export const generator = new Cellular3D(worldMap.width, worldMap.height, worldMap.depth);
 
@@ -41,10 +42,6 @@ export function clearAroundPlayer() {
         generator.set3D(x, y, z, 0);
     }
 }
-/**
- * @param {number} [iters]
- * @param {number} [randomizeProb]
- */
 
 export async function regenerate(iters = iterations, randomizeProb = fillRatio, iterationDelay = 20) {
     if (typeof seed === "number") {
@@ -52,12 +49,13 @@ export async function regenerate(iters = iterations, randomizeProb = fillRatio, 
         lastSeed = seed;
     }
     let next = after(iterationDelay);
-    for (const _ of generator.generateMap(setBaseCallback, iters, randomizeProb, clearAroundPlayer, true)) {
-        console.log("Redrawing viewport and delaying", iterationDelay);
-        viewport.redraw();
-        await next;
-        next = after(iterationDelay)
-    }
+    generateMap(generator, iters, randomizeProb, clearAroundPlayer);
+    // for (const _ of generator.generateMap(setBaseCallback, iters, randomizeProb, clearAroundPlayer, true)) {
+    //     console.log("Redrawing viewport and delaying", iterationDelay);
+    //     viewport.redraw();
+    //     await next;
+    //     next = after(iterationDelay)
+    // }
     console.log("Generated world map");
     viewport.redraw();
     updateParamFields();
@@ -124,9 +122,8 @@ surviveInput.oninput = () => {
             .map(x => parseInt(x.trim()))
             .filter(x => Number.isInteger(x)));
 };
-/** @type {TileName[]} */
 
-export const terrains = typedEntries(tiles).filter(([k, v]) => v.frameType === "walls").map(([k, v]) => k);
+export const terrains: TileName[] = typedEntries(tiles).filter(([k, v]) => v.frameType === "walls").map(([k, v]) => k);
 
 // Mousetrap is only used for debug bindings, for now
 const Mousetrap = new self.Mousetrap(document.documentElement);

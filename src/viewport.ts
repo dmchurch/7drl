@@ -3,30 +3,22 @@ import { WorldMap } from "./worldmap.js";
 import Tile from "rot-js/lib/display/tile.js"
 import { htmlElement } from "./helpers.js";
 
-/**
- * @typedef {ConstructorParameters<typeof Display>[0] & {
- *  layers?: number,
- *  focusLayer?: number,
- *  width: number,
- *  height: number,
- * }} Options
- */
+type Options = ConstructorParameters<typeof Display>[0] & {
+    layers?: number;
+    focusLayer?: number;
+    width: number;
+    height: number;
+};
 
 export class Viewport {
-    /** @type {WorldMap} */
-    worldMap;
+    worldMap: WorldMap;
 
-    /** @type {HTMLElement} */
-    container;
-    /** @type {Display[]} */
-    displays;
-    /** @type {Display} */
-    focusDisplay;
+    container: HTMLElement;
+    displays: Display[];
+    focusDisplay: Display;
 
-    /** @type {HTMLElement} */
-    depthContainer;
-    /** @type {Display} */
-    depthDisplay;
+    depthContainer: HTMLElement;
+    depthDisplay: Display;
 
     width;
     height;
@@ -38,11 +30,9 @@ export class Viewport {
     centerZ;
 
     resizeObserver;
-    /** @type {WeakMap<Element, {widthProperty: string, heightProperty: string}>} */
-    observingElements = new WeakMap();
+    observingElements: WeakMap<Element, { widthProperty: string; heightProperty: string; }> = new WeakMap();
 
-    /** @return {{x: number, y: number, z: number}} */
-    get displayOffset() {
+    get displayOffset(): { x: number; y: number; z: number; } {
         return {
             x: this.worldMap.width >> 1,
             y: this.worldMap.height >> 1,
@@ -50,8 +40,7 @@ export class Viewport {
         }
     }
 
-    /** @param {Options} options @param {Element|string} viewportContainer  */
-    constructor(worldMap, viewportContainer, options, expandLayers = 4) {
+    constructor(worldMap: WorldMap, viewportContainer: Element | string, options: Options, expandLayers = 4) {
         this.worldMap = worldMap;
         this.container = htmlElement(viewportContainer);
         this.layers = options.layers ?? 8;
@@ -88,8 +77,7 @@ export class Viewport {
         this.resizeObserver = new ResizeObserver(this.resizeCallback.bind(this));
     }
 
-    /** @param {Element|string} depthContainer @param {Omit<Options,'width'|'height'>} options */
-    createDepthView(depthContainer, options = {}) {
+    createDepthView(depthContainer: Element | string, options: Omit<Options, 'width' | 'height'> = {}) {
         const viewportOptions = this.focusDisplay.getOptions();
         this.depthContainer = htmlElement(depthContainer);
         const gaugeRows = this.worldMap.depth + 2;
@@ -105,8 +93,7 @@ export class Viewport {
         return this.displays[layerIndex];
     }
 
-    /** @param {ResizeObserverEntry[]} entries @param {ResizeObserver} observer */
-    resizeCallback(entries, observer) {
+    resizeCallback(entries: ResizeObserverEntry[], observer: ResizeObserver) {
         for (const entry of entries) {
             const {target, contentBoxSize} = entry;
             const observation = this.observingElements.get(target);
@@ -117,8 +104,7 @@ export class Viewport {
         }
     }
 
-    /** @param {Element} element  */
-    trackSize(element, widthProperty = "--container-px-width", heightProperty = "--container-px-height") {
+    trackSize(element: Element, widthProperty = "--container-px-width", heightProperty = "--container-px-height") {
         if (this.observingElements.has(element)) return;
         this.observingElements.set(element, {widthProperty, heightProperty});
         this.resizeObserver.observe(element, {box: "content-box"});
@@ -135,8 +121,7 @@ export class Viewport {
         return false;
     }
 
-    /** @param {boolean} [forceRedraw]  */
-    centerOn(newX = 0, newY = 0, newZ = 0, forceRedraw) {
+    centerOn(newX = 0, newY = 0, newZ = 0, forceRedraw?: boolean) {
         return this.moveViewport(newX - this.centerX, newY - this.centerY, newZ - this.centerZ, forceRedraw);
     }
 
@@ -240,8 +225,7 @@ class FixedTile extends Tile {
 }
 
 class FixedDisplay extends Display {
-    /** @param {ConstructorParameters<typeof Display>[0]} options  */
-    constructor(options) {
+    constructor(options: ConstructorParameters<typeof Display>[0]) {
         super(options);
         if (this._backend instanceof Tile) {
             Object.setPrototypeOf(this._backend, FixedTile.prototype);

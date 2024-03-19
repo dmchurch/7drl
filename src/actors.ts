@@ -1,19 +1,19 @@
 import { RNG } from "rot-js";
 import { EggItem, Item, Prop } from "./props.js";
 import { roles } from "~data/roles.js";
-import { WorldMap } from "./worldmap.js";
+import { SpriteContainer, WorldMap } from "./worldmap.js";
 import { Astar3D } from "./rot3d.js";
 import { scheduler } from "./engine.js";
 import { isConsumableItemDefinition, isMetaEffectName, isNumericEffectName, isVoidEffectName } from "~data/items.js";
 import { typedEntries, typedKeys } from "./helpers.js";
+import type { Player } from "./player.js";
 
 console.debug("Starting actors.js");
 
 export class Actor extends Prop {
     static nextActorId = 1;
 
-    /** @param {RoleName} roleName @param {Overrides<Actor>} [options] @returns {Actor} */
-    static create(roleName, options) {
+    static create(roleName: RoleName, options?: Overrides<Actor>): Actor {
         roleName = options?.roleName ?? roleName;
         const roleType = roles[roleName]?.type ?? "creature";
         if (roleType === "decor" && this !== Decor) {
@@ -27,21 +27,18 @@ export class Actor extends Prop {
     #id = Actor.nextActorId++;
     get id() { return this.#id; }
 
-    /** @type {RoleName} */
-    roleName;
+    roleName: RoleName;
     collision = true;
     baseDamage = 1;
-    /** @type {Partial<Record<ItemEffectName|NumericItemEffectName, number>>} */
-    roundEffects = {};
+    roundEffects: Partial<Record<ItemEffectName | NumericItemEffectName, number>> = {};
 
     get role() {
         return roles[this.roleName];
     }
 
-    /** @overload @param {RoleName} roleName @param {Overrides<Actor>} [options] */
-    /** @param {RoleName} explicitRoleName @param {Overrides<Actor>} options */
-    constructor(explicitRoleName,
-                options,
+    protected constructor(explicitRoleName: RoleName, options?: Overrides<Actor>);
+    protected constructor(explicitRoleName: RoleName,
+                options?: Overrides<Actor>,
                 {
                     roleName = explicitRoleName,
                     spriteTile = roles[roleName].spriteTile,
@@ -69,8 +66,7 @@ export class Actor extends Prop {
         return `${this.constructor.name}#${this.id} "${this.roleName}" @ ${this.x},${this.y},${this.z}`;
     }
 
-    /** @param {Prop} target */
-    attack(target) {
+    attack(target: Prop) {
         const roll = Math.round(RNG.getNormal(this.baseDamage, this.baseDamage / 2));
         target.takeDamage(roll, this, null);
         return roll;
@@ -104,15 +100,13 @@ export class Actor extends Prop {
         return true;
     }
 
-    /** @param {ItemEffectName} effect @returns {effect is "fear"|"poison"|"stun"} */
-    isRoundEffect(effect) {
+    isRoundEffect(effect: ItemEffectName): effect is "fear" | "poison" | "stun" {
         return effect === "fear"
             || effect === "poison"
             || effect === "stun"
     }
 
-    /** @param {VoidItemEffectName|NumericItemEffectName} effect @param {number} strength  @param {Item} item @param {Actor} source */
-    applyEffect(effect, strength, item, source) {
+    applyEffect(effect: VoidItemEffectName | NumericItemEffectName, strength: number, item: Item, source: Actor) {
         if (effect === "health") {
             if (strength < 0) {
                 return this.takeDamage(-strength, source, item);
@@ -135,20 +129,17 @@ export class Actor extends Prop {
         }
     }
 
-    /** @param {ItemEffectName|NumericItemEffectName} effect @param {number} rounds @param {Item} item @param {Actor} source */
-    applyRoundEffect(effect, rounds, item, source) {
+    applyRoundEffect(effect: ItemEffectName | NumericItemEffectName, rounds: number, item: Item, source: Actor) {
         this.roundEffects[effect] ??= 0;
         this.roundEffects[effect] += rounds;
     }
 
-    /** @param {WorldMap} worldMap  */
-    addedToWorldMap(worldMap) {
+    addedToWorldMap(worldMap: WorldMap) {
         super.addedToWorldMap(worldMap);
         scheduler.add(this, true);
     }
 
-    /** @param {WorldMap} worldMap @param {PopDefinition} popDef @param {PopDefinition} rootPopDef */
-    canSpawnAt(x=0, y=0, z=0, worldMap, popDef, rootPopDef) {
+    canSpawnAt(x=0, y=0, z=0, worldMap: WorldMap, popDef: PopDefinition, rootPopDef: PopDefinition) {
         const {spawnRestrictions} = this.role;
         if (spawnRestrictions && spawnRestrictions.length) {
             for (const restriction of spawnRestrictions) {
@@ -161,14 +152,7 @@ export class Actor extends Prop {
         }
         return false;
     }
-    /**
-     * @param {RoleDefinition["spawnRestrictions"][number]} restriction
-     * @param {number} x
-     * @param {number} y
-     * @param {number} z
-     * @param {WorldMap} worldMap
-     */
-    checkRestriction(restriction, x, y, z, worldMap) {
+    checkRestriction(restriction: RoleDefinition["spawnRestrictions"][number], x: number, y: number, z: number, worldMap: WorldMap) {
         if (restriction === "inGround") {
             const thisTile = worldMap.getBaseTile(x, y, z);
             const upTile = worldMap.getBaseTile(x, y, z+1);
@@ -211,40 +195,33 @@ export class Actor extends Prop {
 }
 
 export class Decor extends Actor {
-    /** @overload @param {RoleName} roleName @param {Overrides<Decor>} [options]  */
-    /** @param {RoleName} roleName @param {Overrides<Decor>} [options]  */
-    constructor(roleName, options) {
+    constructor(roleName: RoleName, options?: Overrides<Decor>) {
         super(roleName, {displayLayer: 2.5, ...options});
     }
     
-    /** @param {Actor} collider */
-    getCollidedWith(collider) {
+    getCollidedWith(collider: Actor) {
         if (collider instanceof Creature) {
             collider.attack(this);
         }
     }
 }
 
-export class Creature extends Actor {
-    /** @type {import("./player.js").Player} */
-    static activePlayer;
+export class Creature extends Actor implements SpriteContainer {
+    static activePlayer: Player;
 
-    /** @type {Item[]} */
-    inventory = [];
+    inventory: Item[] = [];
 
     get validInventory() {
         return this.inventory.filter(i => this.hasItem(i));
     }
 
-    /** @overload @param {RoleName} roleName @param {Overrides<Creature>} [options]  */
-    /** @param {RoleName} roleName @param {Overrides<Creature>} [options]  */
-    constructor(roleName, options, {inventory, ...rest} = options ?? {}) {
+    protected constructor(roleName: RoleName, options?: Overrides<Creature>);
+    protected constructor(roleName: RoleName, options?: Overrides<Creature>, {inventory, ...rest} = options ?? {}) {
         super(roleName, {animated: true, displayLayer: 4, ...rest});
         inventory?.forEach(this.takeItem.bind(this));
     }
 
-    /** @param {Item} item  */
-    takeItem(item) {
+    takeItem(item: Item) {
         if (this.hasItem(item)) return false;
         const addToStack = this.inventory.find(i => i.itemName === item.itemName);
         if (addToStack) {
@@ -270,8 +247,7 @@ export class Creature extends Actor {
         return success;
     }
 
-    /** @param {Item} item  */
-    hasItem(item) {
+    hasItem(item: Item) {
         if (this.inventory.includes(item)) {
             if (item.container === this) {
                 return true;
@@ -282,8 +258,7 @@ export class Creature extends Actor {
         return false;
     }
 
-    /** @param {Item} item  */
-    relinquishItem(item) {
+    relinquishItem(item: Item) {
         if (!this.inventory.includes(item)) {
             return false;
         }
@@ -292,8 +267,7 @@ export class Creature extends Actor {
         return true;
     }
 
-    /** @param {Item} item @param {Item} withItem */
-    replaceItem(item, withItem) {
+    replaceItem(item: Item, withItem: Item) {
         const index = this.inventory.indexOf(item);
         if (index < 0 || this.inventory.includes(withItem)) {
             return false;
@@ -304,16 +278,14 @@ export class Creature extends Actor {
         return true;
     }
 
-    /** @param {Item} item  */
-    splitItemStack(item, count = 1) {
+    splitItemStack(item: Item, count = 1) {
         if (!this.hasItem(item)) {
             return null;
         }
         return item.takeStack(count);
     }
 
-    /** @param {Item} item  */
-    dropItem(item, count=1) {
+    dropItem(item: Item, count=1) {
         const stack = this.splitItemStack(item, count);
         if (!stack) {
             return null;
@@ -330,8 +302,7 @@ export class Creature extends Actor {
         return stack;
     }
 
-    /** @param {Item} item  */
-    eatItem(item, count=1) {
+    eatItem(item: Item, count=1) {
         const stack = this.splitItemStack(item, count);
         if (!stack) {
             return false;
@@ -341,8 +312,7 @@ export class Creature extends Actor {
         return true;
     }
 
-    /** @param {Item} stack */
-    digestItemStack(stack) {
+    digestItemStack(stack: Item) {
         if (stack instanceof EggItem) {
             // default egg behavior is to just eat the soul.
             return this.digestItemStack(stack.soulItem);
@@ -364,8 +334,7 @@ export class Creature extends Actor {
         }
     }
 
-    /** @param {ItemBehavior} behavior @param {Item} item  */
-    performItemBehavior(behavior, item) {
+    performItemBehavior(behavior: ItemBehavior, item: Item) {
         for (const name of typedKeys(behavior)) {
             if (isVoidEffectName(name)) {
                 this.performVoidEffect(name, behavior[name], item);
@@ -377,18 +346,15 @@ export class Creature extends Actor {
         }
     }
 
-    /** @param {VoidItemEffectName} effect @param {boolean} sense @param {Item} item */
-    performVoidEffect(effect, sense, item) {
+    performVoidEffect(effect: VoidItemEffectName, sense: boolean, item: Item) {
         // default behavior for numeric effects is to apply to self at strength 1 or -1
         this.applyEffect(effect, sense ? 1 : -1, item, this)
     }
-    /** @param {NumericItemEffectName} effect @param {number} value @param {Item} item */
-    performNumericEffect(effect, value, item) {
+    performNumericEffect(effect: NumericItemEffectName, value: number, item: Item) {
         // default behavior for numeric effects is to apply to self
         this.applyEffect(effect, value, item, this);
     }
-    /** @param {MetaItemEffectName} effect @param {number} r @param {ItemBehavior} behavior @param {Item} item */
-    performMetaEffect(effect, r, behavior, item) {
+    performMetaEffect(effect: MetaItemEffectName, r: number, behavior: ItemBehavior, item: Item) {
         if (effect === "burst") {
             // panic
             console.error("Burst effects not implemented yet");
@@ -398,8 +364,7 @@ export class Creature extends Actor {
         }
     }
 
-    /** @param {Actor} collider */
-    getCollidedWith(collider) {
+    getCollidedWith(collider: Actor) {
         if (collider instanceof Creature) {
             collider.attack(this);
         }

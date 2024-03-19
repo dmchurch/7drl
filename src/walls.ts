@@ -1,15 +1,11 @@
 import { WorldMap } from "./worldmap.js";
 
 export class WallRule {
-    /** @readonly */
-    static SAME = -1;
-    /** @readonly */
-    static DONT_CARE = -2;
-    /** @readonly */
-    static OTHER = -3;
+    static readonly SAME = -1;
+    static readonly DONT_CARE = -2;
+    static readonly OTHER = -3;
 
-    /** @param {TemplateStringsArray} strings */
-    static new(strings, ...args) {
+    static new(strings: TemplateStringsArray, ...args: any[]) {
         const rawLast = strings.raw.at(-1);
         const newlineIndex = rawLast.indexOf('\n');
         const raw = [...strings.raw.slice(0, strings.raw.length - 1), rawLast.slice(0, newlineIndex)];
@@ -24,8 +20,7 @@ export class WallRule {
         if (/[.#]/.test(frameSymbols)) {
             throw new Error(`Invalid WallRule specification, cannot use . or # as a frame symbol`);
         }
-        /** @type {RegExpExecArray} */
-        let matches;
+        let matches: RegExpExecArray;
         if (matches = /(.).*\1/.exec(frameSymbols)) {
             throw new Error(`Invalid WallRule specification, duplicated frame symbol ${matches[1]} in ${frameSymbols}`);
         }
@@ -46,8 +41,7 @@ export class WallRule {
         })), frameSymbols.split(""));
     }
 
-    /** @param {TemplateStringsArray} strings */
-    static template(strings, ...args) {
+    static template(strings: TemplateStringsArray) {
         if (strings.length > 1) {
             throw new Error(`Invalid template WallRule specification, no interpolations are allowed`);
         }
@@ -72,10 +66,8 @@ export class WallRule {
      * 
      * thus, the two diagonals adjacent to cardinal bit `c` are `c + 4` and `(c + 1) % 4 + 4`,
      * and the two cardinals adjacent to diagonal `d` are `d - 4` and `(d - 1) % 4`
-     * 
-     * @readonly @satisfies {[dx: number, dy: number][]}
      */
-    static bitDirections = /** @type {const} */([
+    static readonly bitDirections = [
         [0, -1],
         [1, 0],
         [0, 1],
@@ -85,20 +77,19 @@ export class WallRule {
         [1, 1],
         [-1, 1],
         [0, 0],
-    ]);
+    ] as const satisfies [dx: number, dy: number][];
 
-    frameCount;
-    framesTemplate;
-    frameNames;
-    /** @type {{x: number, y: number}[]} measured in tiles, not px! */
-    frameLocations = [];
+    frameCount: number;
+    framesTemplate: number[][];
+    frameNames: string[];
+    /** measured in tiles, not px! */
+    frameLocations: { x: number; y: number; }[] = [];
     createMissingFrames = false;
 
     framesMap = new Int8Array(256);
 
 
-    /** @param {number} frameCount @param {number[][]} framesTemplate @param {string[]} frameNames */
-    constructor(frameCount, framesTemplate, frameNames) {
+    constructor(frameCount: number, framesTemplate: number[][], frameNames: string[]) {
         this.frameCount = frameCount;
         this.framesTemplate = framesTemplate;
         this.frameNames = frameNames;
@@ -111,11 +102,9 @@ export class WallRule {
         this.calculateFrames(framesTemplate);
     }
 
-    /** @param {number[][]} template  */
-    calculateFrames(template) {
+    calculateFrames(template: number[][]) {
         const {bitDirections, SAME, OTHER, DONT_CARE} = WallRule;
-        /** @type {Record<number, string>} */
-        const definedAt = {};
+        const definedAt: Record<number, string> = {};
         for (const [y, templateRow] of template.entries()) {
             for (let [x, cell] of templateRow.entries()) {
                 if (cell < (this.createMissingFrames ? SAME : 0)) continue;
@@ -169,8 +158,7 @@ export class WallRule {
         }
     }
 
-    /** @param {WorldMap} worldMap  */
-    getFrame(worldMap, x=0, y=0, z=0, base=worldMap.getBase(x, y, z)) {
+    getFrame(worldMap: WorldMap, x: number, y: number, z: number, base=worldMap.getBase(x, y, z)) {
         let total = 0;
         const {bitDirections} = WallRule;
         for (let bit = 0; bit < 8; bit++) {

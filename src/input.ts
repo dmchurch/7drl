@@ -1,9 +1,11 @@
 import { fromTypedEntries, invertMap, typedEntries } from "./helpers.js";
 import { KeyboardCueElement } from "./uicomponents.js";
 
+export type SingleDOMKeyBindingType = DOMKeyCode | DOMKeySymbol;
+export type DOMKeyBindingType = SingleDOMKeyBindingType | SingleDOMKeyBindingType[];
+
 export class InputManager {
-    /** @type {InputManager} */
-    static #instance;
+    static #instance: InputManager;
     static get instance() {
         if (!this.#instance) {
             this.#instance = new this();
@@ -12,36 +14,30 @@ export class InputManager {
     }
     _ = InputManager.#instance ??= this;
 
-    /** @readonly */
-    static keyCodesToKeyCues = invertMap(KeyboardCueElement.keysToDOMCodes);
-    /** @readonly */
-    static keySymbolsToKeyCues = symbolMap([typedEntries(this.keyCodesToKeyCues)?.[0]?.[1]]);
+    static readonly keyCodesToKeyCues = invertMap(KeyboardCueElement.keysToDOMCodes);
+    static readonly keySymbolsToKeyCues = symbolMap([typedEntries(this.keyCodesToKeyCues)?.[0]?.[1]]);
     static {
         for (const [code, cue] of typedEntries(this.keyCodesToKeyCues)) {
             this.keySymbolsToKeyCues[keySymbol(code)] = [cue];
         }
     }
 
-    /** @param {string} name @returns {name is DOMKeyCode} */
-    static isKeyCode(name) {
+    static isKeyCode(name: string): name is DOMKeyCode {
         return name in InputManager.keyCodesToKeyCues;
     }
 
-    /** @type {Record<Extract<Exclude<keyof KeyboardEvent, keyof UIEvent>, `${string}Key`>, DOMKeySymbol[]>} */
-    static modifierKeys = {
+    static readonly modifierKeys: Record<Extract<Exclude<keyof KeyboardEvent, keyof UIEvent>, `${string}Key`>, DOMKeySymbol[]> = {
         altKey: [keySymbol("AltLeft"), keySymbol("AltRight")],
         ctrlKey: [keySymbol("ControlLeft"), keySymbol("ControlRight")],
         metaKey: [keySymbol("MetaLeft"), keySymbol("MetaRight")],
         shiftKey: [keySymbol("ShiftLeft"), keySymbol("ShiftRight")],
     };
-    /** @readonly @satisfies {(keyof typeof InputManager.modifierKeys)[]} */
-    static modifierKeyNames = /** @type {const} */(["altKey", "ctrlKey", "metaKey", "shiftKey"])
+    static readonly modifierKeyNames = ["altKey", "ctrlKey", "metaKey", "shiftKey"] as const satisfies (keyof typeof InputManager.modifierKeys)[];
 
     keysPressed = symbolMap(true);
     charsPressed = symbolMap("");
 
-    /** @type {KeyboardCueElement[]} */
-    keyIndicators = [];
+    keyIndicators: KeyboardCueElement[] = [];
 
     #singleKeyIndicator = [this.keyIndicators[0]];
 
@@ -53,44 +49,33 @@ export class InputManager {
         return this.#singleKeyIndicator;
     }
     
-    /** @type {HTMLDialogElement} */
-    helpDialog;
-
-    /** @type {HTMLElement} */
-    bindingLabel;
+    helpDialog: HTMLDialogElement;
+    bindingLabel: HTMLElement;
 
     get helpOpen() {
         return this.helpDialog?.open ?? false;
     }
 
-    /** @type {InputAction[]} */
-    #activatedMatches = [];
-    /** @type {InputAction[]} */
-    #deactivatedMatches = [];
+    #activatedMatches: InputAction[] = [];
+    #deactivatedMatches: InputAction[] = [];
 
     repeatDelay = 500;
     repeatInterval = 250;
 
     paused = false;
 
-    /** @type {KeyBindingMap} */
-    keyBindings = {};
-    /** @type {CharBindingMap} */
-    charBindings = {};
+    keyBindings: KeyBindingMap = {};
+    charBindings: CharBindingMap = {};
 
-    /** @type {InputAction[]} */
-    activeActions = [];
+    activeActions: InputAction[] = [];
     
-    /** @type {InputAction[]} */
-    lastTriggeredActions = [];
+    lastTriggeredActions: InputAction[] = [];
 
-    /** @type {InputAction[]} */
-    allActions = [];
+    allActions: InputAction[] = [];
 
     alwaysIgnoreKeys = symbolMap(true);
 
-    /** @type {(dx: number, dy: number, dz: number) => void} */
-    moveHandler;
+    moveHandler: (dx: number, dy: number, dz: number) => void;
 
     lastModifiers = [false, false, false, false];
 
@@ -103,22 +88,19 @@ export class InputManager {
         this.handleKeyEvent = this.handleKeyEvent.bind(this);
     }
 
-    /** @param {...DOMKeyCode} keys  */
-    ignoreKeys(...keys) {
+    ignoreKeys(...keys: DOMKeyCode[]) {
         for (const key of keys) {
             this.alwaysIgnoreKeys[keySymbol(key)] = true;
         }
     }
 
-    /** @param {...DOMKeyCode} keys  */
-    unignoreKeys(...keys) {
+    unignoreKeys(...keys: DOMKeyCode[]) {
         for (const key of keys) {
             this.alwaysIgnoreKeys[keySymbol(key)] = false;
         }
     }
 
-    /** @param {ActionFunction | InputAction} actionOrCallback @param {...(DOMKeyCode|DOMKeySymbol)[]|DOMKeyCode|DOMKeySymbol} keys  */
-    bind(actionOrCallback, ...keys) {
+    bind(actionOrCallback: ActionFunction | InputAction, ...keys: DOMKeyBindingType[]) {
         if (typeof actionOrCallback === "function") {
             actionOrCallback = new CallbackAction(actionOrCallback);
         }
@@ -135,13 +117,11 @@ export class InputManager {
         return actionOrCallback;
     }
 
-    /** @param {ActionFunction | InputAction} actionOrCallback @param {...(DOMKeyCode|DOMKeySymbol)[]|DOMKeyCode|DOMKeySymbol} keys  */
-    unbind(actionOrCallback, ...keys) {
+    unbind(actionOrCallback: ActionFunction | InputAction, ...keys: DOMKeyBindingType[]) {
         throw new Error("not implemented");
     }
 
-    /** @param {ActionBinding} binding  */
-    addBinding(binding) {
+    addBinding(binding: ActionBinding) {
         if (!this.allActions.includes(binding.action)) {
             this.allActions.push(binding.action);
         }
@@ -167,8 +147,7 @@ export class InputManager {
 
     }
 
-    /** @param {ActionBinding} binding  */
-    removeBinding(binding) {
+    removeBinding(binding: ActionBinding) {
         if (binding instanceof ActionKeyBinding) {
             for (const key of binding.keys) {
                 const index = this.keyBindings[key]?.indexOf(binding) ?? -1;
@@ -199,8 +178,7 @@ export class InputManager {
     }
 
     #actionStatesDirty = false;
-    /** @param {KeyboardEvent} event */
-    trackKeyState(event) {
+    trackKeyState(event: KeyboardEvent) {
         const {isKeyCode, modifierKeyNames, modifierKeys} = InputManager;
         const sym = isKeyCode(event.code) ? keySymbol(event.code) : null;
         if (sym) {
@@ -225,8 +203,7 @@ export class InputManager {
         }
     }
 
-    /** @param {DOMKeySymbol} sym @param {boolean} isDown  */
-    #keyChange(sym, isDown, doHighlight = false) {
+    #keyChange(sym: DOMKeySymbol, isDown: boolean, doHighlight = false) {
         this.keysPressed[sym] = isDown;
         if (!isDown && this.charsPressed[sym]) {
             this.charsPressed[sym] = null;
@@ -240,8 +217,7 @@ export class InputManager {
         }
     }
 
-    /** @param {DOMKeySymbol} keySym @param {boolean} isDown @param {UIEvent} event */
-    setKeyState(keySym, isDown, event) {
+    setKeyState(keySym: DOMKeySymbol, isDown: boolean, event: UIEvent) {
         this.keysPressed[keySym] = isDown;
         this.handleKeySym(keySym, event);
     }
@@ -261,8 +237,7 @@ export class InputManager {
         return true;
     }
 
-    /** @param {KeyboardEvent} event */
-    handleKeyEvent(event) {
+    handleKeyEvent(event: KeyboardEvent) {
         if (event.defaultPrevented) return;
 
         if (this.#actionStatesDirty) {
@@ -317,8 +292,7 @@ export class InputManager {
         }
     }
     
-    /** @param {ActionBinding} binding @param {boolean} active  @param {UIEvent} event */
-    setBindingActive(binding, active, event) {
+    setBindingActive(binding: ActionBinding, active: boolean, event: UIEvent) {
         binding.setActive(event, active, this);
     }
 
@@ -326,8 +300,7 @@ export class InputManager {
         this.moveHandler?.(dx, dy, dz);
     }
 
-    /** @param {InputAction} action @param {boolean} active  */
-    reportActionState(action, active) {
+    reportActionState(action: InputAction, active: boolean) {
         const {activeActions} = this;
         if (active && !activeActions.includes(action)) {
             activeActions.push(action);
@@ -360,21 +333,16 @@ export class InputManager {
 
     // enabling any of these cause the input manager to think of these as "bound keys" and
     // start blocking keyboard events by default
-    /** @readonly */
-    VKeyAlt = new VKeyAction("Alt").addKeyBindings("AltLeft", "AltRight").virtualKey;
-    // /** @readonly */
-    // VKeyShift = new VKeyAction("Shift").addKeyBindings("ShiftLeft", "ShiftRight").virtualKey;
-    // /** @readonly */
-    // VKeyControl = new VKeyAction("Control").addKeyBindings("ControlLeft", "ControlRight").virtualKey;
-    // /** @readonly */
-    // VKeyMeta = new VKeyAction("Meta").addKeyBindings("MetaLeft", "MetaRight").virtualKey;
+    readonly VKeyAlt = new VKeyAction("Alt").addKeyBindings("AltLeft", "AltRight").virtualKey;
+    // readonly VKeyShift = new VKeyAction("Shift").addKeyBindings("ShiftLeft", "ShiftRight").virtualKey;
+    // readonly VKeyControl = new VKeyAction("Control").addKeyBindings("ControlLeft", "ControlRight").virtualKey;
+    // readonly VKeyMeta = new VKeyAction("Meta").addKeyBindings("MetaLeft", "MetaRight").virtualKey;
 }
 
 export class InputAction {
     name = "Perform Action";
 
-    /** @type {ActionBinding[]} */
-    bindings = [];
+    bindings: ActionBinding[] = [];
 
     #isActive = false;
     get isActive() {
@@ -391,8 +359,7 @@ export class InputAction {
         }
     }
 
-    /** @param {string} name  */
-    constructor(name, repeatable = true, disabled = false) {
+    constructor(name: string, repeatable = true, disabled = false) {
         this.name = name;
         this.repeatable = repeatable;
         this.disabled = disabled;
@@ -403,8 +370,7 @@ export class InputAction {
         return this;
     }
 
-    /** @param {UIEvent} event  */
-    activate(event, input = InputManager.instance) {
+    activate(event: UIEvent, input = InputManager.instance) {
         this.#isActive = true;
         input.reportActionState(this, true);
     }
@@ -412,19 +378,16 @@ export class InputAction {
     repeat(input = InputManager.instance) {
     }
 
-    /** @param {UIEvent} event  */
-    deactivate(event, input = InputManager.instance) {
+    deactivate(event: UIEvent, input = InputManager.instance) {
         this.#isActive = false;
         input.reportActionState(this, false);
     }
 
-    /** @param {UIEvent} event  */
-    matchAllowed(event) {
+    matchAllowed(event: UIEvent) {
         return true;
     }
 
-    /** @param {UIEvent} event  */
-    hasMatch(event, input = InputManager.instance) {
+    hasMatch(event: UIEvent, input = InputManager.instance) {
         for (const binding of this.bindings) {
             if (binding.matches(event, input)) {
                 return true;
@@ -433,8 +396,7 @@ export class InputAction {
         return false;
     }
 
-    /** @param {UIEvent} [event]  */
-    checkBindings(event, input = InputManager.instance) {
+    checkBindings(event?: UIEvent, input = InputManager.instance) {
         const hasActiveBinding = this.hasMatch(event, input);
         if (hasActiveBinding && !this.isActive) {
             this.activate(event, input);
@@ -443,18 +405,15 @@ export class InputAction {
         }
     }
 
-    /** @param {ActionBinding} binding  */
-    indexOfBinding(binding) {
+    indexOfBinding(binding: ActionBinding) {
         return this.bindings.findIndex(b => binding.equals(b));
     }
 
-    /** @param {ActionBinding} binding  */
-    findBinding(binding) {
+    findBinding(binding: ActionBinding) {
         return this.bindings.find(b => binding.equals(b));
     }
 
-    /** @param {ActionBinding} newBinding  */
-    addBinding(newBinding, recheck = true) {
+    addBinding(newBinding: ActionBinding, recheck = true) {
         if (this.findBinding(newBinding)) return this;
         this.bindings.push(newBinding);
         newBinding.bind();
@@ -462,8 +421,7 @@ export class InputAction {
         return newBinding;
     }
 
-    /** @param {ActionBinding} binding */
-    removeBinding(binding, recheck = true) {
+    removeBinding(binding: ActionBinding, recheck = true) {
         const index = this.indexOfBinding(binding);
         if (index < 0) return this;
 
@@ -473,8 +431,7 @@ export class InputAction {
         return this;
     }
 
-    /** @param {(DOMKeyCode|DOMKeySymbol)[]|DOMKeyCode|DOMKeySymbol} keys */
-    addKeyBinding(keys, repeatable = true, disabled = false) {
+    addKeyBinding(keys: DOMKeyBindingType, repeatable = true, disabled = false) {
         if (!Array.isArray(keys)) keys = [keys];
         const newBinding = new ActionKeyBinding(this, keys);
         newBinding.repeatable = repeatable;
@@ -482,31 +439,27 @@ export class InputAction {
         return this.addBinding(newBinding);
     }
 
-    /** @param {...(DOMKeyCode|DOMKeySymbol)[]|DOMKeyCode|DOMKeySymbol} bindings */
-    addKeyBindings(...bindings) {
+    addKeyBindings(...bindings: DOMKeyBindingType[]) {
         for (const binding of bindings) {
             this.addKeyBinding(binding, this.repeatable);
         }
         return this;
     }
 
-    /** @param {...(DOMKeyCode|DOMKeySymbol)[]|DOMKeyCode|DOMKeySymbol} bindings */
-    removeKeyBindings(...bindings) {
+    removeKeyBindings(...bindings: DOMKeyBindingType[]) {
         for (const binding of bindings) {
             this.removeKeyBinding(binding);
         }
         return this;
     }
 
-    /** @param {(DOMKeyCode|DOMKeySymbol)[]|DOMKeyCode|DOMKeySymbol} keys  */
-    removeKeyBinding(keys) {
+    removeKeyBinding(keys: DOMKeyBindingType) {
         if (!Array.isArray(keys)) keys = [keys];
         const searchBinding = new ActionKeyBinding(this, keys);
         return this.removeBinding(searchBinding);
     }
 
-    /** @param {string} char @param {(DOMKeyCode|DOMKeySymbol)[]|DOMKeyCode|DOMKeySymbol} [keys] */
-    addCharBinding(char, keys, repeatable = true, disabled = false) {
+    addCharBinding(char: string, keys?: DOMKeyBindingType, repeatable = true, disabled = false) {
         if (!Array.isArray(keys)) keys = keys ? [keys] : [];
         const newBinding = new ActionCharBinding(this, char, keys);
         newBinding.repeatable = repeatable;
@@ -514,35 +467,31 @@ export class InputAction {
         return this.addBinding(newBinding);
     }
 
-    /** @param {string} char @param {(DOMKeyCode|DOMKeySymbol)[]|DOMKeyCode|DOMKeySymbol} [keys] */
-    removeCharBinding(char, keys) {
+    removeCharBinding(char: string, keys?: DOMKeyBindingType) {
         if (!Array.isArray(keys)) keys = keys ? [keys] : [];
-        const searchBinding = new ActionKeyBinding(this, keys);
+        const searchBinding = new ActionCharBinding(this, char, keys);
         return this.removeBinding(searchBinding);
     }
 }
 
 export class DOMListAction extends InputAction {
-    tokenList;
-    item;
+    tokenList: DOMTokenList;
+    item: string;
 
-    /** @param {string} name @param {DOMTokenList} tokenList @param {string} item */
-    constructor(name, tokenList, item, disabled = false) {
+    constructor(name: string, tokenList: DOMTokenList, item: string, disabled = false) {
         super(name, false, disabled);
         this.tokenList = tokenList;
         this.item = item;
     }
 
-    /** @param {UIEvent} event */
-    activate(event, input = InputManager.instance) {
+    activate(event: UIEvent, input = InputManager.instance) {
         super.activate(event, input);
         if (!input.paused) {
             this.tokenList.add(this.item);
         }
     }
 
-    /** @param {UIEvent} event */
-    deactivate(event, input = InputManager.instance) {
+    deactivate(event: UIEvent, input = InputManager.instance) {
         super.deactivate(event, input);
         if (!input.paused) {
             this.tokenList.remove(this.item);
@@ -553,8 +502,7 @@ export class DOMListAction extends InputAction {
 export class VKeyAction extends InputAction {
     virtualKey = Symbol(`VKey${this.name}`);
 
-    /** @param {string} name */
-    constructor(name, disabled=false) {
+    constructor(name: string, disabled=false) {
         super(name, false, disabled);
 
     }
@@ -571,10 +519,9 @@ export class VKeyAction extends InputAction {
 }
 
 export class CallbackAction extends InputAction {
-    callback;
+    callback: ActionFunction;
 
-    /** @param {ActionFunction} callback */
-    constructor(callback, name = callback.name, repeatable = true, disabled = false) {
+    constructor(callback: ActionFunction, name = callback.name, repeatable = true, disabled = false) {
         super(name, repeatable, disabled);
         this.callback = callback;
     }
@@ -595,8 +542,7 @@ export class CallbackAction extends InputAction {
 }
 
 export class MoveAction extends InputAction {
-    /** @type {Record<string, MoveAction>} */
-    static moveActions = {};
+    static moveActions: Record<string, MoveAction> = {};
 
     static DiagonalOnly = new VKeyAction("Lock diagonal movement", false);
     
@@ -615,27 +561,17 @@ export class MoveAction extends InputAction {
     
     static WAIT = new this("Wait", 0, 0, 0);
 
-    /** @type {UIEvent} */
-    static lastMovedEvent;
+    static lastMovedEvent: UIEvent;
 
-    /** @readonly */
-    dx;
-    /** @readonly */
-    dy;
-    /** @readonly */
-    dz;
+    readonly dx: number;
+    readonly dy: number;
+    readonly dz: number;
 
-    /** @readonly */
-    isOrthogonal;
+    readonly isOrthogonal: boolean;
+    readonly isDiagonal: boolean;
+    readonly isSurfaceDive: boolean;
 
-    /** @readonly */
-    isDiagonal;
-
-    /** @readonly */
-    isSurfaceDive;
-
-    /** @private @param {string} name  */
-    constructor(name, dx = 0, dy = 0, dz = 0) {
+    constructor(name: string, dx = 0, dy = 0, dz = 0) {
         super(name);
         const key = `${dx},${dy},${dz}`;
         if (new.target.moveActions[key]) {
@@ -650,13 +586,11 @@ export class MoveAction extends InputAction {
         new.target.moveActions[key] = this;
     }
 
-    /** @param {UIEvent} event  */
-    matchAllowed(event) {
+    matchAllowed(event: UIEvent) {
         return super.matchAllowed(event) && (!MoveAction.DiagonalOnly.isActive || this.isDiagonal);
     }
 
-    /** @param {UIEvent} event  */
-    activate(event, input = InputManager.instance) {
+    activate(event: UIEvent, input = InputManager.instance) {
         super.activate(event, input);
         const {dx, dy, dz} = this;
         if (event) {
@@ -679,8 +613,7 @@ export class MoveAction extends InputAction {
 }
 
 export class ActionBinding {
-    /** @type {WeakRef<InputAction>} */
-    #action;
+    #action: WeakRef<InputAction>;
     get action() {
         return this.#action?.deref();
     }
@@ -701,18 +634,15 @@ export class ActionBinding {
     }
     repeatable = true;
 
-    /** @param {InputAction} action */
-    constructor(action) {
+    constructor(action: InputAction) {
         this.#action = new WeakRef(action);
     }
 
-    /** @param {ActionBinding} other */
-    equals(other) {
+    equals(other: ActionBinding) {
         return !this.action || this.action === other.action;
     }
 
-    /** @param {UIEvent} event  */
-    matches(event, input = InputManager.instance) {
+    matches(event: UIEvent, input = InputManager.instance) {
         return this.action?.matchAllowed(event) && !this.disabled;
     }
 
@@ -724,8 +654,7 @@ export class ActionBinding {
         input.removeBinding(this);
     }
 
-    /** @param {UIEvent} event  */
-    setActive(event, active=true, input = InputManager.instance) {
+    setActive(event: UIEvent, active=true, input = InputManager.instance) {
         if (active === this.isActive) return active;
         this.isActive = active;
         if (active && !this.action.isActive) {
@@ -738,17 +667,14 @@ export class ActionBinding {
 }
 
 export class ActionKeyBinding extends ActionBinding {
-    /** @type {DOMKeySymbol[]} */
-    keys = [];
+    keys: DOMKeySymbol[] = [];
 
-    /** @param {InputAction} action @param {(DOMKeyCode|DOMKeySymbol)[]} keys  */
-    constructor(action, keys) {
+    constructor(action: InputAction, keys: (DOMKeyCode | DOMKeySymbol)[]) {
         super(action);
         this.keys = keys.map(keySymbol);
     }
 
-    /** @param {ActionBinding} other */
-    equals(other) {
+    equals(other: ActionBinding) {
         if (!super.equals(other) || !(other instanceof ActionKeyBinding)) return false;
         const {keys} = other;
         if (keys?.length !== this.keys.length) {
@@ -757,8 +683,7 @@ export class ActionKeyBinding extends ActionBinding {
         return this.keys.every(s => keys.includes(s));
     }
 
-    /** @param {UIEvent} event  */
-    matches(event, input = InputManager.instance) {
+    matches(event: UIEvent, input = InputManager.instance) {
         if (!super.matches(event, input)) {
             return false;
         }
@@ -773,20 +698,16 @@ export class ActionKeyBinding extends ActionBinding {
 }
 
 export class ActionCharBinding extends ActionKeyBinding {
-    /** @type {string} */
-    char;
+    char: string;
 
-    /** @type {DOMKeySymbol} */
-    activatingKeySym;
+    activatingKeySym: DOMKeySymbol;
 
-    /** @param {InputAction} action @param {string} char @param {(DOMKeyCode|DOMKeySymbol)[]} keys  */
-    constructor(action, char, keys) {
+    constructor(action: InputAction, char: string, keys: (DOMKeyCode | DOMKeySymbol)[]) {
         super(action, keys);
         this.char = char;
     }
 
-    /** @param {UIEvent} event  */
-    matches(event, input = InputManager.instance) {
+    matches(event: UIEvent, input = InputManager.instance) {
         if (!super.matches(event, input)) return false;
         if (event instanceof KeyboardEvent && event.type === "keydown" && event.key === this.char) {
             return true;
@@ -796,13 +717,11 @@ export class ActionCharBinding extends ActionKeyBinding {
         return false;
     }
 
-    /** @param {ActionBinding} other */
-    equals(other) {
+    equals(other: ActionBinding) {
         return other instanceof ActionCharBinding && super.equals(other) && this.char === other.char;
     }
 
-    /** @param {UIEvent} event  */
-    setActive(event, active = true, input = InputManager.instance) {
+    setActive(event: UIEvent, active = true, input = InputManager.instance) {
         if (super.setActive(event, active, input) && event instanceof KeyboardEvent && event.key === this.char) {
             this.activatingKeySym = InputManager.isKeyCode(event.code) ? keySymbol(event.code) : null;
         } else if (!this.isActive) {
@@ -812,21 +731,18 @@ export class ActionCharBinding extends ActionKeyBinding {
     }
 }
 
-/** @param {DOMKeyCode | DOMKeySymbol} code @returns {DOMKeySymbol} */
-function keySymbol(code) {
-    return typeof code === "symbol" ? code : /** @type {DOMKeySymbol} */(Symbol.for(code));
+function keySymbol(code: DOMKeyCode | DOMKeySymbol): DOMKeySymbol {
+    return typeof code === "symbol" ? code : Symbol.for(code) as DOMKeySymbol;
 }
 
-/** @template T=unknown @param {T} valueForTyping @returns {Record<DOMKeySymbol, T>} */
-function symbolMap(valueForTyping) {
-    // @ts-ignore
-    return {__proto__: null};
+function symbolMap<T>(valueForTyping: T): Record<DOMKeySymbol, T> {
+    return {__proto__: null} as any;
 }
-/** @typedef {(event: UIEvent) => any | Promise<any>} ActionFunction */
-/** @typedef {Record<DOMKeySymbol, ActionBinding[]>} KeyBindingMap */
-/** @typedef {Record<string, ActionBinding[]>} CharBindingMap */
+type ActionFunction = (event: UIEvent) => any | Promise<any>;
+type KeyBindingMap = Record<DOMKeySymbol, ActionBinding[]>;
+type CharBindingMap = Record<string, ActionBinding[]>;
 
 // const domKeySymbol = Symbol("unused, just for typing");
-/** @typedef {symbol} DOMKeySymbol */
+type DOMKeySymbol = symbol;
 
 Object.assign(self, {InputManager, InputAction, CallbackAction, MoveAction, DOMListAction, VKeyAction, ActionBinding, ActionKeyBinding});

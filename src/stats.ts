@@ -2,7 +2,6 @@ import { cloneTemplate, getElement, htmlElement, meterElement, outputElement } f
 import { equipment } from "~data/items.js";
 import { Item } from "./props.js";
 
-/** @satisfies {Record<string, StatDef>} */
 export const allStats = {
     "head": {
         label: "Head",
@@ -24,29 +23,24 @@ export const allStats = {
         label: "Tail",
         defaultMax: 5,
     },
+} satisfies Record<string, StatDef>;
+
+interface StatDef {
+    label: string;
+    defaultMax: number;
 }
+type StatName = keyof typeof allStats;
 
-/**
- * @typedef StatDef
- * @prop {string} label The string displayed in the UI
- * @prop {number} defaultMax The default maximum for this stat
- */
-/** @typedef {keyof typeof allStats} StatName */
-
-/** @param {string} name @returns {name is StatName} */
-export function isStatName(name) {
+export function isStatName(name: string): name is StatName {
     return Object.hasOwn(allStats, name);
 }
 
 export class Stat {
-    /** @type {StatName} */
-    name;
+    name: StatName;
 
-    /** @type {"s" | ""} */
-    s;
+    s: "s" | "";
 
-    /** @type {"its" | "their"} */
-    its;
+    its: "its" | "their";
 
     #current = 10;
     #max = 10;
@@ -66,17 +60,14 @@ export class Stat {
         else this.#max = v;
     }
 
-    /** @type {Item} */
-    equippedItem;
+    equippedItem: Item;
 
-    /** @type {import("./items.js").EquipmentDefinition} */
-    get equipDef() {
+    get equipDef(): EquipmentDefinition {
         return equipment[this.equippedItem?.itemName]?.[this.name];
     }
 
-    /** @overload @param {StatName} name @param {Overrides<Stat>} [options] */
-    /** @param {StatName} nameArgument @param {Overrides<Stat>} [options] */
-    constructor(nameArgument, options = {}, {name = nameArgument, max = allStats[name].defaultMax, current = max} = options) {
+    constructor(nameArgument: StatName, options?: Overrides<Stat>);
+    constructor(nameArgument: StatName, options: Overrides<Stat>, {name = nameArgument, max = allStats[name].defaultMax, current = max} = options ?? {}) {
         this.name = name;
         this.current = current;
         this.max = max;
@@ -84,8 +75,7 @@ export class Stat {
         this.its = name === "fins" ? "their" : "its";
     }
 
-    /** @param {Item} item  */
-    equipItem(item) {
+    equipItem(item: Item) {
         if (this.equippedItem) {
             item.stackSize += this.equippedItem.durability;
             this.equippedItem.releaseFromOwner();
@@ -99,8 +89,7 @@ export class Stat {
 export class StatUI {
     stat;
 
-    /** @type {HTMLElement} */
-    container;
+    container: HTMLElement;
     title;
     meter;
     curOutput;
@@ -110,8 +99,7 @@ export class StatUI {
         return allStats[this.stat.name].label;
     }
 
-    /** @param {StatLike} stat @param {string|Element} container  */
-    constructor(stat, container, template = "bodypartTemplate") {
+    constructor(stat: StatLike, container: string | Element, template = "bodypartTemplate") {
         this.stat = stat;
         this.container = htmlElement(container);
 
@@ -140,15 +128,14 @@ export class StatUI {
     }
 }
 
-/** @typedef {{durability: number, maxDurability: number}} DurableObject */
+type DurableObject = { durability: number; maxDurability: number; };
 
 export class SoulUI extends StatUI {
     get label() {
         return "Soul";
     }
 
-    /** @param {DurableObject} prop @param {string|Element} container  */
-    constructor(prop, container, template = "bodypartTemplate") {
+    constructor(prop: DurableObject, container: string | Element, template = "bodypartTemplate") {
         super({
             name: null,
             s: null,

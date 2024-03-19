@@ -1,6 +1,5 @@
 import { animationFrame as nextAnimationFrame, fromTypedEntries, getElement, invertMap, mapToEntries, mapToValues, svgElement, tuple, typedEntries, after } from "./helpers.js";
 
-/** @satisfies {Record<string, (strings: TemplateStringsArray, ...exprs: any[]) => any>} */
 export const Rendered = {
     /**
      * Creates a {@link DocumentFragment} representing the given interpolated HTML string. If the initial backtick is followed
@@ -20,10 +19,6 @@ export const Rendered = {
      * will set the DOM property `.value` to 5. This is especially useful for event handler properties.
      * 
      * If the string contains only a single element and you would like to have the {@link Element} rather than a {@link DocumentFragment}, just access `.firstElementChild`.
-     * 
-     * @param {TemplateStringsArray} strings
-     * @param  {...any} exprs 
-     * @returns 
      */
     html(strings, ...exprs) {
         const propAssignmentRegex = /(?<=\s+)(\w+)=$/;
@@ -31,8 +26,7 @@ export const Rendered = {
         if (strings.raw[0][0] === '\n' || strings.raw[0][0] === '\r') { // if this starts with an explicit linebreak, strip early whitespace
             rawStrings[0] = rawStrings[0].trimStart();
         }
-        /** @type {{name: string, value: any}[]} */
-        const propertiesToSet = [];
+        const propertiesToSet: { name: string; value: any; }[] = [];
         for (const [i, string] of rawStrings.entries()) {
             const matches = propAssignmentRegex.exec(string);
             if (matches) {
@@ -70,24 +64,21 @@ export const Rendered = {
         stylesheet.replaceSync(cssString);
         return stylesheet;
     },
-}
+} satisfies Record<string, (strings: TemplateStringsArray, ...exprs: any[]) => any>;
 
 export class BaseComponent extends HTMLElement {
     static tagName = "";
 
-    /** @type {CSSStyleSheet[]} */
-    static stylesheets = [];
+    static stylesheets: CSSStyleSheet[] = [];
 
-    /** @type {DocumentFragment|false} */
-    static template;
+    static template: DocumentFragment | false;
 
     static cloneTemplate() {
         this.template ??= this.makeTemplate();
-        return this.template ? /** @type {DocumentFragment} */(this.template.cloneNode(true)) : undefined;
+        return this.template ? this.template.cloneNode(true) as DocumentFragment : undefined;
     }
 
-    /** @returns {DocumentFragment} */
-    static makeTemplate() {
+    static makeTemplate(): DocumentFragment | null {
         this.stylesheets = [];
         return null;
     }
@@ -97,13 +88,11 @@ export class BaseComponent extends HTMLElement {
         console.log(`Defined ${this.tagName} as ${this.name}`);
     }
 
-    /** @returns {string[]} */
-    static get observedAttributes() {
+    static get observedAttributes(): string[] {
         return [];
     }
 
-    /** @param {ShadowRootInit} [shadowRootInit] */
-    constructor(shadowRootInit = {mode: "open"}) {
+    constructor(shadowRootInit: ShadowRootInit = {mode: "open"}) {
         super();
         const shadowContent = new.target.cloneTemplate();
         const shadow = this.attachShadow(shadowRootInit);
@@ -111,18 +100,18 @@ export class BaseComponent extends HTMLElement {
         shadow.adoptedStyleSheets.push(...new.target.stylesheets);
     }
 
-    /** @param {string} name @param {string} oldValue @param {string} newValue */
-    attributeChangedCallback(name, oldValue, newValue) {
+    attributeChangedCallback(name: string, oldValue: string, newValue: string) {
     }
 }
+
+export type KeyboardCueName = (typeof KeyboardCueElement.allKeys)[number];
 
 export class KeyboardCueElement extends BaseComponent {
     static tagName = "keyboard-cue";
     static defaultSrc = "img/keyboard.svg";
 
     // note that the keynames here are based on the US-QWERTY layout, but they only represent the position of the key!
-    /** @readonly @satisfies {string[]} */
-    static allKeys = /** @type {const} */([
+    static readonly allKeys = [
         // primary 77 keys
         "esc", "f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8", "f9", "f10", "f11", "f12", "prntscrn", "scrlock", "pause",
         "grave", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "dash", "equals", "bksp",
@@ -141,10 +130,9 @@ export class KeyboardCueElement extends BaseComponent {
         "kp4", "kp5", "kp6",
         "kp1", "kp2", "kp3", "kpenter",
         "kp0", "decimal",
-    ]);
+    ] as const satisfies string[];
 
-    /** @readonly @satisfies {Record<KeyboardCueName, string>} */
-    static keysToDOMCodes = /** @type {const} */({
+    static readonly keysToDOMCodes = {
         esc: "Escape", f1: "F1", f2: "F2", f3: "F3", f4: "F4", f5: "F5", f6: "F6", f7: "F7", f8: "F8", f9: "F9", f10: "F10", f11: "F11", f12: "F12", prntscrn: "PrintScreen", scrlock: "ScrollLock", pause: "Pause",
         grave: "Backquote", "1": "Digit1", "2": "Digit2", "3": "Digit3", "4": "Digit4", "5": "Digit5", "6": "Digit6", "7": "Digit7", "8": "Digit8", "9": "Digit9", "0": "Digit0", dash: "Minus", equals: "Equal", bksp: "Backspace",
         tab: "Tab", q: "KeyQ", w: "KeyW", e: "KeyE", r: "KeyR", t: "KeyT", y: "KeyY", u: "KeyU", i: "KeyI", o: "KeyO", p: "KeyP", "l-bracket": "BracketLeft", "r-bracket": "BracketRight", backslash: "Backslash",
@@ -160,10 +148,9 @@ export class KeyboardCueElement extends BaseComponent {
 
         // keypad
         numlock: "NumLock", divide: "NumpadDivide", multiply: "NumpadMultiply", subtract: "NumpadSubtract", kp7: "Numpad7", kp8: "Numpad8", kp9: "Numpad9", add: "NumpadAdd", kp4: "Numpad4", kp5: "Numpad5", kp6: "Numpad6", kp1: "Numpad1", kp2: "Numpad2", kp3: "Numpad3", kpenter: "NumpadEnter", kp0: "Numpad0", decimal: "NumpadDecimal",
-    })
+    } as const satisfies Record<KeyboardCueName, string>
 
-    /** @satisfies {Record<string, {keys: KeyboardCueName[], viewBox: [number, number, number, number]}>} */
-    static views = {
+    static views: Record<string, {keys: KeyboardCueName[], viewBox: [number, number, number, number]}> = {
         leftSide: {
             keys: [
                 "grave", "1", "2", "3", "4", "5", "6", "7",
@@ -245,18 +232,9 @@ export class KeyboardCueElement extends BaseComponent {
         }
     };
 
-    /** @typedef {typeof KeyboardCueElement.allKeys[number]} KeyboardCueName */
-    /** @typedef {keyof typeof KeyboardCueElement.views} KeyboardCueView */
-    /** @param {string} key @returns {key is KeyboardCueView} */
-    static isViewName(key) {
-        return key in KeyboardCueElement.views;
-    }
+    static keyRectsPerSrc: Record<string, Promise<Record<KeyboardCueName, SVGRect>>> = {};
 
-    /** @type {Record<string, Promise<Record<KeyboardCueName, SVGRect>>>} */
-    static keyRectsPerSrc = {};
-
-    /** @returns {string[]} */
-    static get observedAttributes() {
+    static get observedAttributes(): string[] {
         return ["keys", "highlight", "lowlight", "secondary", "tertiary", "view-box", "view", "src"];
     }
 
@@ -266,8 +244,7 @@ export class KeyboardCueElement extends BaseComponent {
     }
 
     get view() {
-        const view = this.getAttribute("view");
-        return KeyboardCueElement.isViewName(view) ? view : null;
+        return this.getAttribute("view");
     }
     set view(v) {
         if (v == null) {
@@ -289,32 +266,27 @@ export class KeyboardCueElement extends BaseComponent {
         }
     }
 
-    /** @type {KeyTokenList} */
-    #keys;
+    #keys: KeyTokenList;
     get keys() {
         return this.#keys ??= new KeyTokenList(this, "keys", KeyboardCueElement.views[this.view]?.keys);
     }
 
-    /** @type {KeyTokenList} */
-    #highlight;
+    #highlight: KeyTokenList;
     get highlight() {
         return this.#highlight ??= new KeyTokenList(this, "highlight");
     }
 
-    /** @type {KeyTokenList} */
-    #lowlight;
+    #lowlight: KeyTokenList;
     get lowlight() {
         return this.#lowlight ??= new KeyTokenList(this, "lowlight");
     }
 
-    /** @type {KeyTokenList} */
-    #secondary;
+    #secondary: KeyTokenList;
     get secondary() {
         return this.#secondary ??= new KeyTokenList(this, "secondary");
     }
 
-    /** @type {KeyTokenList} */
-    #tertiary;
+    #tertiary: KeyTokenList;
     get tertiary() {
         return this.#tertiary ??= new KeyTokenList(this, "tertiary");
     }
@@ -330,17 +302,13 @@ export class KeyboardCueElement extends BaseComponent {
         }
     }
 
-    /** @type {SVGSVGElement} */
-    svg = this.shadowRoot.querySelector("svg");
+    svg: SVGSVGElement = this.shadowRoot.querySelector("svg");
 
-    /** @type {SVGElement} */
-    keyContainer = this.svg;
+    keyContainer: SVGElement = this.svg;
 
-    /** @type {Readonly<Record<KeyboardCueName, SVGRect>>} */
-    keyRects = (this.updateKeyRects(), null);
+    keyRects: Readonly<Record<KeyboardCueName, SVGRect>> = (this.updateKeyRects(), null);
 
-    /** @param {string} name @param {string} oldValue @param {string} newValue */
-    attributeChangedCallback(name, oldValue, newValue) {
+    attributeChangedCallback(name: string, oldValue: string, newValue: string) {
         if (name === "view-box" || name === "view") {
             this.shadowRoot.querySelector("svg").setAttribute("viewBox", this.viewBox.join(" "));
         }
@@ -354,10 +322,9 @@ export class KeyboardCueElement extends BaseComponent {
 
     updateKeys() {
         const {keys, highlight, lowlight, secondary, tertiary, keyContainer} = this;
-        /** @type {Record<string, SVGUseElement>} */
-        const existingKeys = Object.fromEntries(
+        const existingKeys: Record<string, SVGUseElement> = Object.fromEntries(
             Array.from(keyContainer.children)
-                 .filter(/** @returns {e is SVGUseElement} */ e => e instanceof SVGUseElement && e.hasAttribute("data-key"))
+                 .filter((e): e is SVGUseElement => e instanceof SVGUseElement && e.hasAttribute("data-key"))
                  .map(e => [e.getAttribute("data-key"), e]));
 
         keyContainer.replaceChildren(...keys.map(k => existingKeys[k] ??= this.createKeyElement(k)));
@@ -400,8 +367,7 @@ export class KeyboardCueElement extends BaseComponent {
         }
     }
 
-    /** @param {string} key @returns {SVGUseElement} */
-    createKeyElement(key) {
+    createKeyElement(key: string): SVGUseElement {
         const element = Rendered.html`
         <svg>
             <use href="${this.src}#k-${key}" part="key k-${key}"></use>
@@ -427,11 +393,9 @@ export class MessageLogElement extends BaseComponent {
         return Rendered.html`<slot></slot>`;
     }
 
-    /** @type {HTMLLIElement[]} */
-    messages = []
+    messages: HTMLLIElement[] = []
 
-    /** @type {HTMLLIElement} */
-    unreadMessage;
+    unreadMessage: HTMLLIElement;
 
     #limit = (this.style.setProperty("--log-limit", "25"), 25);
     get limit() {
@@ -456,8 +420,7 @@ export class MessageLogElement extends BaseComponent {
         }
     }
 
-    /** @param {string} name @param {string} oldValue @param {string} newValue */
-    attributeChangedCallback(name, oldValue, newValue) {
+    attributeChangedCallback(name: string, oldValue: string, newValue: string) {
         if (name === "limit") {
             const newLimit = parseInt(newValue);
             if (Number.isSafeInteger(newLimit))
@@ -466,29 +429,25 @@ export class MessageLogElement extends BaseComponent {
         }
     }
 
-    /** @param {...string|Node} content  */
-    addCallout(...content) {
+    addCallout(...content: (string | Node)[]) {
         const div = Rendered.html`<div class="callout"></div>`.firstElementChild;
         div.append(...content);
         this.addMessage(div);
     }
 
-    /** @param {...string|Node} content  */
-    addFatal(...content) {
+    addFatal(...content: (string | Node)[]) {
         const span = Rendered.html`<span class="fatal"></span>`.firstElementChild;
         span.append(...content);
         this.addMessage(span);
     }
 
-    /** @param {...string|Node} content  */
-    addWarning(...content) {
+    addWarning(...content: (string | Node)[]) {
         const span = Rendered.html`<span class="warning"></span>`.firstElementChild;
         span.append(...content);
         this.addMessage(span);
     }
 
-    /** @param {...string|Node} content  */
-    addMessage(...content) {
+    addMessage(...content: (string | Node)[]) {
         if (!this.unreadMessage) {
             const li = document.createElement("li");
             li.classList.add("new", "unread", "message");
@@ -528,15 +487,13 @@ export class MessageLogElement extends BaseComponent {
     }
 }
 
-/** @extends {Array<KeyboardCueName>} */
-export class KeyTokenList extends Array {
-    #element;
-    #attr;
-    #viewKeys;
-    /** @param {KeyboardCueElement} element @param {string} attr @param {KeyboardCueName[]} [viewKeys] */
-    constructor(element, attr, viewKeys = []) {
-        super(...viewKeys);
-        this.#viewKeys = viewKeys;
+export class KeyTokenList extends Array<KeyboardCueName> {
+    #element: KeyboardCueElement;
+    #attr: string;
+    #viewKeys: KeyboardCueName[];
+    constructor(element: KeyboardCueElement, attr: string, viewKeys?: KeyboardCueName[]) {
+        super();
+        this.#viewKeys = viewKeys || [];
         this.#element = element;
         this.#attr = attr;
         this.reparse();
@@ -546,7 +503,7 @@ export class KeyTokenList extends Array {
         return this.filter(k => !this.#viewKeys.includes(k))
                    .concat(this.#viewKeys
                                .filter(k => !this.includes(k))
-                               .map(k => /** @type {any} */(`-${k}`)))
+                               .map(k => `-${k}` as any))
                    .join(" ");
     }
 
@@ -568,8 +525,7 @@ export class KeyTokenList extends Array {
 
     }
 
-    /** @param {...KeyboardCueName} tokens  */
-    add(...tokens) {
+    add(...tokens: KeyboardCueName[]) {
         let changed = false;
         for (const item of tokens) {
             if (!this.includes(item)) {
@@ -581,18 +537,16 @@ export class KeyTokenList extends Array {
             this.#element.setAttribute(this.#attr, this.value);
         }
     }
-    /** @param {KeyboardCueName} token  */
-    contains(token) {
+
+    contains(token: KeyboardCueName) {
         return this.includes(token);
     }
 
-    /** @param {number} index  */
-    item(index) {
+    item(index: number) {
         return this[index] ?? null;
     }
 
-    /** @param {...KeyboardCueName} tokens  */
-    remove(...tokens) {
+    remove(...tokens: KeyboardCueName[]) {
         let changed = false;
         for (const token of tokens) {
             const index = this.indexOf(token);
@@ -606,8 +560,7 @@ export class KeyTokenList extends Array {
         }
     }
 
-    /** @param {KeyboardCueName} oldItem @param {KeyboardCueName} newItem */
-    replace(oldItem, newItem) {
+    replace(oldItem: KeyboardCueName, newItem: KeyboardCueName) {
         const index = this.indexOf(oldItem);
         if (index < 0) {
             return false;
@@ -617,8 +570,7 @@ export class KeyTokenList extends Array {
             return true;
     }
 
-    /** @param {KeyboardCueName} item @param {boolean} [force] */
-    toggle(item, force) {
+    toggle(item: KeyboardCueName, force?: boolean) {
         const index = this.indexOf(item);
         const present = index >= 0;
         if (present === force) return present;
@@ -633,16 +585,13 @@ export class KeyTokenList extends Array {
         }
     }
     
-    /** @param {string} token @returns {token is KeyboardCueName} */
-    supports(token) {
+    supports(token: string): token is KeyboardCueName {
         return isKeyName(token);
     }
 }
 
-/** @param {string} key @returns {key is KeyboardCueName} */
-export function isKeyName(key) {
-    // @ts-ignore
-    return KeyboardCueElement.allKeys.includes(key);
+export function isKeyName(key: string): key is KeyboardCueName {
+    return KeyboardCueElement.allKeys.includes(key as KeyboardCueName);
 }
 
 console.groupCollapsed("Defining custom HTML components");

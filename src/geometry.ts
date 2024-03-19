@@ -1,9 +1,6 @@
 import { RNG } from "rot-js";
 import { Queue, copyImplementation, inInclusiveRange, scramble } from "./helpers.js";
 
-/** @typedef {`${'+'|'-'}${number}`} CoordinateValueRepr */
-/** @typedef {`${CoordinateValueRepr}${CoordinateValueRepr}${CoordinateValueRepr}`} CoordinateKey */
-
 /**
  * Javascript does not have overridable equality tests like other languages, so
  * Coord is an immutable partial-singleton class that has only one instance per coordinate triplet, so they
@@ -12,42 +9,29 @@ import { Queue, copyImplementation, inInclusiveRange, scramble } from "./helpers
  * Be aware that this would be a source of memory leak if used on an infinite world!
  */
 export class Coord {
-    /** @readonly */ static ABORT = Symbol("Coord.ABORT");
+    static readonly ABORT = Symbol("Coord.ABORT");
 
-    /** @readonly @type {{[z: number]: {[y: number]: {[x: number]: Coord}}}} */
-    static #knownCoords = {};
-    /** @type {{readonly [z: number]: {readonly [y: number]: {readonly [x: number]: Coord}}}} */
-    static get knownCoords() { return this.#knownCoords; }
+    static readonly #knownCoords: { [z: number]: { [y: number]: { [x: number]: Coord; }; }; } = {};
+    static get knownCoords(): {readonly [z: number]: {readonly [y: number]: {readonly [x: number]: Coord}}} { return this.#knownCoords; }
 
-    /** @readonly */ static Zero = new Coord(0, 0, 0);
-    /** @readonly */ static UnitX = new Coord(1, 0, 0);
-    /** @readonly */ static UnitY = new Coord(0, 1, 0);
-    /** @readonly */ static UnitZ = new Coord(0, 0, 1);
-    /** @readonly */ static NegX = new Coord(-1, 0, 0);
-    /** @readonly */ static NegY = new Coord(0, -1, 0);
-    /** @readonly */ static NegZ = new Coord(0, 0, -1);
+    static readonly Zero = new Coord(0, 0, 0);
+    static readonly UnitX = new Coord(1, 0, 0);
+    static readonly UnitY = new Coord(0, 1, 0);
+    static readonly UnitZ = new Coord(0, 0, 1);
+    static readonly NegX = new Coord(-1, 0, 0);
+    static readonly NegY = new Coord(0, -1, 0);
+    static readonly NegZ = new Coord(0, 0, -1);
 
-    /** @returns {CoordinateValueRepr} */
-    static valueRepr(v = 0) {
-        return v >= 0 ? `+${v}` : `-${Math.abs(v)}`;
-    }
-
-    /** @readonly @type {symbol} */ key;
-    /** @readonly @type {number} */ x;
-    /** @readonly @type {number} */ y;
-    /** @readonly @type {number} */ z;
-
-    /** @returns {CoordinateKey} */
-    static coordKey(x = 0, y = 0, z = 0) {
-        return `${this.valueRepr(x)}${this.valueRepr(y)}${this.valueRepr(z)}`
-    }
+    readonly key: symbol;
+    readonly x: number;
+    readonly y: number;
+    readonly z: number;
 
     static XYZ(x = 0, y = 0, z = 0) {
         return this.#knownCoords[z]?.[y]?.[x] ?? new this(x, y, z);
     }
 
-    /** @private */
-    constructor(x = 0, y = 0, z = 0) {
+    private constructor(x = 0, y = 0, z = 0) {
         this.x = x;
         this.y = y;
         this.z = z;
@@ -101,32 +85,27 @@ export class Coord {
         return max(abs(x), abs(y)) + abs(z);
     }
 
-    /** @param {CoordLike} other */
-    distanceFrom(other) {
+    distanceFrom(other: CoordLike) {
         return Coord.distance(this.x - other.x, this.y - other.y, this.z - other.z);
     }
     
-    /** @param {CoordLike} other */ add(other)          { return this.plus(other.x, other.y, other.z); }
-    /** @param {CoordLike} other */ subtract(other)     { return this.minus(other.x, other.y, other.z); }
-    /** @param {CoordLike} other */ multiply(other)     { return this.times(other.x, other.y, other.z); }
-    /** @param {CoordLike} other */ remainder(other)    { return this.modulo(other.x, other.y, other.z); }
-    /** @param {CoordLike} other */ wholeDivide(other)  { return this.wholeDividedBy(other.x, other.y, other.z); }
-    /** @param {CoordLike} other */ roughDivide(other)  { return this.roughlyDividedBy(other.x, other.y, other.z); }
+    add(other: CoordLike)          { return this.plus(other.x, other.y, other.z); }
+    subtract(other: CoordLike)     { return this.minus(other.x, other.y, other.z); }
+    multiply(other: CoordLike)     { return this.times(other.x, other.y, other.z); }
+    remainder(other: CoordLike)    { return this.modulo(other.x, other.y, other.z); }
+    wholeDivide(other: CoordLike)  { return this.wholeDividedBy(other.x, other.y, other.z); }
+    roughDivide(other: CoordLike)  { return this.roughlyDividedBy(other.x, other.y, other.z); }
 }
 
-/** @implements {CoordSet} */
-export class BaseCoordSet {
-    /** @type {IteratorResult<Coord>} */
-    iteratorResult;
+export abstract class BaseCoordSet implements CoordSet {
+    iteratorResult: IteratorResult<Coord>;
 
-    /** @this {CoordSet} @returns {IterableIterator<Coord>} */
-    [Symbol.iterator]() {
+    [Symbol.iterator](): IterableIterator<Coord> {
         this.rewindCoords();
         return this;
     }
 
-    /** @returns {boolean} */
-    get potentiallyUnbounded() { throw new Error("Not implemented"); }
+    abstract get potentiallyUnbounded(): boolean;
     rewindCoords() { }
     resetCoords(rewind = true) {
         if (rewind) this.rewindCoords();
@@ -134,10 +113,8 @@ export class BaseCoordSet {
     randomizeCoords(rewind = true) {
         if (rewind) this.rewindCoords();
     }
-    /** @returns {Coord | null} */
-    nextCoord() { throw new Error("Not implemented"); }
+    abstract nextCoord(): Coord | null;
 
-    /** @this {CoordSet & {iteratorResult: BaseCoordSet["iteratorResult"]}} */
     next() {
         const value = this.nextCoord();
 
@@ -153,15 +130,13 @@ export class BaseCoordSet {
         return result;
     }
 
-    /** @param {Coord} coord */
-    includes(coord) {
+    includes(coord: Coord) {
         for (const c of this) {
             if (c === coord) return true;
         }
         return false;
     }
 
-    /** @this {CoordSet} */
     countCoords(exact = false) {
         if (!exact && this.potentiallyUnbounded) return 0;
         let total = 0;
@@ -169,19 +144,17 @@ export class BaseCoordSet {
         return total;
     }
 
-    /** @this {CoordSet} @param {(c: Coord) => unknown | typeof Coord.ABORT} callback  */
-    walkCoords(callback) {
+    walkCoords(callback: (c: Coord) => unknown | typeof Coord.ABORT) {
         for (const c of this) {
             if (callback(c) === Coord.ABORT) break;
         }
     }
 
-    /** @this {CoordSet} */
     getCoords(limit = Infinity, rewindFirst = true) {
         if (rewindFirst) this.rewindCoords();
         const inexactCount = this.countCoords(false);
-        const coords = new ArrayCoordSet(Number.isInteger(inexactCount) && inexactCount >= 0 ? inexactCount : 0);
-        let i;
+        const coords = new ArrayCoordSet();
+        let i: number;
         if (limit === Infinity && inexactCount > 0) {
             limit = inexactCount * 10;
         }
@@ -207,20 +180,16 @@ export class BaseCoordSet {
         return Coord.XYZ(tx, ty, tz).roughlyDividedBy(count);
     }
 
-    /** @this {CoordSet} @param {(c: Coord) => boolean | typeof Coord.ABORT} predicate */
-    filterCoords(predicate) {
+    filterCoords(predicate: (c: Coord) => boolean | typeof Coord.ABORT) {
         return new FilteredCoords(this, predicate);
     }
 
-    /** @this {CoordSet} @param {number} limit */
-    limitCoords(limit) {
+    limitCoords(limit: number) {
         return new LimitedCoords(this, limit);
     }
 
-    /** @template T @this {CoordSet} @param {(c: Coord) => T | typeof Coord.ABORT} callback */
-    mapCoords(callback) {
-        /** @type {T[]} */
-        const results = new Array(this.countCoords(false));
+    mapCoords<T>(callback: (c: Coord) => T | typeof Coord.ABORT) {
+        const results: T[] = new Array(this.countCoords(false));
         let i = 0;
         for (const c of this) {
             const r = callback(c);
@@ -234,8 +203,7 @@ export class BaseCoordSet {
     }
 }
 
-/** @extends {Array<Coord>} @implements {CoordSet} */
-export class ArrayCoordSet extends Array {
+export class ArrayCoordSet extends Array<Coord> implements CoordSet {
     index = 0;
 
     get potentiallyUnbounded() { return false; }
@@ -262,11 +230,10 @@ export class ArrayCoordSet extends Array {
 
     getCoords(limit = Infinity) {
         if (limit >= this.length) return this;
-        return /** @type {ArrayCoordSet} */(this.slice(0, limit));
+        return this.slice(0, limit) as ArrayCoordSet;
     }
 
-    /** @param {(c: Coord) => unknown | typeof Coord.ABORT} callback */
-    walkCoords(callback) {
+    walkCoords(callback: (c: Coord) => unknown | typeof Coord.ABORT) {
         for (let i = 0; i < this.length; i++) {
             if (callback(this[i]) === Coord.ABORT) return;
         }
@@ -281,12 +248,11 @@ export class ArrayCoordSet extends Array {
 }
 
 export class DerivedCoordSet extends BaseCoordSet {
-    source;
+    source: CoordSet;
     
     get potentiallyUnbounded() { return this.source.potentiallyUnbounded; }
 
-    /** @param {CoordSet} sourceSet */
-    constructor(sourceSet) {
+    constructor(sourceSet: CoordSet) {
         super();
         this.source = sourceSet;
     }
@@ -310,10 +276,9 @@ export class DerivedCoordSet extends BaseCoordSet {
 }
 
 export class FilteredCoords extends DerivedCoordSet {
-    predicate;
+    predicate: (c: Coord) => boolean | typeof Coord.ABORT;
 
-    /** @param {CoordSet} sourceSet @param {(c: Coord) => boolean | typeof Coord.ABORT} predicate  */
-    constructor(sourceSet, predicate) {
+    constructor(sourceSet: CoordSet, predicate: (c: Coord) => boolean | typeof Coord.ABORT) {
         super(sourceSet);
         this.predicate = predicate;
     }
@@ -330,13 +295,12 @@ export class FilteredCoords extends DerivedCoordSet {
 }
 
 export class LimitedCoords extends DerivedCoordSet {
-    limit;
+    limit: number;
     count = 0;
 
     get potentiallyUnbounded() { return !isFinite(this.limit); }
 
-    /** @param {CoordSet} sourceSet @param {number} limit  */
-    constructor(sourceSet, limit) {
+    constructor(sourceSet: CoordSet, limit: number) {
         super(sourceSet);
         this.limit = limit;
     }
@@ -360,12 +324,10 @@ export class Line extends BaseCoordSet {
     min = 0;
     max = 0;
 
-    /** @type {Coord} */
-    cursor;
+    cursor: Coord;
     count = 0;
 
-    /** @type {number[]} */
-    lineOrder;
+    lineOrder: number[];
 
     get potentiallyUnbounded() { return !isFinite(this.min) || !isFinite(this.max); }
 
@@ -394,8 +356,7 @@ export class Line extends BaseCoordSet {
         return new Line(origin, delta, isFinite(min) ? max - min + 1 : max, min)
     }
 
-    /** @param {Coord} origin @param {Coord} delta */
-    set(origin, delta, count=Infinity, start=0) {
+    set(origin: Coord, delta: Coord, count=Infinity, start=0) {
         this.origin = origin;
         this.delta = delta;
         this.min = start;
@@ -411,8 +372,7 @@ export class Line extends BaseCoordSet {
         return max - min + 1;
     }
 
-    /** @param {Coord} coord  */
-    includes(coord) {
+    includes(coord: Coord) {
         const {origin, delta} = this;
         return coord.subtract(origin).remainder(delta) === Coord.Zero; // oh that feels good
     }
@@ -496,23 +456,16 @@ export class Line extends BaseCoordSet {
 }
 
 /** A Shape is a collection of lines */
-export class Shape extends BaseCoordSet {
-    // /** @type {Iterator<Line>} */
-    // lineIterator;
-    /** @type {Line} */
-    currentLine;
+export abstract class Shape extends BaseCoordSet {
+    // lineIterator: Iterator<Line>;
+    currentLine: Line;
     lineIndex = 0;
-    /** @type {Line[]} */
-    currentLines;
-    /** @type {Record<number, number>} */
-    currentWeights;
+    currentLines: Line[];
+    private currentWeights: number[];
 
     get potentiallyUnbounded() { return false; }
 
-    /** @returns {number} */
-    countLines() {
-        throw new Error("not implemented");
-    }
+    abstract countLines(): number;
 
     countCoords() {
         let total = 0;
@@ -523,8 +476,7 @@ export class Shape extends BaseCoordSet {
         }
     }
 
-    /** @param {Line[]} [lines]  */
-    getLines(lines) {
+    getLines(lines: Line[]) {
         lines ??= [];
         this.rewindCoords();
         for (let i = 0;; i++) {
@@ -539,8 +491,7 @@ export class Shape extends BaseCoordSet {
         return lines;
     }
 
-    /** @returns {Line} */
-    getLine(i = 0) {
+    getLine(i = 0): Line {
         return null;
     }
 
@@ -559,7 +510,7 @@ export class Shape extends BaseCoordSet {
             throw new Error(`Can't randomize unbounded Shape of type ${this.constructor?.name}: ${this}`);
         }
         this.currentLines = this.getLines(this.currentLines);
-        /** @type {number[]} */(this.currentWeights ??= []).length = this.currentLines.length;
+        (this.currentWeights ??= []).length = this.currentLines.length;
         this.currentLines?.forEach((line) => {
             line.randomizeCoords(false);
         });
@@ -567,8 +518,7 @@ export class Shape extends BaseCoordSet {
         super.randomizeCoords(rewind);
     }
 
-    /** @returns {Line | null} */
-    nextLine() {
+    nextLine(): Line | null {
         return this.getLine(this.lineIndex++);
     }
 
@@ -606,27 +556,24 @@ export class Shape extends BaseCoordSet {
 
 /** Represents an on-layer ring of cells at an exact radius */
 export class Circle extends Shape {
-    center;
-    radius;
-    #line;
+    center: Coord;
+    radius: number;
+    #line: Line;
 
-    /** @param {Coord} center @param {number} radius */
-    constructor(center, radius) {
+    constructor(center: Coord, radius: number) {
         super();
         this.center = center;
         this.radius = radius;
         this.#line = new Line(center, Coord.Zero, 1);
     }
 
-    /** @param {Coord} center @param {number} radius */
     set(center = this.center, radius = this.radius) {
         this.center = center;
         this.radius = radius;
         return this;
     }
 
-    /** @returns {number} */
-    countLines(radius = this.radius) {
+    countLines(radius = this.radius): number {
         return radius < 0 ? 0 : radius === 0 ? 1 : 4;
     }
 
@@ -655,6 +602,9 @@ export class Circle extends Shape {
 
 /** Represents a d8 of cells at an exact radius */
 export class Sphere extends Circle {
+    zOffset = 0;
+    layerStartIndex = 0;
+
     countLines(radius = this.radius) {
         return radius <= 0 ? super.countLines(radius) : 2 + (radius * 2 - 1) * 4;
     }
@@ -690,8 +640,7 @@ export class NearbyCoords extends Sphere {
 
     get potentiallyUnbounded() { return !isFinite(this.maxRadius); }
 
-    /** @param {Coord} center */
-    constructor(center, minRadius = 0, maxRadius = Infinity) {
+    constructor(center: Coord, minRadius = 0, maxRadius = Infinity) {
         super(center, minRadius);
         this.minRadius = minRadius;
         this.maxRadius = maxRadius;
@@ -720,8 +669,7 @@ export class NearbyCoords extends Sphere {
         return total;
     }
 
-    /** @param {CoordLike} coord */
-    includes(coord) {
+    includes(coord: CoordLike) {
         const distance = this.center.distanceFrom(coord);
         return distance >= this.minRadius && distance <= this.maxRadius;
     }
@@ -746,16 +694,14 @@ export class NearbyCoords extends Sphere {
     }
 }
 
-/** @implements {ReadonlyBoundingBox} */
-export class BoundingBox extends Shape {
-    /** @readonly */ static abortWalk = Symbol("BoundingBox.abortWalk");
+export class BoundingBox extends Shape implements ReadonlyBoundingBox {
+    static readonly abortWalk = Symbol("BoundingBox.abortWalk");
 
     static get Infinity() {
         return new this().setMinMax(-Infinity, -Infinity, -Infinity, Infinity, Infinity, Infinity);
     }
 
-    /** @param {BoundingBoxLike} bbox */
-    static from(bbox) {
+    static from(bbox: BoundingBoxLike) {
         return new this(bbox);
     }
 
@@ -776,12 +722,9 @@ export class BoundingBox extends Shape {
            .setCenterRadius(cx, cy, cz, rx, ry, rz);
     }
 
-    /** @type {[xMin: number, xMax: number]} */
-    xLimits = [0, 0];
-    /** @type {[yMin: number, yMax: number]} */
-    yLimits = [0, 0];
-    /** @type {[zMin: number, zMax: number]} */
-    zLimits = [0, 0];
+    xLimits: [xMin: number, xMax: number] = [0, 0];
+    yLimits: [yMin: number, yMax: number] = [0, 0];
+    zLimits: [zMin: number, zMax: number] = [0, 0];
 
     get xMin() { return this.xLimits[0]; } set xMin(v) { this.xLimits[0] = v; }
     get xMax() { return this.xLimits[1]; } set xMax(v) { this.xLimits[1] = v; }
@@ -810,14 +753,12 @@ export class BoundingBox extends Shape {
     get diameterY() { return this.h; } set diameterY(v) { this.radiusY = (v - 1) / 2; }
     get diameterZ() { return this.d; } set diameterZ(v) { this.radiusZ = (v - 1) / 2; }
 
-    /** @param {BoundingBoxLike} [bbox] */
-    constructor(bbox) {
+    constructor(bbox?: BoundingBoxLike) {
         super();
         if (bbox) this.copyFrom(bbox);
     }
 
-    /** @param {BoundingBoxLike} bbox  */
-    copyFrom(bbox) {
+    copyFrom(bbox: BoundingBoxLike) {
         if (bbox !== this) {
             this.xLimits[0] = bbox.xLimits[0] ?? this.xLimits[0];
             this.xLimits[1] = bbox.xLimits[1] ?? this.xLimits[1];
@@ -833,25 +774,24 @@ export class BoundingBox extends Shape {
         return new BoundingBox(this);
     }
 
-    /** @returns {BoundingBox} */
-    makeWritable() {
+    makeWritable(): BoundingBox {
         return this;
     }
 
-    /** @returns {ReadonlyBoundingBox} the closest integral bounding box in position and size. */
-    round() {
+    /** @returns the closest integral bounding box in position and size. */
+    round(): ReadonlyBoundingBox {
         const {round} = Math;
         return this.setXYZWHD(round(this.x), round(this.y), round(this.z), round(this.w), round(this.h), round(this.d));
     }
 
-    /** @returns {ReadonlyBoundingBox} the largest integral bounding box contained by this one. */
-    floor() {
+    /** @returns the largest integral bounding box contained by this one. */
+    floor(): ReadonlyBoundingBox {
         const {floor, ceil} = Math;
         return this.setMinMax(ceil(this.xMin), ceil(this.yMin), ceil(this.zMin), floor(this.xMax), floor(this.yMax), floor(this.zMax));
     }
 
-    /** @returns {ReadonlyBoundingBox} the smallest integral bounding box that contains this one. */
-    ceil() {
+    /** @returns the smallest integral bounding box that contains this one. */
+    ceil(): ReadonlyBoundingBox {
         const {floor, ceil} = Math;
         return this.setMinMax(floor(this.xMin), floor(this.yMin), floor(this.zMin), ceil(this.xMax), ceil(this.yMax), ceil(this.zMax));
     }
@@ -874,11 +814,7 @@ export class BoundingBox extends Shape {
         return Coord.XYZ(x + xMin, y + yMin, i + zMin);
     }
 
-    /**
-     * @param {number} [xMin] @param {number} [yMin] @param {number} [zMin] 
-     * @param {number} [xMax] @param {number} [yMax] @param {number} [zMax] 
-     */
-    setMinMax(xMin, yMin, zMin, xMax, yMax, zMax) {
+    setMinMax(xMin?: number, yMin?: number, zMin?: number, xMax?: number, yMax?: number, zMax?: number) {
         this.xLimits[0] = xMin ?? this.xLimits[0];
         this.xLimits[1] = xMax ?? this.xLimits[1];
         this.yLimits[0] = yMin ?? this.yLimits[0];
@@ -888,11 +824,7 @@ export class BoundingBox extends Shape {
         return this;
     }
 
-    /**
-     * @param {number} [x] @param {number} [y] @param {number} [z] 
-     * @param {number} [w] @param {number} [h] @param {number} [d] 
-     */
-    setXYZWHD(x, y, z, w, h, d) {
+    setXYZWHD(x?: number, y?: number, z?: number, w?: number, h?: number, d?: number) {
         x ??= this.xMin;
         y ??= this.yMin;
         z ??= this.zMin;
@@ -902,22 +834,14 @@ export class BoundingBox extends Shape {
         return this.setMinMax(x, y, z, x + w - 1, y + h - 1, z + d - 1);
     }
 
-    /**
-     * @param {number} [cx] @param {number} [cy] @param {number} [cz] 
-     * @param {number} [cw] @param {number} [ch] @param {number} [cd] 
-     */
-    setCenterSize(cx, cy, cz, cw, ch, cd) {
+    setCenterSize(cx?: number, cy?: number, cz?: number, cw?: number, ch?: number, cd?: number) {
         return this.setCenterRadius(cx ?? this.centerX, cy ?? this.centerY, cz ?? this.centerZ,
                                    ((cw ?? this.diameterX) - 1) / 2,
                                    ((ch ?? this.diameterY) - 1) / 2,
                                    ((cd ?? this.diameterZ) - 1) / 2)
     }
 
-    /**
-     * @param {number} [cx] @param {number} [cy] @param {number} [cz] 
-     * @param {number} [rx] @param {number} [ry] @param {number} [rz] 
-     */
-    setCenterRadius(cx, cy, cz, rx, ry, rz) {
+    setCenterRadius(cx?: number, cy?: number, cz?: number, rx?: number, ry?: number, rz?: number) {
         cx ??= this.centerX; cy ??= this.centerY; cz ??= this.centerZ;
         rx ??= this.radiusX; ry ??= this.radiusY; rz ??= this.radiusZ;
         return this.setMinMax(
@@ -935,8 +859,7 @@ export class BoundingBox extends Shape {
             && inInclusiveRange(z, zMin, zMax);
     }
 
-    /** @param {BoundingBoxLike} intersectWith  */
-    intersect(intersectWith) {
+    intersect(intersectWith: BoundingBoxLike) {
         if (!intersectWith) return this;
         const {xLimits, yLimits, zLimits} = this;
         const {xLimits: x, yLimits: y, zLimits: z} = intersectWith;
@@ -949,8 +872,7 @@ export class BoundingBox extends Shape {
         return this;
     }
 
-    /** @param {BoundingBoxLike} expandToInclude  */
-    encapsulate(expandToInclude) {
+    encapsulate(expandToInclude: BoundingBoxLike) {
         if (!expandToInclude) return this;
         const {xLimits, yLimits, zLimits} = this;
         const {xLimits: x, yLimits: y, zLimits: z} = expandToInclude;
@@ -984,8 +906,7 @@ export class BoundingBox extends Shape {
         return this.setMinMax(null, null, startIndex, null, null, nextIndex - 1);
     }
 
-    /** @param {(x: number, y: number, z: number) => unknown | typeof BoundingBox.abortWalk} callback */
-    walk(callback) {
+    walk(callback: (x: number, y: number, z: number) => unknown | typeof BoundingBox.abortWalk) {
         const {xMin, xMax, yMin, yMax, zMin, zMax} = this;
         for (let z = zMin; z <= zMax; z++) {
             for (let y = yMin; y <= yMax; y++) {
@@ -1017,28 +938,24 @@ export class BoundingBox extends Shape {
         return this.w * this.h * this.d;
     }
 
-    /** @param {CoordLike} coord  */
-    includes(coord) {
+    includes(coord: CoordLike) {
         const {x, y, z} = coord;
         return this.contains(x, y, z);
     }
 }
 
 export class SpreadCoords extends BaseCoordSet {
-    origin;
-    spreadTest;
-    coordsDomain;
-    /** @type {Set<Coord>} */
-    seenCoords = new Set();
-    /** @type {Queue<Coord>} */
-    todoCoords = new Queue();
+    origin: Coord;
+    spreadTest: (c: Coord) => boolean;
+    coordsDomain: CoordSet | undefined;
+    seenCoords: Set<Coord> = new Set();
+    todoCoords: Queue<Coord> = new Queue();
 
     #neighbors = new Sphere(Coord.Zero, 1);
 
     get potentiallyUnbounded() { return true; }
 
-    /** @param {Coord} origin @param {(c: Coord) => boolean | null} spreadTest @param {CoordSet} [coordsDomain] */
-    constructor(origin, spreadTest, coordsDomain) {
+    constructor(origin: Coord, spreadTest: (c: Coord) => boolean | null, coordsDomain?: CoordSet) {
         super();
         this.origin = origin;
         this.spreadTest = spreadTest;

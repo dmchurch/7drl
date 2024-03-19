@@ -28,8 +28,7 @@ scheduler.player = player;
 
 export const tileset = Tileset.light;
 
-/** @type {ConstructorParameters<typeof Viewport>[2]} */
-let o = {
+let o: ConstructorParameters<typeof Viewport>[2] = {
     ...await tileset.getDisplayOptions(),
     width: 33,
     height: 33,

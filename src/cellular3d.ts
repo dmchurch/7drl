@@ -1,20 +1,20 @@
 import {Display, Map, RNG} from "rot-js";
 import { inSemiOpenRange } from "./helpers.js";
+import type { WorldMap } from "./worldmap";
 
-/**
- * @typedef {Omit<ConstructorParameters<typeof Map.Cellular>[2], "topology"> & {
- *  zWeight?: number,
- *  layerStrideBits?: number,
- *  layerWidth?: number,
- *  depth?: number,
- * }} Options
- */
+type ConstructorParameter<T extends new(...args: any[]) => any, N extends number> = T extends new(...args: infer AA) => any ? AA[N] : never;
 
-/** @typedef {typeof import("./worldmap").WorldMap.callback} Create3DCallback */
+interface Options extends ConstructorParameter<typeof Map.Cellular, 2> {
+    zWeight?: number;
+    layerStrideBits?: number;
+    layerWidth?: number;
+    depth?: number;
+};
+
+type Create3DCallback = typeof WorldMap.callback;
 
 export class Cellular3D extends Map.Cellular {
-    /** @type {Options} */
-    static defaultOptions = {
+    static defaultOptions: Options = {
         born: [7, 8, 9, 10, 11, 12],
         survive: [6, 7, 8, 9, 10, 11, 12],
         zWeight: 2,
@@ -29,24 +29,17 @@ export class Cellular3D extends Map.Cellular {
 
     get data() { return this.thisMap?.data; }
     get nullColumn() { return this.thisMap?.nullColumn; }
-    /** @type {{data: Uint8Array;nullColumn: Uint8Array;map: Uint8Array[];}} */
-    thisMap = this["thisMap"];
-    /** @type {{data: Uint8Array;nullColumn: Uint8Array;map: Uint8Array[];}} */
-    otherMap = this["otherMap"];
+    
+    declare thisMap: { data: Uint8Array; nullColumn: Uint8Array; map: Uint8Array[]; };
+    declare otherMap: { data: Uint8Array; nullColumn: Uint8Array; map: Uint8Array[]; };
 
     get options() {
-        return /** @type {Options} */(this._options);
+        return this._options as Options;
     }
 
     livePopulation = 0;
 
-    /**
-     * @param {number} width
-     * @param {number} height
-     * @param {number} depth
-     * @param {Options} [options]
-     */
-    constructor(width, height, depth, options,
+    constructor(width: number, height: number, depth: number, options?: Options,
                 layerStrideBits = options?.layerStrideBits ?? Math.ceil(Math.log2(width + 1)),
                 mapWidth = depth << layerStrideBits,
                 mapHeight = height) {
@@ -55,8 +48,7 @@ export class Cellular3D extends Map.Cellular {
         this._dirs = [...this._dirs, [1 << layerStrideBits, 0], [-1 << layerStrideBits, 0]];
     }
 
-    /** @returns {number[][]} */
-    _fillMap(value) {
+    _fillMap(value: number): number[][] {
         const {thisMap, otherMap} = this;
         if (otherMap) {
             this.thisMap = otherMap;
@@ -71,8 +63,7 @@ export class Cellular3D extends Map.Cellular {
         }
         const data = new Uint8Array(this.width * this.depth * this.height).fill(value);
         const nullColumn = new Uint8Array(this.height).fill(value);
-        /** @type {Uint8Array[]} */
-        let map = new Array(this.mapWidth);
+        let map: Uint8Array[] = new Array(this.mapWidth);
         for (let i = 0; i < this.mapWidth; i++) {
             const x = i & ((1 << this.layerStrideBits) - 1);
             const z = i >>> this.layerStrideBits;
@@ -100,13 +91,11 @@ export class Cellular3D extends Map.Cellular {
         return result;
     }
 
-    /** @param {Options} options  */
-    setOptions(options) {
+    setOptions(options: Options) {
         super.setOptions({...options, topology: 8});
     }
 
-    /** @param {Create3DCallback} [callback] */
-    create(callback) {
+    create(callback?: Create3DCallback) {
         let newMap = this._fillMap(0);
         let nextPopulation = 0;
         let born = this._options.born;
@@ -137,8 +126,7 @@ export class Cellular3D extends Map.Cellular {
         this._service3DCallback(callback);
     }
 
-    /** @param {Create3DCallback} callback */
-    export(callback) {
+    export(callback: Create3DCallback) {
         this._service3DCallback(callback);
     }
 
@@ -173,8 +161,7 @@ export class Cellular3D extends Map.Cellular {
             : undefined;
     }
 
-    /** @param {number} x @param {number} y @param {number} z @param {number} value */
-    set3D(x, y, z, value) {
+    set3D(x: number, y: number, z: number, value: number) {
         super.set(x + (z << this.layerStrideBits), y, value);
     }
 }

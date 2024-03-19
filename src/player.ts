@@ -6,14 +6,13 @@ import { SoulUI, Stat, StatUI, allStats, isStatName } from "./stats.js";
 import { Tileset } from "./tileset.js";
 import { Astar3D } from "./rot3d.js";
 import { MessageLogElement } from "./uicomponents.js";
-import { FOG_KNOWN } from "./worldmap.js";
+import { FOG_KNOWN, WorldMap } from "./worldmap.js";
 import { equipment, godSummonMessage, winMessage } from "~data/items.js";
 
 console.debug("Starting player.js");
 
 export class Player extends Creature {
-    /** @type {Record<StatName, StatUI>} */
-    statUIs = {
+    statUIs: Record<StatName, StatUI> = {
         head: null,
         dorsal: null,
         belly: null,
@@ -37,12 +36,11 @@ export class Player extends Creature {
         },
     };
 
-    /** @type {Record<StatName, Stat>} */
-    stats;
+    stats: Record<StatName, Stat>;
 
     get statList() {
         const {head, dorsal, belly, fins, tail} = this.stats;
-        return /** @type {const} */([head, dorsal, belly, fins, tail]);
+        return [head, dorsal, belly, fins, tail] as const;
     }
 
     get soulUncovered() {
@@ -50,8 +48,7 @@ export class Player extends Creature {
     }
 
     get liveStats() {
-        /** @type {StatLike[]} */
-        const stats = this.statList.filter(stat => stat.current > 0);
+        const stats: StatLike[] = this.statList.filter(stat => stat.current > 0);
         if (this.soulUncovered) {
             stats.push(this.soul);
         }
@@ -63,8 +60,7 @@ export class Player extends Creature {
     isDead = false;
 
     inventoryUI = new InventoryUI(this, "inventory");
-    /** @type {MessageLogElement} */
-    messageLog;
+    messageLog: MessageLogElement;
 
     destroyMessages = new WeakMap();
 
@@ -72,23 +68,18 @@ export class Player extends Creature {
         return this.inventoryUI.open;
     }
 
-    /** @type {(() => void)[]} */
-    actionQueue = [];
-    /** @type {(v: any) => void} */
-    #resolveAction;
+    actionQueue: (() => void)[] = [];
+    #resolveAction: (v: any) => void;
 
-    /** @type {Astar3D} */
-    path;
+    path: Astar3D;
 
-    /** @overload @param {Overrides<Player>} options */
-    /** @param {Overrides<Player>} options */
-    constructor(options, {stats, ...rest} = options) {
+    constructor(options?: Overrides<Player>);
+    constructor(options?: Overrides<Player>, {stats, ...rest} = options ?? {}) {
         super("player", {displayLayer: Infinity, ...rest});
         this.stats = mapEntries(allStats, (_def, name) => new Stat(name, stats?.[name] ?? {current: this.durability, max: this.durability}));
     }
 
-    /** @param {NodeListOf<Element>} elements  */
-    bindStatUIs(elements) {
+    bindStatUIs(elements: NodeListOf<Element>) {
         for (const bpContainer of elements) {
             const bodypart = htmlElement(bpContainer).dataset.bodypart;
             if (isStatName(bodypart)) {
@@ -101,13 +92,11 @@ export class Player extends Creature {
         }
     }
 
-    /** @param {MessageLogElement} messageLog  */
-    bindMessageLog(messageLog) {
+    bindMessageLog(messageLog: MessageLogElement) {
         this.messageLog = messageLog;
     }
 
-    /** @param {number} amount @param {Actor} source @param {Item} item */
-    takeDamage(amount, source, item) {
+    takeDamage(amount: number, source: Actor, item: Item) {
         const {liveStats, soulUncovered} = this;
         const stat = RNG.getItem(liveStats);
         const old = stat.current;
@@ -145,8 +134,7 @@ export class Player extends Creature {
         }
     }
 
-    /** @param {Actor} killer @param {Item} item */
-    die(killer, item) {
+    die(killer: Actor, item: Item) {
         if (!this.isDead) {
             this.visible = false;
             this.tangible = false;
@@ -200,8 +188,7 @@ export class Player extends Creature {
         document.documentElement.classList.toggle("soul-uncovered", this.soulUncovered);
     }
 
-    /** @param {Prop} target  */
-    attack(target) {
+    attack(target: Prop) {
         const damage = super.attack(target);
         const destroyMessage = this.destroyMessages.get(target);
         this.messageLog.addMessage(`The ${target.label} takes ${damage} damage${target.durability <= 0 ? (destroyMessage ? `. ${destroyMessage}` : " and dies.") : "."}`)
@@ -214,8 +201,7 @@ export class Player extends Creature {
         return damage;
     }
 
-    /** @param {Item} item */
-    takeItem(item) {
+    takeItem(item: Item) {
         const result = super.takeItem(item);
         if (result) {
             this.messageLog?.addMessage(`You take ${item.getDefiniteLabel()}.`)
@@ -233,8 +219,7 @@ export class Player extends Creature {
         return result;
     }
 
-    /** @param {Item} item */
-    dropItem(item, count = 1) {
+    dropItem(item: Item, count = 1) {
         const result = super.dropItem(item, count);
         if (Array.isArray(result)) {
             const [stack, floor] = result;
@@ -247,8 +232,7 @@ export class Player extends Creature {
         return result;
     }
 
-    /** @param {Stat} stat @param {Actor} source @param {Item} item */
-    losePart(stat, source, item) {
+    losePart(stat: Stat, source: Actor, item: Item) {
         const {name, equippedItem, equipDef, s, its} = stat;
         if (equippedItem) {
             this.messageLog.addWarning(`Your ${equipDef?.label?.toLowerCase() ?? `transformed ${stat.name}`} revert${s} to ${its} original form.`);
@@ -262,8 +246,7 @@ export class Player extends Creature {
         this.destroyMessages.set(victim, message);
     }
 
-    /** @param {import("./worldmap.js").WorldMap} worldMap  */
-    addedToWorldMap(worldMap) {
+    addedToWorldMap(worldMap: WorldMap) {
         super.addedToWorldMap(worldMap);
         const {x, y, z} = this;
         this.path = new Astar3D(x, y, z, worldMap.isPassable);
@@ -289,8 +272,7 @@ export class Player extends Creature {
         this.queueAction(action);
     }
 
-    /** @param {() => void} action  */
-    queueAction(action) {
+    queueAction(action: () => void) {
         if (!this.canAct()) {
             return;
         }
@@ -304,8 +286,7 @@ export class Player extends Creature {
         }
     }
 
-    /** @param {boolean} [force] */
-    toggleInventory(force) {
+    toggleInventory(force?: boolean) {
         this.inventoryUI.toggleInventory(force);
     }
 
@@ -350,8 +331,7 @@ export class Player extends Creature {
         return true;
     }
 
-    /** @param {Item} item  */
-    digestItemStack(item) {
+    digestItemStack(item: Item) {
         this.messageLog.addMessage(item.itemDef.message);
         if (item instanceof EggItem) {
             const soulItem = item.identify(this.worldMap);
@@ -371,8 +351,8 @@ export class Player extends Creature {
         }
     }
 
-    equipSoul(soul) {
-        const eqDef = equipment[/** @type {EquipmentName} */(soul.itemName)];
+    equipSoul(soul: SoulItem) {
+        const eqDef = equipment[soul.itemName as EquipmentName];
 
         const availableParts = typedKeys(eqDef).filter(p => this.stats[p].current > 0);
         if (availableParts.length === 0) {
@@ -418,15 +398,13 @@ export class Player extends Creature {
 }
 
 export class InventoryUI {
-    player;
-    /** @type {HTMLDialogElement} */
-    dialog;
-    itemLabel;
-    itemsList;
-    /** @type {HTMLButtonElement[]} */
-    itemButtons = [];
-    actionButtons;
-    itemTemplate;
+    player: Player;
+    dialog: HTMLDialogElement;
+    itemLabel: HTMLElement;
+    itemsList: HTMLElement;
+    itemButtons: HTMLButtonElement[] = [];
+    actionButtons: (HTMLButtonElement)[];
+    itemTemplate: HTMLTemplateElement;
 
     get open() {
         return this.dialog.open;
@@ -435,8 +413,7 @@ export class InventoryUI {
         this.dialog.open = v;
     }
 
-    /** @type {HTMLButtonElement & {inventoryItem: Item}} */
-    #selectedItem;
+    #selectedItem: HTMLButtonElement & { inventoryItem: Item; };
     get selectedItem() {
         return this.#selectedItem;
     }
@@ -447,11 +424,9 @@ export class InventoryUI {
         v?.classList.add("selected");
     }
 
-    /** @type {HTMLButtonElement} */
-    focusButton;
+    focusButton: HTMLButtonElement;
 
-    /** @param {Player} player @param {string|HTMLDialogElement} dialog */
-    constructor(player, dialog, itemTemplate) {
+    constructor(player: Player, dialog: string | HTMLDialogElement, itemTemplate?: string | HTMLTemplateElement) {
         this.player = player;
         this.dialog = dialogElement(dialog);
         this.itemsList = htmlElement(this.dialog.querySelector(".items-list"));
@@ -468,14 +443,12 @@ export class InventoryUI {
         }
     }
 
-    /** @param {KeyboardEvent} event  */
-    keyEventListener(event) {
+    keyEventListener(event: KeyboardEvent) {
         event.stopPropagation();
     }
 
-    /** @param {FocusEvent & {target: HTMLButtonElement & {inventoryItem?: Item}}} event  */
-    focusListener(event) {
-        const {target} = event;
+    focusListener(event: FocusEvent) {
+        const {target} = event as FocusEvent & { target: HTMLButtonElement & { inventoryItem?: Item; }; };
         const item = target.inventoryItem;
         if (item) {
             this.itemLabel.textContent = item?.getIndefiniteLabel() ?? "Unknown";
@@ -485,12 +458,11 @@ export class InventoryUI {
         this.focusButton = target;
     }
 
-    itemClickListener(event) {
+    itemClickListener(event: Event) {
         this.actionButtons[0].focus();
     }
 
-    /** @param {FocusEvent} event  */
-    actionClickListener(event) {
+    actionClickListener(event: FocusEvent) {
         const item = this.selectedItem?.inventoryItem;
         if (!item) return;
         const {action} = htmlElement(event.target).dataset;
@@ -499,8 +471,7 @@ export class InventoryUI {
         }
     }
 
-    /** @param {"eat"|"drop"} action  */
-    performAction(action) {
+    performAction(action: "eat" | "drop") {
         const item = this.selectedItem?.inventoryItem;
         if (!this.open || !item) return false;
         
@@ -514,8 +485,7 @@ export class InventoryUI {
     }
 
     updateItems() {
-        /** @type {Map<Item, Element>} */
-        const itemMap = new Map();
+        const itemMap = new Map<Item, Element>();
         for (const element of this.itemsList.children) {
             if ("inventoryItem" in element && element.inventoryItem instanceof Item) {
                 itemMap.set(element.inventoryItem, element);
@@ -537,8 +507,7 @@ export class InventoryUI {
         this.itemButtons = Array.from(this.dialog.querySelectorAll("button.item-button")).map(e => getElement(e, HTMLButtonElement));
     }
 
-    /** @param {Item} item  */
-    createItemElement(item) {
+    createItemElement(item: Item) {
         const element = cloneTemplate(this.itemTemplate, true).firstElementChild;
         element["inventoryItem"] = item;
         const button = element.querySelector("button");
@@ -560,8 +529,7 @@ export class InventoryUI {
         return element;
     }
 
-    /** @param {boolean} [force] */
-    toggleInventory(force) {
+    toggleInventory(force?: boolean) {
         if (this.dialog.open === force) return;
 
         if (this.dialog.open) {
