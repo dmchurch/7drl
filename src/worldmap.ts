@@ -91,7 +91,7 @@ export class WorldMap {
         this.animationHandler = this.animationHandler.bind(this);
     }
 
-    #animationFrameRequest;
+    #animationFrameRequest: number;
     startAnimation() {
         if (this.#animationActive) return;
         this.#animationActive = true;
@@ -395,9 +395,9 @@ export class WorldMap {
              yOrigin = centerY - (height >> 1),
              row = y - yOrigin, col = x - xOrigin,
              sprites = this.sprites,
-             bg = null,
-             bgUnseen = null,
-             bgUnknown = null) {
+             bg: string = null,
+             bgUnseen: string = null,
+             bgUnknown: string = null) {
 
         if (!inSemiOpenRange(row, 0, height) || !inSemiOpenRange(col, 0, width)) return;
 
@@ -564,7 +564,7 @@ export class MapSprite {
         }
     }
 
-    get rootSprite() {
+    get rootSprite(): MapSprite {
         return this.container?.rootSprite ?? this;
     }
 
@@ -608,7 +608,7 @@ export class MapSprite {
         MapSprite.spawnNearbyFunction?.(this, popDef, options, worldMap);
     }
 
-    *distributeNearby({minRadius = 1, maxRadius = 10} = {}, worldMap = this.rootSprite?.worldMap) {
+    *distributeNearby({minRadius = 1, maxRadius = 10} = {}, worldMap = this.rootSprite?.worldMap): Generator<[number, number, number][]> {
         const {x, y, z} = this.rootSprite;
 
         const positions = [];

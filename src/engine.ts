@@ -32,7 +32,7 @@ export class Engine extends Scheduler.Simple<Actor> {
         return this.time;
     }
 
-    getTimeOf(actor) {
+    getTimeOf(actor: Actor) {
         return super.getTimeOf(actor) == null ? null : this.getTime();
     }
 

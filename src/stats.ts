@@ -25,11 +25,11 @@ export const allStats = {
     },
 } satisfies Record<string, StatDef>;
 
-interface StatDef {
+export interface StatDef {
     label: string;
     defaultMax: number;
 }
-type StatName = keyof typeof allStats;
+export type StatName = keyof typeof allStats;
 
 export function isStatName(name: string): name is StatName {
     return Object.hasOwn(allStats, name);
@@ -62,12 +62,12 @@ export class Stat {
 
     equippedItem: Item;
 
-    get equipDef(): EquipmentDefinition {
-        return equipment[this.equippedItem?.itemName]?.[this.name];
+    get equipDef(): EquipmentDefinition | null {
+        return equipment[this.equippedItem?.itemName as EquipmentName]?.[this.name] || null;
     }
 
     constructor(nameArgument: StatName, options?: Overrides<Stat>);
-    constructor(nameArgument: StatName, options: Overrides<Stat>, {name = nameArgument, max = allStats[name].defaultMax, current = max} = options ?? {}) {
+    constructor(nameArgument: StatName, options: Overrides<Stat>, {name = nameArgument, max = allStats[name].defaultMax, current = max}: Overrides<Stat> = options ?? {}) {
         this.name = name;
         this.current = current;
         this.max = max;

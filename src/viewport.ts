@@ -110,7 +110,7 @@ export class Viewport {
         this.resizeObserver.observe(element, {box: "content-box"});
     }
 
-    moveViewport(deltaX = 0, deltaY = 0, deltaZ = 0, forceRedraw) {
+    moveViewport(deltaX = 0, deltaY = 0, deltaZ = 0, forceRedraw?: boolean) {
         this.centerX += deltaX;
         this.centerY += deltaY;
         this.centerZ += deltaZ;
@@ -160,7 +160,7 @@ class FixedTile extends Tile {
         this._ctx.globalCompositeOperation = oldComposite;
     }
 
-    draw(data, clearBefore) {
+    draw(data: [any, any, any, any, any], clearBefore: boolean) {
         const {globalAlpha} = this._ctx;
         let [x, y, ch, fg, bg] = data;
         let tileWidth = this._options.tileWidth;

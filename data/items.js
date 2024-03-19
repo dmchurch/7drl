@@ -62,15 +62,15 @@ export const metaItemEffects = /** @type {const} */([
     "burst",
 ]);
 
-/** @returns {name is VoidItemEffectName} */
+/** @param {any} name @returns {name is VoidItemEffectName} */
 export function isVoidEffectName(name) {
     return voidItemEffects.includes(name);
 }
-/** @returns {name is NumericItemEffectName} */
+/** @param {any} name @returns {name is NumericItemEffectName} */
 export function isNumericEffectName(name) {
     return numericItemEffects.includes(name);
 }
-/** @returns {name is MetaItemEffectName} */
+/** @param {any} name @returns {name is MetaItemEffectName} */
 export function isMetaEffectName(name) {
     return metaItemEffects.includes(name);
 }

@@ -76,7 +76,7 @@ export class Coord {
                          Math.round(this.z / z));
     }
     
-    plusTimes(other, x = 1, y = x, z = y) {
+    plusTimes(other: CoordLike, x = 1, y = x, z = y) {
         return this.plus(other.x * x, other.y * y, other.z * z);
     }
 
@@ -180,11 +180,11 @@ export abstract class BaseCoordSet implements CoordSet {
         return Coord.XYZ(tx, ty, tz).roughlyDividedBy(count);
     }
 
-    filterCoords(predicate: (c: Coord) => boolean | typeof Coord.ABORT) {
+    filterCoords(predicate: (c: Coord) => boolean | typeof Coord.ABORT): FilteredCoords {
         return new FilteredCoords(this, predicate);
     }
 
-    limitCoords(limit: number) {
+    limitCoords(limit: number): LimitedCoords {
         return new LimitedCoords(this, limit);
     }
 

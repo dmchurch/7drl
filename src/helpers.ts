@@ -32,7 +32,7 @@ export function scramble<T extends {[i: number]: any, length: number}>(arrayLike
 }
 
 export function after(ms: number): Promise<void> {
-    let resolver = null;
+    let resolver: () => void = null;
     let timedOut = false;
     const promise = new Promise<void>(r => (timedOut ? r() : (resolver = r)));
     setTimeout(() => (timedOut = true, resolver?.()), ms);
@@ -148,7 +148,7 @@ export function valueElement(elementOrId: string | Element, throwIfMissing=true,
     return getElement<HTMLValueElement>(elementOrId, [HTMLInputElement, HTMLTextAreaElement, HTMLSelectElement, HTMLOutputElement], throwIfMissing, warnIfMissing);
 }
 
-export function isValueElement(node): node is HTMLValueElement {
+export function isValueElement(node: Node): node is HTMLValueElement {
     return node instanceof HTMLInputElement || node instanceof HTMLTextAreaElement || node instanceof HTMLSelectElement || node instanceof HTMLOutputElement;
 }
 
@@ -234,7 +234,7 @@ export class Queue<T> implements IterableIterator<T>, IteratorStrictResult<T> {
         return count;
     }
 
-    enqueueAll(items) {
+    enqueueAll(items: Iterable<T>) {
         if (items === this && !isFinite(this.iterateLimit)) return;
         for (const item of items) {
             this.enqueue(item);

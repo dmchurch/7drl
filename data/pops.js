@@ -171,11 +171,15 @@ export function fixPopDefinition(popDef) {
     for (const type of popTypes) {
         if (type in popDef) {
             popDef.type = type;
-            if (type === "pickeach" || type === "pickone") {
-                popDef[type].forEach(fixPopDefinition);
-            }
             break;
         }
+    }
+    const {type} = popDef;
+    const subDefs = type === "pickeach" ? popDef.pickeach
+                  : type === "pickone" ? popDef.pickone
+                  : null;
+    if (subDefs) {
+        subDefs.forEach(fixPopDefinition);
     }
     return /** @type {Required<PopDefinition>} */(popDef);
 }

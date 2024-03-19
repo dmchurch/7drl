@@ -47,7 +47,7 @@ export class Actor extends Prop {
                     description = roles[roleName].description ?? "Indescribable.",
                     collision,
                     ...rest
-                } = options ?? {}) {
+                }: Overrides<Actor> = options ?? {}) {
         super(spriteTile, {
             blocksActors: !roles[roleName].insubstantial,
             durability: roles[roleName].durability,
@@ -178,12 +178,12 @@ export class Actor extends Prop {
         return false;
     }
 
-    die(killer, item) {
+    die(killer?: Actor | Player, item?: Item): false {
         this.tangible = false;
         this.visible = false;
         const {destroyMessage, drops} = this.role;
         if (killer && ("receiveDestroyMessage" in killer) && destroyMessage) {
-            console.log("sendingdestroy message to", killer,destroyMessage);
+            console.log("sendingdestroy message to", killer, destroyMessage);
             killer.receiveDestroyMessage(destroyMessage, this);
         }
         if (drops && this.worldMap?.hasSprite(this)) {
@@ -315,7 +315,8 @@ export class Creature extends Actor implements SpriteContainer {
     digestItemStack(stack: Item) {
         if (stack instanceof EggItem) {
             // default egg behavior is to just eat the soul.
-            return this.digestItemStack(stack.soulItem);
+            this.digestItemStack(stack.soulItem);
+            return;
         }
 
         const {itemDef} = stack;

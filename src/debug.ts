@@ -12,7 +12,7 @@ import { generateMap } from "./procgen.js";
 
 export const generator = new Cellular3D(worldMap.width, worldMap.height, worldMap.depth);
 
-let seed;
+let seed: number;
 let lastSeed = RNG.getSeed();
 let iterations = 5;
 let fillRatio = 0.5;

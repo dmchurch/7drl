@@ -1,14 +1,9 @@
-import { WorldMap } from "./worldmap.js";
-import { after, animationFrame, dialogElement, getElement, htmlElement } from "./helpers.js";
-import { StatUI, isStatName } from "./stats.js";
-import { Creature } from "./actors.js";
+import { after, dialogElement, getElement, htmlElement } from "./helpers.js";
 import { KeyboardCueElement, MessageLogElement } from "./uicomponents.js";
-import { DOMListAction, MoveAction } from "./input.js";
-import { regenerate } from "./debug.js";
+import { DOMListAction, InputManager, MoveAction } from "./input.js";
 import { worldMap, input, player, viewport } from "./globals.js";
 import { scheduler } from "./engine.js";
-import { generateWorld, spawnNearby, spawninBBox } from "./procgen.js";
-import { Cellular3D } from "./cellular3d.js";
+import { generateWorld } from "./procgen.js";
 
 console.log("Starting main.js");
 
@@ -83,14 +78,14 @@ input.bind(() => player.inventoryUI?.performAction("drop"), "Digit2").setName("D
 input.bind(() => player.queueAction(() => player.takeItems()), "KeyG").setName("Pick up").addCharBinding(",");
 
 input.bind(new class extends DOMListAction {
-    activate(event, input) {
+    activate(event: UIEvent, input: InputManager) {
         super.activate(event, input);
         after(100).then(() => {
             worldMap.enableCutaway = false;
             viewport.redraw();
         });
     }
-    deactivate(event, input) {
+    deactivate(event: UIEvent, input: InputManager) {
         super.deactivate(event, input);
         worldMap.enableCutaway = true;
         viewport.redraw();

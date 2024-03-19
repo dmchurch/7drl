@@ -19,8 +19,8 @@ export class Player extends Creature {
         fins: null,
         tail: null,
     };
-    soulUI = null;
-    soul = {
+    soulUI: SoulUI = null;
+    soul: StatLike & {self: Player} = {
         name: null,
         s: null,
         equipDef: null,
@@ -134,7 +134,7 @@ export class Player extends Creature {
         }
     }
 
-    die(killer: Actor, item: Item) {
+    die(killer: Actor, item: Item): false {
         if (!this.isDead) {
             this.visible = false;
             this.tangible = false;
@@ -164,7 +164,7 @@ export class Player extends Creature {
         return false;
     }
 
-    healDamage(amount, source, item) {
+    healDamage(amount: number, source: Actor, item: Item) {
         const lowHealth = Math.min(...this.statList.map(s => s.current));
         const lowStats = this.statList.filter(s => s.current === lowHealth);
         const stat = RNG.getItem(lowStats);
@@ -242,7 +242,7 @@ export class Player extends Creature {
         }
     }
 
-    receiveDestroyMessage(message, victim) {
+    receiveDestroyMessage(message: string, victim: Actor) {
         this.destroyMessages.set(victim, message);
     }
 
@@ -255,11 +255,11 @@ export class Player extends Creature {
         Creature.activePlayer ??= this;
     }
 
-    queueEat(item, count=1) {
+    queueEat(item: Item, count=1) {
         this.queueAction(() => this.eatItem(item, count));
     }
 
-    queueDrop(item, count=1) {
+    queueDrop(item: Item, count=1) {
         this.queueAction(() => this.dropItem(item, count));
     }
 
@@ -508,22 +508,22 @@ export class InventoryUI {
     }
 
     createItemElement(item: Item) {
-        const element = cloneTemplate(this.itemTemplate, true).firstElementChild;
-        element["inventoryItem"] = item;
-        const button = element.querySelector("button");
-        button["inventoryItem"] = item;
+        const element = cloneTemplate(this.itemTemplate, true).firstElementChild as Element & {inventoryItem?: Item, rotDisplay?: Display};
+        element.inventoryItem = item;
+        const button = element.querySelector("button") as HTMLButtonElement & {inventoryItem?: Item};
+        button.inventoryItem = item;
         button.classList.add("item-button");
         button.onfocus = this.focusListener;
         button.onclick = this.itemClickListener;
         const displayContainer = element.querySelector(".display-container");
         if (displayContainer) {
-            element["rotDisplay"] = null;
+            element.rotDisplay = null;
             const {char} = Tileset.light.layerFrames[item.spriteTile][item.spriteFrame];
             Tileset.light.getDisplayOptions().then(opts => {
                 const display = new Display({...opts, width: 1, height: 1});
                 displayContainer.append(display.getContainer());
                 display.draw(0, 0, char, null, null);
-                element["rotDisplay"] = display;
+                element.rotDisplay = display;
             });
         }
         return element;

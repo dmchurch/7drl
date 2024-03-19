@@ -25,7 +25,7 @@ export function getZ(yz: JoinedYZ): number {
 }
 
 export function translate3DCallback<R>(callback: (x: number, y: number, z: number) => R): (x: number, y: number) => R {
-    return ((x, yz: JoinedYZ) => callback(x, getY(yz), getZ(yz))) as unknown as (x: number, y: number) => R;
+    return ((x: number, yz: JoinedYZ) => callback(x, getY(yz), getZ(yz))) as unknown as (x: number, y: number) => R;
 }
 
 const toYZ: (y: number, z: number) => number = (joinYZ as unknown as (y: number, z: number) => number);

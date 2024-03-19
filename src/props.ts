@@ -4,6 +4,7 @@ import { items } from "~data/items.js";
 import { eggTiles, soulTiles } from "~data/tiles.js";
 import { MapSprite, SpriteContainer, WorldMap, isSpriteContainer } from "./worldmap.js";
 import type { Actor } from "./actors.js";
+import type { Player } from "./player.js";
 
 console.debug("Starting props.js");
 
@@ -57,7 +58,7 @@ export class Prop extends MapSprite {
         }
     }
 
-    die(killer: Actor, item: Item) {
+    die(killer: Actor | Player, item: Item): false {
         this.releaseFromOwner();
         return false;
     }
@@ -108,7 +109,7 @@ export class Item extends Prop {
                     description = items[itemName].description ?? "Hard to open.",
                     stackSize,
                     ...rest
-                } = options ?? {}) {
+                }: Overrides<Item> = options ?? {}) {
         super(spriteTile, {
             displayLayer: 3,
             singular, plural, description,

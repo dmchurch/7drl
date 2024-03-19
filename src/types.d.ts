@@ -69,22 +69,22 @@ declare type EquipmentName = {[K in keyof _AllItemDefinitions]: _AllItemDefiniti
 declare type EquipmentDefinition = import("~data/items.js").EquipmentDefinition;
 declare type RoleDefinition = import("~data/roles.js").RoleDefinition;
 declare type RoleName = import("~data/roles.js").RoleName;
-declare type KeyboardCueName = keyof typeof import("./uicomponents.js").KeyboardCueElement["keysToDOMCodes"];
-declare type DOMKeyCode = keyof typeof import("./input.js").InputManager["keyCodesToKeyCues"];
+declare type KeyboardCueName = keyof typeof import("~src/uicomponents.js").KeyboardCueElement["keysToDOMCodes"];
+declare type DOMKeyCode = keyof typeof import("~src/input.js").InputManager["keyCodesToKeyCues"];
 declare type PopDefinition = import("~data/pops.js").PopDefinition;
 declare type ItemPopDefinition = import("~data/pops.js").ItemPopDefinition;
 declare type RolePopDefinition = import("~data/pops.js").RolePopDefinition;
 declare type PopName = import("~data/pops.js").PopName;
 
-declare type StatDef = import("./stats.js").StatDef;
-declare type StatName = import("./stats.js").StatName;
+declare type StatDef = import("~src/stats.js").StatDef;
+declare type StatName = import("~src/stats.js").StatName;
 
 declare type IfEquals<X, Y, T, F = never> =
     (<T>() => T extends X ? 1 : 2) extends
     (<T>() => T extends Y ? 1 : 2) ? T : F;
 
 type NonOverridableKeys = "worldMap" | "container" | "rootSprite";
-type NonOverridable = string | number | boolean | symbol | bigint | any[] | import("./worldmap.js").WorldMap;
+type NonOverridable = string | number | boolean | symbol | bigint | any[] | import("~src/worldmap.js").WorldMap;
 declare type PropertyKeys<T> = {
     [K in keyof T]: T[K] extends Function ? never
                   : IfEquals<{[K2 in K]: T[K]}, {-readonly [K2 in K]: T[K]}, K>
@@ -131,14 +131,14 @@ declare interface ReadonlyBoundingBox {
 
     countCoords(): number;
 
-    copy(): import("./geometry.js").BoundingBox;
-    makeWritable(): import("./geometry.js").BoundingBox;
+    copy(): import("~src/geometry.js").BoundingBox;
+    makeWritable(): import("~src/geometry.js").BoundingBox;
     contains(x?: number, y?: number, z?: number): boolean;
     walk(callback: (x: number, y: number, z: number) => any): void;
 }
 
-type Coord = import("./geometry.js").Coord;
-type CoordAbortSymbol = typeof import("./geometry.js").Coord.ABORT
+type Coord = import("~src/geometry.js").Coord;
+type CoordAbortSymbol = typeof import("~src/geometry.js").Coord.ABORT
 
 declare interface CoordSet extends IterableIterator<Coord> {
     get potentiallyUnbounded(): boolean;

@@ -12,7 +12,7 @@ export class InputManager {
         }
         return this.#instance;
     }
-    _ = InputManager.#instance ??= this;
+    private _: any = InputManager.#instance ??= this; // set the #instance as early as possible in the constructor
 
     static readonly keyCodesToKeyCues = invertMap(KeyboardCueElement.keysToDOMCodes);
     static readonly keySymbolsToKeyCues = symbolMap([typedEntries(this.keyCodesToKeyCues)?.[0]?.[1]]);
@@ -222,7 +222,7 @@ export class InputManager {
         this.handleKeySym(keySym, event);
     }
 
-    handleKeySym(keySym, event) {
+    handleKeySym(keySym: DOMKeySymbol, event: UIEvent) {
         if (this.alwaysIgnoreKeys[keySym]) {
             return false;
         }
@@ -365,7 +365,7 @@ export class InputAction {
         this.disabled = disabled;
     }
 
-    setName(name) {
+    setName(name: string) {
         this.name = name;
         return this;
     }
@@ -507,12 +507,12 @@ export class VKeyAction extends InputAction {
 
     }
 
-    activate(event, input = InputManager.instance) {
+    activate(event: UIEvent, input = InputManager.instance) {
         super.activate(event, input);
         input.setKeyState(this.virtualKey, true, event);
     }
 
-    deactivate(event, input = InputManager.instance) {
+    deactivate(event: UIEvent, input = InputManager.instance) {
         input.setKeyState(this.virtualKey, false, event);
         super.deactivate(event, input);
     }
@@ -526,7 +526,7 @@ export class CallbackAction extends InputAction {
         this.callback = callback;
     }
 
-    activate(event, input = InputManager.instance) {
+    activate(event: UIEvent, input = InputManager.instance) {
         super.activate(event, input);
         if (!input.paused) {
             this.callback(event);

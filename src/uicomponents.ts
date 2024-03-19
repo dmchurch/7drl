@@ -50,7 +50,7 @@ export const Rendered = {
                     const setProp = propertiesToSet[parseInt(attr.value)];
                     elem.removeAttributeNode(attr);
                     if (setProp) {
-                        elem[setProp.name] = setProp.value;
+                        (elem as any)[setProp.name] = setProp.value;
                     }
                 }
             }

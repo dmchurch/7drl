@@ -29,7 +29,7 @@ export class Cellular3D extends Map.Cellular {
 
     get data() { return this.thisMap?.data; }
     get nullColumn() { return this.thisMap?.nullColumn; }
-    
+
     declare thisMap: { data: Uint8Array; nullColumn: Uint8Array; map: Uint8Array[]; };
     declare otherMap: { data: Uint8Array; nullColumn: Uint8Array; map: Uint8Array[]; };
 
@@ -79,7 +79,7 @@ export class Cellular3D extends Map.Cellular {
         return map;
     }
 
-    _getNeighbors(cx, cy) {
+    _getNeighbors(cx: number, cy: number) {
         let result = super._getNeighbors(cx, cy);
         const stride = 1 << this.layerStrideBits;
         for (let i = 1; i < this.options.zWeight ?? 1; i++) {
@@ -130,7 +130,7 @@ export class Cellular3D extends Map.Cellular {
         this._service3DCallback(callback);
     }
 
-    randomize(probability) {
+    randomize(probability: number) {
         this.livePopulation = 0;
         for (let i = 0; i < this.data.length; i++) {
             this.livePopulation += (this.data[i] = (RNG.getUniform() < probability ? 1 : 0));
@@ -142,7 +142,7 @@ export class Cellular3D extends Map.Cellular {
         return this.livePopulation;
     }
 
-    _service3DCallback(callback) {
+    _service3DCallback(callback: Create3DCallback) {
         if (!callback) return;
         for (let z = 0, i = 0; z < this.depth; z++) {
             for (let x = 0; x < this.width; x++) {
@@ -153,7 +153,7 @@ export class Cellular3D extends Map.Cellular {
         }
     }
 
-    get3D(x, y, z) {
+    get3D(x: number, y: number, z: number) {
         return inSemiOpenRange(x, 0, this.width)
             && inSemiOpenRange(y, 0, this.height)
             && inSemiOpenRange(z, 0, this.depth)
