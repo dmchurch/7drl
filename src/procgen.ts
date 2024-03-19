@@ -1,6 +1,6 @@
 import { RNG } from "rot-js";
 import { after, indexInArray, mapToEntries, mapToValues } from "./helpers.js";
-import { fixPopDefinition, popDefinitions, pops } from "./pops.js";
+import { fixPopDefinition, popDefinitions, pops } from "~data/pops.js";
 import { MapSprite, WorldMap } from "./worldmap.js";
 import { Item } from "./props.js";
 import { Actor } from "./actors.js";

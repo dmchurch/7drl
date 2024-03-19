@@ -7,7 +7,7 @@ import { Tileset } from "./tileset.js";
 import { Astar3D } from "./rot3d.js";
 import { MessageLogElement } from "./uicomponents.js";
 import { FOG_KNOWN } from "./worldmap.js";
-import { equipment, godSummonMessage, winMessage } from "./items.js";
+import { equipment, godSummonMessage, winMessage } from "~data/items.js";
 
 console.debug("Starting player.js");
 

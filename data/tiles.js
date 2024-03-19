@@ -1,5 +1,5 @@
-import { typedEntries, typedKeys } from "./helpers.js"
-import { WallRule } from "./walls.js"
+import { typedEntries, typedKeys } from "~src/helpers.js"
+import { WallRule } from "~src/walls.js"
 
 /**
  * @typedef TileSheetDef

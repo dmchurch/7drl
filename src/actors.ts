@@ -1,10 +1,10 @@
 import { RNG } from "rot-js";
 import { EggItem, Item, Prop } from "./props.js";
-import { roles } from "./roles.js";
+import { roles } from "~data/roles.js";
 import { WorldMap } from "./worldmap.js";
 import { Astar3D } from "./rot3d.js";
 import { scheduler } from "./engine.js";
-import { isConsumableItemDefinition, isMetaEffectName, isNumericEffectName, isVoidEffectName } from "./items.js";
+import { isConsumableItemDefinition, isMetaEffectName, isNumericEffectName, isVoidEffectName } from "~data/items.js";
 import { typedEntries, typedKeys } from "./helpers.js";
 
 console.debug("Starting actors.js");

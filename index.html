@@ -10,12 +10,14 @@
     <script type="importmap">
         {
             "imports": {
+                "~src/": "./out/src/",
+                "~data/": "./out/data/",
                 "rot-js": "./node_modules/rot-js/lib/index.js",
                 "rot-js/": "./node_modules/rot-js/"
             }
         }
     </script>
-    <script src='out/main.js' type="module"></script>
+    <script src='out/src/main.js' type="module"></script>
 </head>
 <body>
     <dialog id="inventory">

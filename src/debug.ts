@@ -2,7 +2,7 @@ import { RNG } from "rot-js";
 import { MapSprite } from "./worldmap.js";
 import { Tileset } from "./tileset.js";
 import { after, htmlElement, typedEntries, valueElement } from "./helpers.js";
-import { tiles, wallRules } from "./tiles.js";
+import { tiles, wallRules } from "~data/tiles.js";
 import { WallRule } from "./walls.js";
 import { viewport } from "./globals.js";
 import { player } from "./globals.js";

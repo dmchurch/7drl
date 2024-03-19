@@ -180,7 +180,7 @@ export function fixPopDefinition(popDef) {
     return /** @type {Required<PopDefinition>} */(popDef);
 }
 
-import { mapEntries } from "./helpers.js";
+import { mapEntries } from "~src/helpers.js";
 /** @type {Record<PopName, Required<PopDefinition>>} */
 export const pops = mapEntries(popDefinitions, fixPopDefinition);
 

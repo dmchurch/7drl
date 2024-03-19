@@ -1,5 +1,5 @@
 import { cloneTemplate, getElement, htmlElement, meterElement, outputElement } from "./helpers.js";
-import { equipment } from "./items.js";
+import { equipment } from "~data/items.js";
 import { Item } from "./props.js";
 
 /** @satisfies {Record<string, StatDef>} */

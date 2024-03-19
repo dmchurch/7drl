@@ -1,5 +1,5 @@
 import { clamp, inSemiOpenRange, tuple } from "./helpers.js";
-import { wallRules } from "./tiles.js";
+import { wallRules } from "~data/tiles.js";
 import { Tileset } from "./tileset.js";
 import { Viewport } from "./viewport.js";
 import { WallRule } from "./walls.js";

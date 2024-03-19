@@ -1,7 +1,7 @@
 import { RNG } from "rot-js";
 import { filterEntries, mapEntries, typedEntries } from "./helpers.js";
-import { items } from "./items.js";
-import { eggTiles, soulTiles } from "./tiles.js";
+import { items } from "~data/items.js";
+import { eggTiles, soulTiles } from "~data/tiles.js";
 import { MapSprite, WorldMap, isSpriteContainer } from "./worldmap.js";
 
 console.debug("Starting props.js");

@@ -37,7 +37,7 @@ declare interface AsepriteExport {
     meta: AsepriteMeta;
 }
 
-declare type TileInfo = import ("./tiles.js").TileInfo;
+declare type TileInfo = import ("~data/tiles.js").TileInfo;
 
 declare interface TileFrame extends TileInfo {
     tileName: TileName;
@@ -56,25 +56,25 @@ declare interface BoundingBoxLike {
     zLimits: [number, number];
 }
 
-declare type TileSheetDef = import("./tiles.js").TileSheetDef;
-declare type TileSheetName = keyof (typeof import("./tiles.js"))["tileSheets"];
-declare type WallRuleName = keyof (typeof import("./tiles.js"))["wallRules"];
-declare type TileName = keyof (typeof import("./tiles.js"))["tileDefinitions"];
-declare type ItemDefinition = import("./items.js").ItemDefinition;
-declare type EquippableItemDefinition = import("./items.js").EquippableItemDefinition;
-declare type ConsumableItemDefinition = import("./items.js").ConsumableItemDefinition;
-declare type ItemName = import("./items.js").ItemName;
-type _AllItemDefinitions = typeof import("./items.js").itemDefinitions;
+declare type TileSheetDef = import("~data/tiles.js").TileSheetDef;
+declare type TileSheetName = keyof (typeof import("~data/tiles.js"))["tileSheets"];
+declare type WallRuleName = keyof (typeof import("~data/tiles.js"))["wallRules"];
+declare type TileName = keyof (typeof import("~data/tiles.js"))["tileDefinitions"];
+declare type ItemDefinition = import("~data/items.js").ItemDefinition;
+declare type EquippableItemDefinition = import("~data/items.js").EquippableItemDefinition;
+declare type ConsumableItemDefinition = import("~data/items.js").ConsumableItemDefinition;
+declare type ItemName = import("~data/items.js").ItemName;
+type _AllItemDefinitions = typeof import("~data/items.js").itemDefinitions;
 declare type EquipmentName = {[K in keyof _AllItemDefinitions]: _AllItemDefinitions[K] extends {equippable: true} ? K : never}[keyof _AllItemDefinitions]
-declare type EquipmentDefinition = import("./items.js").EquipmentDefinition;
-declare type RoleDefinition = import("./roles.js").RoleDefinition;
-declare type RoleName = import("./roles.js").RoleName;
+declare type EquipmentDefinition = import("~data/items.js").EquipmentDefinition;
+declare type RoleDefinition = import("~data/roles.js").RoleDefinition;
+declare type RoleName = import("~data/roles.js").RoleName;
 declare type KeyboardCueName = keyof typeof import("./uicomponents.js").KeyboardCueElement["keysToDOMCodes"];
 declare type DOMKeyCode = keyof typeof import("./input.js").InputManager["keyCodesToKeyCues"];
-declare type PopDefinition = import("./pops.js").PopDefinition;
-declare type ItemPopDefinition = import("./pops.js").ItemPopDefinition;
-declare type RolePopDefinition = import("./pops.js").RolePopDefinition;
-declare type PopName = import("./pops.js").PopName;
+declare type PopDefinition = import("~data/pops.js").PopDefinition;
+declare type ItemPopDefinition = import("~data/pops.js").ItemPopDefinition;
+declare type RolePopDefinition = import("~data/pops.js").RolePopDefinition;
+declare type PopName = import("~data/pops.js").PopName;
 
 declare type StatDef = import("./stats.js").StatDef;
 declare type StatName = import("./stats.js").StatName;
@@ -93,9 +93,9 @@ declare type Overrides<T> = T extends NonOverridable ? T : {
     [K in PropertyKeys<T>]?: K extends NonOverridableKeys ? T[K] : Overrides<T[K]>
 };
 
-declare type VoidItemEffectName = typeof import("./items.js").voidItemEffects[number];
-declare type NumericItemEffectName = typeof import("./items.js").numericItemEffects[number];
-declare type MetaItemEffectName = typeof import("./items.js").metaItemEffects[number];
+declare type VoidItemEffectName = typeof import("~data/items.js").voidItemEffects[number];
+declare type NumericItemEffectName = typeof import("~data/items.js").numericItemEffects[number];
+declare type MetaItemEffectName = typeof import("~data/items.js").metaItemEffects[number];
 declare type ItemEffectName = VoidItemEffectName | NumericItemEffectName | MetaItemEffectName;
 declare type ItemEffectValue<E extends ItemEffectName>
     = E extends VoidItemEffectName ? boolean

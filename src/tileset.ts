@@ -1,5 +1,5 @@
 import { mapEntries, memoize, typedEntries } from "./helpers.js";
-import { tileSheets, tiles, wallRules } from "./tiles.js";
+import { tileSheets, tiles, wallRules } from "~data/tiles.js";
 import { WallRule } from "./walls.js";
 
 console.debug("Starting tileset.js");

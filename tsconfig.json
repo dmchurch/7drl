@@ -32,8 +32,13 @@
     "paths": {                                           /* Specify a set of entries that re-map imports to additional lookup locations. */
       "rot-js": ["./node_modules/rot-js/lib/index.d.ts"],
       "rot-js/*": ["./node_modules/rot-js/*"],
+      "~src/*": ["./src/*"],
+      "~data/*": ["./data/*"],
     },
-    // "rootDirs": [],                                   /* Allow multiple folders to be treated as one when resolving modules. */
+    "rootDirs": [                                        /* Allow multiple folders to be treated as one when resolving modules. */
+      "./src",
+      "./data",
+    ],
     // "typeRoots": [],                                  /* Specify multiple folders that act like './node_modules/@types'. */
     "types": [                                           /* Specify type package names to be included without being referenced in a source file. */
       "mousetrap",
@@ -114,4 +119,7 @@
   "include": [
     "src/**/*",
   ],
+  "exclude": [
+    "./*.js",
+  ]
 }
