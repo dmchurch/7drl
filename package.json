@@ -2,8 +2,8 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "build": "npx tsc --build",
-    "watch": "npx tsc --build --watch"
+    "build": "npx tsc",
+    "watch": "npx tsc --watch"
   },
   "dependencies": {
     "mousetrap": "^1.6.5",

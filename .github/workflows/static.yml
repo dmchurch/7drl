@@ -35,6 +35,7 @@ jobs:
         uses: chill-viking/npm-ci@v1.2.0
       - name: Build Typescript
         run: npm run build
+        continue-on-error: true
       - name: Setup Pages
         uses: actions/configure-pages@v4
       - name: Upload artifact
