@@ -332,35 +332,6 @@ export function spawnPops(worldMap, popDef, spawnRegion, spawnContext, randomize
         }
     }
     
-
-    // const generator = popDef instanceof MapSprite ? null : generatePops(popDef);
-    // /** @type {Iterator<[x:number,y:number,z:number][], void>} */
-    // const distributor = distribution[Symbol.iterator]();
-    // let cells = distributor.next()?.value;
-    // let pop = generator?.next()?.value;
-    // let sprite = popDef instanceof MapSprite ? popDef : pop ? createSpriteFor(pop) : null;
-    // while (sprite && cells) {
-    //     for (const index of RNG.shuffle(Array.from(cells.keys()))) {
-    //         const [x, y, z] = cells[index];
-    //         // @ts-ignore
-    //         if (sprite.canSpawnAt(x, y, z, worldMap, pop, popDef instanceof MapSprite ? null : popDef)) {
-    //             // success
-    //             worldMap.addSprite(sprite, {x, y, z});
-    //             cells.splice(index, 1);
-    //             sprites.push(sprite);
-    //             sprite = null;
-    //             break;
-    //         }
-    //     }
-    //     if (sprite) {
-    //         // couldn't find anywhere in this cell list, let's get another
-    //         cells = distributor.next()?.value;
-    //     } else {
-    //         pop = generator?.next()?.value;
-    //         sprite = pop ? createSpriteFor(pop) : null;
-    //     }
-    // }
-
     if (spawnRecord.subDefs?.length === 1 && spawnRecord.subDefs[0].length === 1) {
         spawnRecord.subDef = spawnRecord.subDefs[0][0];
         delete spawnRecord.subDefs;
@@ -368,7 +339,6 @@ export function spawnPops(worldMap, popDef, spawnRegion, spawnContext, randomize
 
     return spawnRecord;
 }
-
 
 /** @param {MapSprite} sprite @param {PopDefinition|MapSprite} popDef @param {Parameters<MapSprite["distributeNearby"]>[0]} [options] */
 export function spawnNearby(sprite, popDef, options, worldMap = sprite.worldMap, randomizeCoords = false) {

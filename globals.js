@@ -36,7 +36,7 @@ let o = {
     layers: 7,
     focusLayer: 3,
 };
-export const viewport = worldMap.mainViewport = new Viewport(worldMap, "gameDisplay", o);
+export const viewport = worldMap.mainViewport = new Viewport(worldMap, "gameDisplay", o, 0);
 
 export const input = InputManager.instance;
 
