@@ -1,6 +1,16 @@
 {
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "npx tsc --build",
+    "watch": "npx tsc --build --watch"
+  },
   "dependencies": {
     "mousetrap": "^1.6.5",
     "rot-js": "^2.2.0"
+  },
+  "devDependencies": {
+    "@types/mousetrap": "^1.6.15",
+    "typescript": "^5.4.2"
   }
 }

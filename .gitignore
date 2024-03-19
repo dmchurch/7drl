@@ -1,2 +1,4 @@
+.vscode/settings.json
+out/
 node_modules/
 *.aseprite
