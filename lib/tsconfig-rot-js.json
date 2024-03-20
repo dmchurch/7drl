@@ -1,0 +1,12 @@
+{
+    "extends": "./rot-js/tsconfig.json",
+	"compilerOptions": {
+        "inlineSourceMap": true,
+		"outDir": "../out/rot-js/lib",
+		"newLine": "lf",
+		"composite": true,
+		"rootDir": "./rot-js/src",
+	},
+    "files": ["./type-stubs.d.ts"],
+	"include": ["rot-js/src/**/*.ts"],
+}

@@ -4,7 +4,7 @@
 
     /* Projects */
     "incremental": true,                                 /* Save .tsbuildinfo files to allow for incremental compilation of projects. */
-    // "composite": true,                                /* Enable constraints that allow a TypeScript project to be used with project references. */
+    "composite": true,                                   /* Enable constraints that allow a TypeScript project to be used with project references. */
     // "tsBuildInfoFile": "./.tsbuildinfo",              /* Specify the path to .tsbuildinfo incremental compilation file. */
     // "disableSourceOfProjectReferenceRedirect": true,  /* Disable preferring source files instead of declaration files when referencing composite projects. */
     // "disableSolutionSearching": true,                 /* Opt a project out of multi-project reference checking when editing. */
@@ -30,8 +30,8 @@
     // "moduleResolution": "node10",                     /* Specify how TypeScript looks up a file from a given module specifier. */
     // "baseUrl": "./",                                  /* Specify the base directory to resolve non-relative module names. */
     "paths": {                                           /* Specify a set of entries that re-map imports to additional lookup locations. */
-      "rot-js": ["./node_modules/rot-js/lib/index.d.ts"],
-      "rot-js/*": ["./node_modules/rot-js/*"],
+      "rot-js": ["./lib/rot-js/src/index.js"],
+      "rot-js/lib/*": ["./lib/rot-js/src/*"],
       "~src/*": ["./src/*"],
       "~data/*": ["./data/*"],
     },
@@ -117,9 +117,12 @@
     "skipLibCheck": true                                 /* Skip type checking all .d.ts files. */
   },
   "include": [
+    "data/**/*",
     "src/**/*",
   ],
-  "exclude": [
-    "./*.js",
-  ]
+  "references": [
+    {
+      "path": "lib/tsconfig-rot-js.json",
+    }
+  ],
 }

@@ -1,0 +1,4 @@
+[submodule "lib/rot-js"]
+	path = lib/rot-js
+	url = https://github.com/dmchurch/rot.js
+	branch = rot3d
