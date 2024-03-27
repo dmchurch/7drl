@@ -1,10 +1,8 @@
-import { Creature } from "./actors.js";
 import { scheduler } from "./engine.js";
 import { InputManager } from "./input.js";
 import { Player } from "./player.js";
-import { Item } from "./props.js";
 import { Tileset } from "./tileset.js";
-import { Viewport } from "./viewport.js";
+import { Viewport, type ViewportOptions } from "./viewport.js";
 import { WorldMap } from "./worldmap.js";
 
 console.debug("Starting globals.js");
@@ -28,7 +26,7 @@ scheduler.player = player;
 
 export const tileset = Tileset.light;
 
-let o: ConstructorParameters<typeof Viewport>[2] = {
+let o: ViewportOptions = {
     ...await tileset.getDisplayOptions(),
     width: 33,
     height: 33,

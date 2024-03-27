@@ -1,7 +1,7 @@
 import { mapEntries, memoize, typedEntries } from "./helpers.js";
 import { tileSheets, tiles, wallRules } from "~data/tiles.js";
 import { WallRule } from "./walls.js";
-import type { Display } from "rot-js";
+import type { TileOptions } from "rot-js/lib/display/tile.js";
 
 console.debug("Starting tileset.js");
 
@@ -74,7 +74,7 @@ export class BaseTileSheet<LayerName extends string> {
         return map;
     }
 
-    get displayOptions(): ConstructorParameters<typeof Display>[0] {
+    get displayOptions() {
         const {tileHeight, tileWidth, img} = this;
         return {
             layout: "tile",
@@ -83,7 +83,7 @@ export class BaseTileSheet<LayerName extends string> {
             tileHeight,
             tileSet: img,
             tileMap: this.charMap ?? this.createCharMap(),
-        };
+        } satisfies TileOptions;
     }
 
     async getDisplayOptions() {

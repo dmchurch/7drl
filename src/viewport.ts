@@ -1,9 +1,12 @@
-import { Display } from "rot-js";
+import { Display as ROTDisplay } from "rot-js";
 import { WorldMap } from "./worldmap.js";
-import Tile from "rot-js/lib/display/tile.js"
 import { htmlElement } from "./helpers.js";
+import type { TileOptions } from "rot-js/lib/display/tile.js";
 
-type Options = ConstructorParameters<typeof Display>[0] & {
+const Display = ROTDisplay;
+export type Display = ROTDisplay<"tile">;
+
+export interface ViewportOptions extends TileOptions {
     layers?: number;
     focusLayer?: number;
     width: number;
@@ -40,7 +43,7 @@ export class Viewport {
         }
     }
 
-    constructor(worldMap: WorldMap, viewportContainer: Element | string, options: Options, expandLayers = 4) {
+    constructor(worldMap: WorldMap, viewportContainer: Element | string, options: ViewportOptions, expandLayers = 4) {
         this.worldMap = worldMap;
         this.container = htmlElement(viewportContainer);
         this.layers = options.layers ?? 8;
@@ -52,7 +55,7 @@ export class Viewport {
 
         for (let i = 0; i < this.layers; i++) {
             const expandViewport = expandLayers * Math.abs(this.focusLayer - i);
-            this.displays[i] = new FixedDisplay({...options, width: width + expandViewport, height: height + expandViewport});
+            this.displays[i] = new Display({...options, width: width + expandViewport, height: height + expandViewport});
             const layerContainer = this.displays[i].getContainer();
             this.container.appendChild(layerContainer);
             layerContainer.classList.add("viewport-layer");
@@ -77,14 +80,14 @@ export class Viewport {
         this.resizeObserver = new ResizeObserver(this.resizeCallback.bind(this));
     }
 
-    createDepthView(depthContainer: Element | string, options: Omit<Options, 'width' | 'height'> = {}) {
-        const viewportOptions = this.focusDisplay.getOptions();
+    createDepthView(depthContainer: Element | string, options: Omit<Partial<TileOptions>, 'width' | 'height'> = {}) {
+        const displayOptions = this.focusDisplay.getOptions();
         this.depthContainer = htmlElement(depthContainer);
         const gaugeRows = this.worldMap.depth + 2;
-        this.depthDisplay = new FixedDisplay({...viewportOptions, ...options, width: 1, height: gaugeRows});
+        this.depthDisplay = new Display({...displayOptions, ...options, width: 1, height: gaugeRows});
         this.depthContainer.appendChild(this.depthDisplay.getContainer());
         this.depthContainer.style.setProperty("--gauge-rows", String(gaugeRows));
-        this.depthContainer.style.setProperty("--gauge-px-height", String(gaugeRows * viewportOptions.tileHeight));
+        this.depthContainer.style.setProperty("--gauge-px-height", String(gaugeRows * displayOptions.tileHeight));
         this.trackSize(this.depthContainer, null, "--gauge-area-height");
     }
 
@@ -148,87 +151,6 @@ export class Viewport {
         this.worldMap.drawLayers(this.displays, x, y, z, this.centerZ);
         if (this.depthDisplay) {
             this.worldMap.drawDepthColumn(this.depthDisplay, this.centerX, this.centerY);
-        }
-    }
-}
-
-class FixedTile extends Tile {
-    clear() {
-        const oldComposite = this._ctx.globalCompositeOperation;
-        this._ctx.globalCompositeOperation = "copy";
-        super.clear();
-        this._ctx.globalCompositeOperation = oldComposite;
-    }
-
-    draw(data: [any, any, any, any, any], clearBefore: boolean) {
-        const {globalAlpha} = this._ctx;
-        let [x, y, ch, fg, bg] = data;
-        let tileWidth = this._options.tileWidth;
-        let tileHeight = this._options.tileHeight;
-        if (clearBefore) {
-            if (this._options.tileColorize) {
-                this._ctx.clearRect(x * tileWidth, y * tileHeight, tileWidth, tileHeight);
-            }
-            else {
-                this._ctx.save();
-                this._ctx.globalCompositeOperation = "copy";
-                this._ctx.fillStyle = bg;
-                this._ctx.beginPath();
-                this._ctx.rect(x * tileWidth, y * tileHeight, tileWidth, tileHeight);
-                this._ctx.clip();
-                this._ctx.fill();
-                this._ctx.restore();
-            }
-        }
-        if (!ch) {
-            return;
-        }
-        let chars = [].concat(ch);
-        let fgs = [].concat(fg);
-        let bgs = [].concat(bg);
-
-        for (let i = 0; i < chars.length; i++) {
-            let tile = this._options.tileMap[chars[i]];
-            if (!tile) {
-                throw new Error(`Char "${chars[i]}" not found in tileMap`);
-            }
-            if (this._options.tileColorize) { // apply colorization
-                let canvas = this._colorCanvas;
-                let context = canvas.getContext("2d");
-                context.globalCompositeOperation = "source-over";
-                context.clearRect(0, 0, tileWidth, tileHeight);
-                let fg = fgs[i];
-                let bg = bgs[i];
-                context.drawImage(this._options.tileSet, tile[0], tile[1], tileWidth, tileHeight, 0, 0, tileWidth, tileHeight);
-                if (fg != "transparent") {
-                    context.fillStyle = fg;
-                    context.globalCompositeOperation = "source-atop";
-                    context.fillRect(0, 0, tileWidth, tileHeight);
-                }
-                if (bg != "transparent") {
-                    context.fillStyle = bg;
-                    context.globalCompositeOperation = "destination-over";
-                    context.fillRect(0, 0, tileWidth, tileHeight);
-                }
-                this._ctx.drawImage(canvas, x * tileWidth, y * tileHeight, tileWidth, tileHeight);
-            }
-            else { // no colorizing, easy
-                let fg = fgs[i];
-                if (typeof fg === "number") {
-                    this._ctx.globalAlpha = fg;
-                }
-                this._ctx.drawImage(this._options.tileSet, tile[0], tile[1], tileWidth, tileHeight, x * tileWidth, y * tileHeight, tileWidth, tileHeight);
-            }
-        }
-        this._ctx.globalAlpha = globalAlpha;
-    }
-}
-
-class FixedDisplay extends Display {
-    constructor(options: ConstructorParameters<typeof Display>[0]) {
-        super(options);
-        if (this._backend instanceof Tile) {
-            Object.setPrototypeOf(this._backend, FixedTile.prototype);
         }
     }
 }

@@ -1,12 +1,10 @@
 import { clamp, inSemiOpenRange, tuple } from "./helpers.js";
 import { wallRules } from "~data/tiles.js";
 import { Tileset } from "./tileset.js";
-import { Viewport } from "./viewport.js";
+import { Viewport, type Display } from "./viewport.js";
 import { WallRule } from "./walls.js";
 import { Precise3DShadowcasting } from "./rot3d.js";
 import { BoundingBox, Coord } from "./geometry.js";
-
-import type { Display } from "rot-js";
 
 console.debug("Starting worldmap.js");
 
