@@ -1,6 +1,7 @@
 import { cloneTemplate, getElement, htmlElement, meterElement, outputElement } from "./helpers.js";
 import { equipment } from "~data/items.js";
-import { Item } from "./props.js";
+import type { Item } from "./props.js";
+import type { Player } from "./player.js";
 
 export const allStats = {
     "head": {
@@ -86,20 +87,16 @@ export class Stat {
     }
 }
 
-export class StatUI {
+abstract class MeterUI {
     stat;
 
     container: HTMLElement;
     title;
     meter;
-    curOutput;
-    maxOutput;
 
-    get label() {
-        return allStats[this.stat.name].label;
-    }
+    abstract get label(): string;
 
-    constructor(stat: StatLike, container: string | Element, template = "bodypartTemplate") {
+    constructor(stat: StatLike, container: string | Element, template: string) {
         this.stat = stat;
         this.container = htmlElement(container);
 
@@ -108,9 +105,6 @@ export class StatUI {
         }
         this.title = this.container.querySelector("dt");
         this.meter = meterElement(this.container.querySelector(".hpmeter"));
-        this.curOutput = outputElement(this.container.querySelector(".curhp"));
-        this.maxOutput = outputElement(this.container.querySelector(".maxhp"));
-        this.update();
     }
 
     update() {
@@ -121,10 +115,31 @@ export class StatUI {
         this.meter.low = max / 4 + 0.01;
         this.meter.high = max * 3 / 4 - 0.01;
         this.meter.value = current;
-        this.curOutput.value = String(current);
-        this.maxOutput.value = String(max);
         this.container.classList.toggle("broken", current <= 0);
         this.container.classList.toggle("full", current === max);
+    }
+}
+
+export class StatUI extends MeterUI {
+    curOutput;
+    maxOutput;
+
+    get label() {
+        return allStats[this.stat.name].label;
+    }
+
+    constructor(stat: StatLike, container: string | Element, template = "bodypartTemplate") {
+        super(stat, container, template);
+        this.curOutput = outputElement(this.container.querySelector(".curhp"));
+        this.maxOutput = outputElement(this.container.querySelector(".maxhp"));
+        this.update();
+    }
+
+    update() {
+        super.update();
+        const {current, max, equipDef} = this.stat;
+        this.curOutput.value = String(current);
+        this.maxOutput.value = String(max);
     }
 }
 
@@ -144,4 +159,22 @@ export class SoulUI extends StatUI {
             get max() { return prop.maxDurability; },
         }, container, template);
    }
+}
+
+export class SatietyUI extends MeterUI {
+    stateOutput;
+
+    get label() {
+        return "Satiety";
+    }
+
+    constructor(player: Player, container: string | Element, template = "satietyTemplate") {
+        super(player.satiety, container, template);
+        this.stateOutput = outputElement(this.container.querySelector(".state"));
+        this.update();
+    }
+
+    update() {
+        super.update();
+    }
 }

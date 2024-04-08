@@ -1,8 +1,8 @@
 import { Display, RNG } from "rot-js";
 import { Actor, Creature } from "./actors.js";
-import { after, cloneTemplate, dialogElement, getElement, htmlElement, mapEntries, templateElement, typedKeys } from "./helpers.js";
+import { after, clamp, cloneTemplate, dialogElement, getElement, htmlElement, mapEntries, templateElement, typedKeys } from "./helpers.js";
 import { EggItem, Item, Prop, SoulItem } from "./props.js";
-import { SoulUI, Stat, StatUI, allStats, isStatName } from "./stats.js";
+import { SatietyUI, SoulUI, Stat, StatUI, allStats, isStatName } from "./stats.js";
 import { Tileset } from "./tileset.js";
 import { Astar3D } from "./rot3d.js";
 import { MessageLogElement } from "./uicomponents.js";
@@ -35,6 +35,14 @@ export class Player extends Creature {
             return this.self.maxDurability;
         },
     };
+    satietyUI: SatietyUI = null;
+    satiety: StatLike = {
+        name: null,
+        s: null,
+        equipDef: null,
+        current: 500,
+        max: 500,
+    };
 
     stats: Record<StatName, Stat>;
 
@@ -58,6 +66,8 @@ export class Player extends Creature {
     godSummoned = false;
     wonGame = false;
     isDead = false;
+    healCounter = 0;
+    healTime = 5; // how many rounds does it take to heal 1 point of damage
 
     inventoryUI = new InventoryUI(this, "inventory");
     messageLog: MessageLogElement;
@@ -86,6 +96,8 @@ export class Player extends Creature {
                 this.statUIs[bodypart] = new StatUI(this.stats[bodypart], bpContainer);
             } else if (bodypart === "soul") {
                 this.soulUI = new SoulUI(this, bpContainer);
+            } else if (bodypart === "satiety") {
+                this.satietyUI = new SatietyUI(this, bpContainer);
             } else {
                 throw new Error(`Bad data-bodypart: ${bodypart}`);
             }
@@ -101,6 +113,7 @@ export class Player extends Creature {
         const stat = RNG.getItem(liveStats);
         const old = stat.current;
         stat.current -= amount;
+        this.healCounter = 0;
         const {name, s, current} = stat;
         if (name === null) {
             if (current === old) {
@@ -165,15 +178,34 @@ export class Player extends Creature {
     }
 
     healDamage(amount: number, source: Actor, item: Item) {
-        const lowHealth = Math.min(...this.statList.map(s => s.current));
-        const lowStats = this.statList.filter(s => s.current === lowHealth);
-        const stat = RNG.getItem(lowStats);
+        const isNaturalHealing = source === this && item === null;
+        let stat: StatLike;
+        if (isNaturalHealing) {
+            if (this.durability < this.maxDurability) {
+                stat = this.soul;
+            } else {
+                const nonFullStats = this.statList.filter(s => s.current < s.max);
+                if (!nonFullStats.length) {
+                    // nothing happens
+                    return;
+                }
+                stat = RNG.getItem(nonFullStats);
+            }
+        } else {
+            const lowHealth = Math.min(...this.statList.map(s => s.current));
+            const lowStats = this.statList.filter(s => s.current === lowHealth);
+            stat = RNG.getItem(lowStats);
+        }
         const {current: old, max} = stat;
         if (old < max) {
             stat.current = Math.min(old + amount, max);
         }
         const {name, s, current} = stat;
-        if (old <= 0 && current > 0) {
+        if (isNaturalHealing) {
+            if (old <= 0 && current > 0) {
+                this.messageLog.addMessage(`Your ${name} recover${s}.`)
+            }
+        } else if (old <= 0 && current > 0) {
             this.messageLog.addMessage(`Your ${name} recover${s} with ${current} health!`)
         } else if (old < current) {
             this.messageLog.addMessage(`Your ${name} recover${s} ${current - old} health.`)
@@ -186,6 +218,32 @@ export class Player extends Creature {
         }
         this.statUIs[name].update();
         document.documentElement.classList.toggle("soul-uncovered", this.soulUncovered);
+    }
+
+    applyEffect(effect: VoidItemEffectName | NumericItemEffectName, strength: number, item: Item, source: Actor) {
+        if (effect === "satiety") {
+            this.satiety.current = clamp(this.satiety.current + strength, 0, this.satiety.max);
+            this.satietyUI.update();
+        } else {
+            super.applyEffect(effect, strength, item, source);
+        }
+    }
+
+    procRoundEffects() {
+        if (this.satiety.current > 0) {
+            this.satiety.current--;
+            this.satietyUI.update();
+            this.healCounter++;
+            if (this.healCounter >= this.healTime) {
+                this.healCounter = 0;
+                this.healDamage(1, this, null);
+            }
+        }
+        super.procRoundEffects();
+    }
+
+    procRoundEffect(effect: ItemEffectName, roundsLeft: number) {
+        super.procRoundEffect(effect, roundsLeft)
     }
 
     attack(target: Prop) {
@@ -393,6 +451,7 @@ export class Player extends Creature {
             console.log("awaited");
         }
         this.actionQueue.shift()();
+        this.procRoundEffects();
         return true;
     }
 }

@@ -144,6 +144,7 @@
                 <div class="bodypart" data-bodypart="fins"></div>
                 <div class="bodypart" data-bodypart="tail"></div>
                 <div class="bodypart" data-bodypart="soul" id="soul"></div>
+                <div class="bodypart" data-bodypart="satiety" id="satiety"></div>
                 <template id="bodypartTemplate">
                     <dt></dt>
                     <dd>
@@ -151,6 +152,15 @@
                         <label>
                             <output class="curhp"></output>
                             <output class="maxhp"></output>
+                        </label>
+                    </dd>
+                </template>
+                <template id="satietyTemplate">
+                    <dt></dt>
+                    <dd>
+                        <meter class="hpmeter"></meter>
+                        <label>
+                            <output class="state"></output>
                         </label>
                     </dd>
                 </template>

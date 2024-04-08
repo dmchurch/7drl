@@ -132,6 +132,27 @@ export class Actor extends Prop {
     applyRoundEffect(effect: ItemEffectName | NumericItemEffectName, rounds: number, item: Item, source: Actor) {
         this.roundEffects[effect] ??= 0;
         this.roundEffects[effect] += rounds;
+        if (this.roundEffects[effect] === 0) {
+            delete this.roundEffects[effect];
+        }
+    }
+
+    procRoundEffects() {
+        for (let [effect, rounds] of typedEntries(this.roundEffects)) {
+            if (rounds) {
+                this.procRoundEffect(effect, rounds);
+                if (rounds < 0) rounds++;
+                else if (rounds > 0) rounds--;
+            }
+            if (!rounds) {
+                delete this.roundEffects[effect];
+            } else {
+                this.roundEffects[effect] = rounds;
+            }
+        }
+    }
+
+    procRoundEffect(effect: ItemEffectName, roundsLeft: number) {
     }
 
     addedToWorldMap(worldMap: WorldMap) {
@@ -175,6 +196,7 @@ export class Actor extends Prop {
     }
 
     async act(time=0) {
+        this.procRoundEffects();
         return false;
     }
 
@@ -400,6 +422,7 @@ export class Creature extends Actor implements SpriteContainer {
                 [0, 0, -1],
             ]);
             this.move(dx, dy, dz);
+            this.procRoundEffects();
             return true;
         }
 
@@ -428,6 +451,7 @@ export class Creature extends Actor implements SpriteContainer {
             }
         }
 
+        this.procRoundEffects();
         return true;
     }
 }

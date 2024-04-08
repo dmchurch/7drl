@@ -202,6 +202,15 @@ canvas.layer-focus {
     margin: 0;
 }
 
+#statsPanel dd {
+    display: flex;
+    gap: 1em;
+}
+
+#statsPanel dd meter {
+    flex-grow: 1;
+}
+
 #statsPanel output.curhp::after {
     content: " /";
 }
@@ -210,6 +219,10 @@ canvas.layer-focus {
     display: none;
     color: #FF3322;
     filter: blur(0)
+}
+
+#satiety dd label {
+    display: none; /* Not currently used */
 }
 
 :root:not(.dead) #soul dt {
